@@ -4,7 +4,7 @@ This frontend is now prepared to talk to a Laravel backend with MySQL.
 
 Base URL:
 
-`https://digitalsolhub.com/`
+`https://api.digitalsolhub.com/`
 
 Required endpoints:
 
