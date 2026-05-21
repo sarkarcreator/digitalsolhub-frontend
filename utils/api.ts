@@ -55,7 +55,9 @@ export interface AdminStudentCreatePayload {
   course: string;
 }
 
-const API_BASE_URL = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_API_BASE_URL || '/api';
+const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_BASE_URL || 'https://digitalsolhub.com/api';
+
 const AUTH_STORAGE_KEY = 'dsh_auth';
 
 class ApiError extends Error {
@@ -63,10 +65,14 @@ class ApiError extends Error {
   payload?: unknown;
 }
 
+/* ---------------- AUTH STORAGE ---------------- */
+
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
+
   const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
   if (!raw) return null;
+
   try {
     const parsed = JSON.parse(raw) as AuthResponse;
     return parsed.token;
@@ -87,8 +93,10 @@ export function clearAuth() {
 
 export function getStoredAuth(): AuthResponse | null {
   if (typeof window === 'undefined') return null;
+
   const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
   if (!raw) return null;
+
   try {
     return JSON.parse(raw) as AuthResponse;
   } catch {
@@ -96,8 +104,15 @@ export function getStoredAuth(): AuthResponse | null {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}, requiresAuth = false): Promise<T> {
+/* ---------------- CORE REQUEST ---------------- */
+
+async function request<T>(
+  path: string,
+  init: RequestInit = {},
+  requiresAuth = false
+): Promise<T> {
   const headers = new Headers(init.headers || {});
+
   headers.set('Accept', 'application/json');
 
   if (init.body && !headers.has('Content-Type')) {
@@ -113,16 +128,21 @@ async function request<T>(path: string, init: RequestInit = {}, requiresAuth = f
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers
+    headers,
   });
 
   const contentType = response.headers.get('content-type') || '';
-  const payload = contentType.includes('application/json') ? await response.json() : await response.text();
+  const payload = contentType.includes('application/json')
+    ? await response.json()
+    : await response.text();
 
   if (!response.ok) {
     const error = new ApiError(
-      typeof payload === 'object' && payload && 'message' in payload ? String((payload as { message?: string }).message) : 'Request failed.'
+      typeof payload === 'object' && payload && 'message' in payload
+        ? String((payload as any).message)
+        : 'Request failed'
     );
+
     error.status = response.status;
     error.payload = payload;
     throw error;
@@ -131,11 +151,21 @@ async function request<T>(path: string, init: RequestInit = {}, requiresAuth = f
   return payload as T;
 }
 
+/* ---------------- AUTH API ---------------- */
+
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
+  // ✅ SAFETY FIX: ensure role always exists
+  const safePayload: LoginPayload = {
+    email: payload.email,
+    password: payload.password,
+    role: payload.role || 'student',
+  };
+
   const data = await request<AuthResponse>('/auth/login', {
     method: 'POST',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(safePayload),
   });
+
   persistAuth(data);
   return data;
 }
@@ -143,19 +173,28 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
   const data = await request<AuthResponse>('/auth/register', {
     method: 'POST',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
+
   persistAuth(data);
   return data;
 }
+
+/* ---------------- ADMIN ---------------- */
 
 export async function fetchAdminStudents(): Promise<AdminStudentLead[]> {
   return request<AdminStudentLead[]>('/admin/students', {}, true);
 }
 
-export async function createAdminStudent(payload: AdminStudentCreatePayload): Promise<AdminStudentLead> {
-  return request<AdminStudentLead>('/admin/students', {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  }, true);
+export async function createAdminStudent(
+  payload: AdminStudentCreatePayload
+): Promise<AdminStudentLead> {
+  return request<AdminStudentLead>(
+    '/admin/students',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    true
+  );
 }
