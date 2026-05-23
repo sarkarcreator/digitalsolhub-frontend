@@ -46,6 +46,23 @@ const AdminDashboard = () => {
   const [mintingId, setMintingId] = useState<string | null>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<BlockchainNetwork>('Polygon');
 
+  const loadStudents = async () => {
+  setStudentsLoading(true);
+  setStudentsError('');
+
+  try {
+    const data = await fetchAdminStudents();
+    setStudents(data);
+  } catch (error) {
+    setStudentsError(
+      error instanceof Error
+        ? error.message
+        : 'Unable to load student records.'
+    );
+  } finally {
+    setStudentsLoading(false);
+  }
+};
   useEffect(() => {
     const isRtl = lang === Language.URDU || lang === Language.ARABIC;
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
@@ -67,18 +84,6 @@ const AdminDashboard = () => {
     );
   }
 
-  const loadStudents = async () => {
-    setStudentsLoading(true);
-    setStudentsError('');
-    try {
-      const data = await fetchAdminStudents();
-      setStudents(data);
-    } catch (error) {
-      setStudentsError(error instanceof Error ? error.message : 'Unable to load student records.');
-    } finally {
-      setStudentsLoading(false);
-    }
-  };
 
   // --- Actions ---
 
