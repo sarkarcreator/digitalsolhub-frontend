@@ -133,6 +133,7 @@ async function request<T>(
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers,
+    credentials: 'include',
   });
 
   const contentType = response.headers.get('content-type') || '';
@@ -207,7 +208,15 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
   return request<AuthUser>('/user', {}, true);
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
+  try {
+    await request('/auth/logout', {
+      method: 'POST',
+    }, true);
+  } catch {
+    // Ignore logout failure, clear client state anyway
+  }
+
   clearAuth();
 }
 

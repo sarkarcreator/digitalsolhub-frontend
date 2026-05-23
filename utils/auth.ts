@@ -11,6 +11,7 @@ export function useRequireAuth(lang: string, requiredRole?: UserRole) {
     const storedAuth = getStoredAuth();
 
     if (!storedAuth) {
+      setLoadingAuth(false);
       navigate(`/${lang}/login`, { replace: true });
       return;
     }
