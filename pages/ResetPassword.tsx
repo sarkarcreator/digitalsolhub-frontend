@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
@@ -8,9 +8,10 @@ import { Lock, Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 
 const ResetPassword: React.FC = () => {
   const { lang: paramLang, token } = useParams<{ lang: string; token: string }>();
+  const [searchParams] = useSearchParams();
   const lang = (Object.values(Language).includes(paramLang as Language)) ? (paramLang as Language) : Language.ENGLISH;
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +23,7 @@ const ResetPassword: React.FC = () => {
     setError('');
     setStatus('');
 
-    if (!email || !password || !confirmPassword) {
+    if (!email || !token || !password || !confirmPassword) {
       setError(TRANSLATIONS.fill_all_fields[lang]);
       return;
     }

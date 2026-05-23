@@ -60,7 +60,7 @@ export interface PasswordResetResponse {
 }
 
 const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_BASE_URL || 'https://digitalsolhub.com/api';
+  (import.meta as any).env?.VITE_API_BASE_URL || 'https://api.digitalsolhub.com/api';
 
 const AUTH_STORAGE_KEY = 'dsh_auth';
 
@@ -142,10 +142,15 @@ async function request<T>(
     : await response.text();
 
   if (!response.ok) {
+    const validationMessage =
+      typeof payload === 'object' && payload && 'errors' in payload
+        ? Object.values((payload as any).errors || {}).flat().join(' ')
+        : '';
     const error = new ApiError(
-      typeof payload === 'object' && payload && 'message' in payload
+      validationMessage ||
+      (typeof payload === 'object' && payload && 'message' in payload
         ? String((payload as any).message)
-        : 'Request failed'
+        : 'Request failed')
     );
 
     error.status = response.status;
