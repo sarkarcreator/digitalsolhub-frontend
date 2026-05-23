@@ -18,36 +18,62 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  e.preventDefault();
 
-    if (!email || !password) {
-      setError(TRANSLATIONS.fill_all_fields[lang]);
-      return;
-    }
+  setError('');
 
-    setLoading(true);
+  if (!email.trim() || !password.trim()) {
+    setError(TRANSLATIONS.fill_all_fields[lang]);
+    return;
+  }
 
-    try {
-      const response = await login({
-        email,
-        password,
-        role: userType
+  setLoading(true);
+
+  try {
+    console.log('LOGIN PAYLOAD =>', {
+      email,
+      password,
+      role: userType,
+    });
+
+    const response = await login({
+      email: email.trim(),
+      password,
+      role: userType as 'student' | 'client' | 'admin',
+    });
+
+    console.log('LOGIN RESPONSE =>', response);
+
+    if (response.user.role === 'admin') {
+      navigate(`/${lang}/admin-dashboard`, {
+        replace: true,
       });
-
-      if (response.user.role === 'admin') {
-        navigate(`/${lang}/admin-dashboard`, { replace: true });
-      } else if (response.user.role === 'student') {
-        navigate(`/${lang}/dashboard`, { replace: true });
-      } else {
-        navigate(`/${lang}/client-dashboard`, { replace: true });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : TRANSLATIONS.invalid_login[lang]);
-    } finally {
-      setLoading(false);
+    } else if (response.user.role === 'student') {
+      navigate(`/${lang}/dashboard`, {
+        replace: true,
+      });
+    } else {
+      navigate(`/${lang}/client-dashboard`, {
+        replace: true,
+      });
     }
-  };
+  } catch (err: any) {
+    console.error('LOGIN ERROR =>', err);
+
+    if (err?.payload?.errors) {
+      const errors = err.payload.errors;
+      const firstError = Object.values(errors).flat()[0] as string;
+      setError(firstError);
+    } else {
+      setError(
+        err?.message ||
+        TRANSLATIONS.invalid_login[lang]
+      );
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen pt-24 pb-12 flex items-center justify-center bg-slate-950 relative overflow-hidden px-4">
