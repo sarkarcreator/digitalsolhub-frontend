@@ -60,7 +60,8 @@ export interface PasswordResetResponse {
 }
 
 const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_BASE_URL || 'https://api.digitalsolhub.com/api';
+  (import.meta as any).env?.VITE_API_BASE_URL ||
+  'https://api.digitalsolhub.com/api';
 
 const AUTH_STORAGE_KEY = 'dsh_auth';
 
@@ -75,6 +76,7 @@ function getToken(): string | null {
   if (typeof window === 'undefined') return null;
 
   const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+
   if (!raw) return null;
 
   try {
@@ -99,6 +101,7 @@ export function getStoredAuth(): AuthResponse | null {
   if (typeof window === 'undefined') return null;
 
   const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+
   if (!raw) return null;
 
   try {
@@ -118,6 +121,7 @@ async function request<T>(
   const headers = new Headers(init.headers || {});
 
   headers.set('Accept', 'application/json');
+  headers.set('X-Requested-With', 'XMLHttpRequest');
 
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
@@ -125,6 +129,7 @@ async function request<T>(
 
   if (requiresAuth) {
     const token = getToken();
+
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }
@@ -134,27 +139,43 @@ async function request<T>(
     ...init,
     headers,
     credentials: 'include',
+    mode: 'cors',
   });
 
   const contentType = response.headers.get('content-type') || '';
+
   const payload = contentType.includes('application/json')
     ? await response.json()
     : await response.text();
 
   if (!response.ok) {
     const validationMessage =
-      typeof payload === 'object' && payload && 'errors' in payload
-        ? Object.values((payload as any).errors || {}).flat().join(' ')
+      typeof payload === 'object' &&
+      payload &&
+      'errors' in payload
+        ? Object.values((payload as any).errors || {})
+            .flat()
+            .join(' ')
         : '';
+
     const error = new ApiError(
       validationMessage ||
-      (typeof payload === 'object' && payload && 'message' in payload
-        ? String((payload as any).message)
-        : 'Request failed')
+        (typeof payload === 'object' &&
+        payload &&
+        'message' in payload
+          ? String((payload as any).message)
+          : `Request failed with status ${response.status}`)
     );
 
     error.status = response.status;
     error.payload = payload;
+
+    console.error('API ERROR:', {
+      status: response.status,
+      payload,
+      path,
+    });
+
     throw error;
   }
 
@@ -163,8 +184,9 @@ async function request<T>(
 
 /* ---------------- AUTH API ---------------- */
 
-export async function login(payload: LoginPayload): Promise<AuthResponse> {
-  // ✅ SAFETY FIX: ensure role always exists
+export async function login(
+  payload: LoginPayload
+): Promise<AuthResponse> {
   const safePayload: LoginPayload = {
     email: payload.email,
     password: payload.password,
@@ -177,24 +199,33 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
   });
 
   persistAuth(data);
+
   return data;
 }
 
-export async function register(payload: RegisterPayload): Promise<AuthResponse> {
+export async function register(
+  payload: RegisterPayload
+): Promise<AuthResponse> {
   const data = await request<AuthResponse>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
 
   persistAuth(data);
+
   return data;
 }
 
-export async function forgotPassword(email: string): Promise<PasswordResetResponse> {
-  return request<PasswordResetResponse>('/auth/forgot-password', {
-    method: 'POST',
-    body: JSON.stringify({ email }),
-  });
+export async function forgotPassword(
+  email: string
+): Promise<PasswordResetResponse> {
+  return request<PasswordResetResponse>(
+    '/auth/forgot-password',
+    {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }
+  );
 }
 
 export async function resetPassword(payload: {
@@ -203,23 +234,34 @@ export async function resetPassword(payload: {
   password: string;
   password_confirmation: string;
 }): Promise<PasswordResetResponse> {
-  return request<PasswordResetResponse>('/auth/reset-password', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  return request<PasswordResetResponse>(
+    '/auth/reset-password',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function fetchCurrentUser(): Promise<AuthUser> {
-  return request<AuthUser>('/user', {}, true);
+  return request<AuthUser>(
+    '/user',
+    {},
+    true
+  );
 }
 
 export async function logout(): Promise<void> {
   try {
-    await request('/auth/logout', {
-      method: 'POST',
-    }, true);
-  } catch {
-    // Ignore logout failure, clear client state anyway
+    await request(
+      '/auth/logout',
+      {
+        method: 'POST',
+      },
+      true
+    );
+  } catch (error) {
+    console.warn('Logout request failed', error);
   }
 
   clearAuth();
@@ -228,7 +270,11 @@ export async function logout(): Promise<void> {
 /* ---------------- ADMIN ---------------- */
 
 export async function fetchAdminStudents(): Promise<AdminStudentLead[]> {
-  return request<AdminStudentLead[]>('/admin/students', {}, true);
+  return request<AdminStudentLead[]>(
+    '/admin/students',
+    {},
+    true
+  );
 }
 
 export async function createAdminStudent(
