@@ -75,7 +75,7 @@ class ApiError extends Error {
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
 
-  const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+  const raw = localStorage.getItem(AUTH_STORAGE_KEY);
 
   if (!raw) return null;
 
@@ -89,18 +89,18 @@ function getToken(): string | null {
 
 function persistAuth(data: AuthResponse) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
 }
 
 export function clearAuth() {
   if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  localStorage.removeItem(AUTH_STORAGE_KEY);
 }
 
 export function getStoredAuth(): AuthResponse | null {
   if (typeof window === 'undefined') return null;
 
-  const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
+  const raw = localStorage.getItem(AUTH_STORAGE_KEY);
 
   if (!raw) return null;
 
@@ -121,11 +121,8 @@ async function request<T>(
   const headers = new Headers(init.headers || {});
 
   headers.set('Accept', 'application/json');
+  headers.set('Content-Type', 'application/json');
   headers.set('X-Requested-With', 'XMLHttpRequest');
-
-  if (init.body && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
 
   if (requiresAuth) {
     const token = getToken();
@@ -138,15 +135,20 @@ async function request<T>(
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers,
-    credentials: 'include',
     mode: 'cors',
   });
 
   const contentType = response.headers.get('content-type') || '';
 
-  const payload = contentType.includes('application/json')
-    ? await response.json()
-    : await response.text();
+  let payload: any = null;
+
+  try {
+    payload = contentType.includes('application/json')
+      ? await response.json()
+      : await response.text();
+  } catch {
+    payload = null;
+  }
 
   if (!response.ok) {
     const validationMessage =
@@ -182,7 +184,7 @@ async function request<T>(
   return payload as T;
 }
 
-/* ---------------- AUTH API ---------------- */
+/* ---------------- AUTH ---------------- */
 
 export async function login(
   payload: LoginPayload
@@ -246,7 +248,9 @@ export async function resetPassword(payload: {
 export async function fetchCurrentUser(): Promise<AuthUser> {
   return request<AuthUser>(
     '/user',
-    {},
+    {
+      method: 'GET',
+    },
     true
   );
 }
@@ -272,7 +276,9 @@ export async function logout(): Promise<void> {
 export async function fetchAdminStudents(): Promise<AdminStudentLead[]> {
   return request<AdminStudentLead[]>(
     '/admin/students',
-    {},
+    {
+      method: 'GET',
+    },
     true
   );
 }
