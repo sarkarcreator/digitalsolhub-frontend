@@ -55,6 +55,10 @@ export interface AdminStudentCreatePayload {
   course: string;
 }
 
+export interface PasswordResetResponse {
+  message: string;
+}
+
 const API_BASE_URL =
   (import.meta as any).env?.VITE_API_BASE_URL || 'https://digitalsolhub.com/api';
 
@@ -178,6 +182,33 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
 
   persistAuth(data);
   return data;
+}
+
+export async function forgotPassword(email: string): Promise<PasswordResetResponse> {
+  return request<PasswordResetResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(payload: {
+  email: string;
+  token: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<PasswordResetResponse> {
+  return request<PasswordResetResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchCurrentUser(): Promise<AuthUser> {
+  return request<AuthUser>('/user', {}, true);
+}
+
+export function logout(): void {
+  clearAuth();
 }
 
 /* ---------------- ADMIN ---------------- */

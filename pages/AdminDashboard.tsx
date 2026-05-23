@@ -5,6 +5,7 @@ import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import AdminSidebar from '../components/AdminSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useRequireAuth } from '../utils/auth';
 import { getAllCertificates, updateCertificateStatus, attachBlockchainRecord } from '../utils/certificateManager';
 import { getAllLeads, updateLeadStatus } from '../utils/crmManager';
 import { getAllFranchises, updateFranchiseStatus } from '../utils/franchiseManager';
@@ -21,6 +22,7 @@ const AdminDashboard = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
   const lang = (Object.values(Language).includes(paramLang as Language)) ? (paramLang as Language) : Language.ENGLISH;
   const navigate = useNavigate();
+  const { authUser, loadingAuth } = useRequireAuth(lang, 'admin');
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('overview');
@@ -56,6 +58,14 @@ const AdminDashboard = () => {
     setFranchises(getAllFranchises());
     loadStudents();
   }, [lang]);
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+      </div>
+    );
+  }
 
   const loadStudents = async () => {
     setStudentsLoading(true);

@@ -5,9 +5,10 @@ import { TRANSLATIONS, SERVICE_CATEGORIES } from '../constants';
 import SEO from '../components/SEO';
 import ClientSidebar from '../components/ClientSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { useRequireAuth } from '../utils/auth';
 import { 
   Bell, Search, Menu, Activity, CheckCircle, 
-  Clock, CreditCard, MessageSquare, Briefcase, PlusCircle, FileText, Save, Download, ArrowLeft, ShieldCheck, FolderOpen, Calendar
+  Clock, CreditCard, MessageSquare, Briefcase, PlusCircle, FileText, Save, Download, ArrowLeft, ShieldCheck, FolderOpen, Calendar, Loader2
 } from 'lucide-react';
 
 const ClientDashboard: React.FC = () => {
@@ -18,6 +19,7 @@ const ClientDashboard: React.FC = () => {
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const navigate = useNavigate();
+  const { authUser, loadingAuth } = useRequireAuth(lang, 'client');
 
   useEffect(() => {
     const isRtl = lang === Language.URDU || lang === Language.ARABIC;
@@ -26,9 +28,17 @@ const ClientDashboard: React.FC = () => {
     document.body.className = 'bg-slate-950 font-sans text-white';
   }, [lang]);
 
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+      </div>
+    );
+  }
+
   // Mock Data
   const client = {
-    name: "Business Solutions Ltd",
+    name: authUser?.name ?? "Business Solutions Ltd",
     logo: "https://picsum.photos/200/200?random=client",
     plan: "Enterprise"
   };

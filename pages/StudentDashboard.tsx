@@ -15,10 +15,11 @@ import { getAllCertificates, issueCertificate } from '../utils/certificateManage
 import { getStudentBadges } from '../utils/badgeManager';
 import { requestAttestation, getAttestationByCertId } from '../utils/attestationManager';
 import { sendNotifications } from '../utils/notifications';
+import { useRequireAuth } from '../utils/auth';
 import { 
   Bell, Search, Menu, PlayCircle, FileText, 
   Award, CheckCircle, Clock, 
-  BookOpen, Mic, Brain, X, Printer, Share2, Linkedin, ShieldCheck, Database, Zap, FileBadge, Download
+  BookOpen, Mic, Brain, X, Printer, Share2, Linkedin, ShieldCheck, Database, Zap, FileBadge, Download, Loader2
 } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
@@ -38,15 +39,20 @@ const StudentDashboard: React.FC = () => {
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
 
   const navigate = useNavigate();
+  const { authUser, loadingAuth } = useRequireAuth(lang, 'student');
 
   useEffect(() => {
     const isRtl = lang === Language.URDU || lang === Language.ARABIC;
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
     document.body.className = 'bg-slate-950 font-sans text-white';
-    
-    loadCertificates();
-    loadBadges();
+
+    if (!authUser) {
+      return;
+    }
+
+    loadCertificates(authUser.name);
+    loadBadges(authUser.name);
     
     const mockEnrollment = COURSES.slice(0, 3).map(course => ({
        ...course,
@@ -55,34 +61,42 @@ const StudentDashboard: React.FC = () => {
     }));
     setEnrolledCourses(mockEnrollment);
 
-  }, [lang]);
+  }, [lang, authUser]);
 
-  const loadCertificates = () => {
+  const loadCertificates = (studentName: string) => {
     const allCerts = getAllCertificates();
-    const studentCerts = allCerts.filter(c => c.studentName === 'Ali Ahmed').map(cert => {
+    const studentCerts = allCerts.filter(c => c.studentName === studentName).map(cert => {
         const attestation = getAttestationByCertId(cert.id);
         return { ...cert, attestation };
     });
     setMyCertificates(studentCerts);
   };
 
-  const loadBadges = () => {
-    const badges = getStudentBadges('Ali Ahmed');
+  const loadBadges = (studentName: string) => {
+    const badges = getStudentBadges(studentName);
     setMyBadges(badges);
   };
 
   const student = {
-    name: "Ali Ahmed",
-    email: "ali.ahmed@example.com",
+    name: authUser?.name ?? 'Learner',
+    email: authUser?.email ?? 'hello@example.com',
     image: "https://picsum.photos/200/200?random=student",
-    id: "ST-2024-882"
+    id: authUser?.studentId ?? `ST-${authUser?.id ?? '000'}`
   };
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+      </div>
+    );
+  }
 
   const handleRequestAttestation = (cert: CertificateData) => {
       if (!cert.attestation) {
           requestAttestation(cert.id, cert.studentName, cert.courseName, 'Academy');
           alert("Attestation Request Submitted! Admin will review shortly.");
-          loadCertificates(); 
+          loadCertificates(student.name);
       }
   };
 
@@ -109,7 +123,7 @@ const StudentDashboard: React.FC = () => {
     alert(`Congratulations! You have completed ${courseName}. Certificate has been issued and emailed.`);
 
     // 4. Refresh Dashboard
-    loadCertificates();
+    loadCertificates(student.name);
     setCurrentView('certificates');
   };
 

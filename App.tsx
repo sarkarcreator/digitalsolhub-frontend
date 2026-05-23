@@ -25,6 +25,8 @@ const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const VerifyCertificate = lazy(() => import('./pages/VerifyCertificate')); 
@@ -140,6 +142,8 @@ const App: React.FC = () => {
              <Route path="legal/nda" element={<NDA />} />
              <Route path="login" element={<Login />} />
              <Route path="signup" element={<Signup />} />
+             <Route path="forgot-password" element={<ForgotPassword />} />
+             <Route path="reset-password/:token" element={<ResetPassword />} />
              <Route path="employer-portal" element={<EmployerPortal />} />
              <Route path="api-docs" element={<ApiDocs />} />
           </Route>

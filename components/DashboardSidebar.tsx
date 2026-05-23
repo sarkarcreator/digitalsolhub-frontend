@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
+import { logout } from '../utils/api';
 import { 
   LayoutDashboard, BookOpen, FileText, ClipboardList, Award, 
   MessageSquare, TrendingUp, LogOut, X, User, Megaphone, LifeBuoy
@@ -30,6 +31,7 @@ const DashboardSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, curre
   ];
 
   const handleLogout = () => {
+    logout();
     navigate(`/${lang}/login`);
   };
 

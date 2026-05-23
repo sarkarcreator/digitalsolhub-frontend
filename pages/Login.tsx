@@ -164,9 +164,9 @@ const Login: React.FC = () => {
                   <input type="checkbox" className="rounded border-gray-600 bg-slate-800 text-brand-blue focus:ring-brand-blue" />
                   <span>{TRANSLATIONS.remember_me[lang]}</span>
                 </label>
-                <a href="#" className="text-brand-blue hover:text-brand-neon transition-colors">
+                <Link to={`/${lang}/forgot-password`} className="text-brand-blue hover:text-brand-neon transition-colors">
                   {TRANSLATIONS.forgot_pass[lang]}
-                </a>
+                </Link>
               </div>
 
               <button 

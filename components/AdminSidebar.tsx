@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
+import { logout } from '../utils/api';
 import { 
   LayoutDashboard, Users, UserCheck, Briefcase, CreditCard, 
   MessageSquare, FileText, Settings, LogOut, X, Shield, PenTool, 
@@ -41,6 +42,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, currentVi
   ];
 
   const handleLogout = () => {
+    logout();
     navigate(`/${lang}/login`);
   };
 
