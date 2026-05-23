@@ -3,31 +3,84 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
-        headers: {
-          'Cache-Control': 'no-store'
-        },
-        proxy: {
-          '/api': {
-            target: env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000',
-            changeOrigin: true,
-            rewrite: (path) => path,
-            secure: false,
-            followRedirects: true,
-          }
-        }
+  const env = loadEnv(mode, '.', '');
+
+  return {
+    plugins: [react()],
+
+    cacheDir: 'node_modules/.vite_dev_cache',
+
+    define: {
+      global: 'globalThis',
+    },
+
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, '.'),
       },
-      plugins: [react()],
-      cacheDir: 'node_modules/.vite_dev_cache',
-      define: {},
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+    },
+
+    server: {
+      port: 3000,
+      host: '0.0.0.0',
+
+      allowedHosts: [
+        'digitalsolhub.com',
+        'www.digitalsolhub.com',
+        'api.digitalsolhub.com',
+        'dshsol.vercel.app',
+        'localhost',
+        '127.0.0.1',
+      ],
+
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+
+      proxy: {
+        '/api': {
+          target:
+            env.VITE_API_BASE_URL?.replace('/api', '') ||
+            'http://localhost:8000',
+
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+
+          rewrite: (path) => path,
+        },
+      },
+    },
+
+    preview: {
+      host: '0.0.0.0',
+
+      allowedHosts: [
+        'digitalsolhub.com',
+        'www.digitalsolhub.com',
+        'api.digitalsolhub.com',
+        'dshsol.vercel.app',
+      ],
+    },
+
+    build: {
+      sourcemap: false,
+
+      minify: 'esbuild',
+
+      target: 'es2020',
+
+      chunkSizeWarningLimit: 1000,
+
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
+
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-router-dom'],
+    },
+  };
 });
