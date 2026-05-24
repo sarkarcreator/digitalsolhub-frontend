@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS, SERVICE_CATEGORIES } from '../constants';
@@ -6,6 +6,7 @@ import SEO from '../components/SEO';
 import ClientSidebar from '../components/ClientSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useRequireAuth } from '../utils/auth';
+import { exportElementAsPdf } from '../utils/certificateExport';
 import {
   createClientProject,
   deleteClientProject,
@@ -17,7 +18,7 @@ import {
 } from '../utils/api';
 import { 
   Bell, Search, Menu, Activity, CheckCircle, 
-  Clock, CreditCard, MessageSquare, Briefcase, PlusCircle, FileText, Save, Download, ArrowLeft, ShieldCheck, FolderOpen, Calendar, Loader2
+  Clock, CreditCard, MessageSquare, Briefcase, PlusCircle, FileText, Save, Download, ArrowLeft, ShieldCheck, FolderOpen, Calendar, Loader2, X, Printer
 } from 'lucide-react';
 
 const ClientDashboard: React.FC = () => {
@@ -36,6 +37,10 @@ const ClientDashboard: React.FC = () => {
   const [projectForm, setProjectForm] = useState({ category: '', title: '', details: '' });
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', companyName: '', industry: '', website: '' });
   const [editingProject, setEditingProject] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
+  const [invoiceExporting, setInvoiceExporting] = useState(false);
+  const [invoiceChangeText, setInvoiceChangeText] = useState('');
+  const invoiceRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { authUser, loadingAuth } = useRequireAuth(lang, 'client');
 
@@ -95,6 +100,33 @@ const ClientDashboard: React.FC = () => {
 
   const isCompletedStatus = (status?: string) => String(status || '').toLowerCase() === 'completed';
   const isActiveStatus = (status?: string) => !['completed', 'cancelled'].includes(String(status || '').toLowerCase());
+  const invoiceFileName = (invoice: any) => `${String(invoice?.id || 'DSH-invoice').replace(/[^a-z0-9-_]/gi, '-')}.pdf`;
+
+  const handleInvoiceDownload = async (invoice = selectedInvoice) => {
+    if (!invoice || !invoiceRef.current) return;
+    setInvoiceExporting(true);
+    try {
+      await exportElementAsPdf(invoiceRef.current, invoiceFileName(invoice));
+    } finally {
+      setInvoiceExporting(false);
+    }
+  };
+
+  const openInvoice = (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setInvoiceChangeText('');
+  };
+
+  const handleInvoiceChangeRequest = async () => {
+    if (!selectedInvoice || !invoiceChangeText.trim()) return;
+    const sent = await sendClientMessage({
+      subject: `Invoice change request: ${selectedInvoice.id}`,
+      message: `Invoice change request for ${selectedInvoice.id}\n\n${invoiceChangeText.trim()}`,
+    });
+    setMessages((prev) => [...prev, sent]);
+    setInvoiceChangeText('');
+    alert('Change request sent to the DSH team.');
+  };
 
   const renderContent = () => {
      switch(currentView) {
@@ -419,8 +451,8 @@ const ClientDashboard: React.FC = () => {
                                  <td className="p-5 text-white font-bold">{inv.amount}</td>
                                  <td className="p-5"><span className={`px-2 py-1 rounded text-xs font-bold uppercase ${['Paid', 'completed'].includes(inv.status) ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{inv.status}</span></td>
                                  <td className="p-5 text-right">
-                                    <button className="text-xs text-brand-neon hover:text-white underline transition-colors flex items-center justify-end gap-1 w-full">
-                                       <Download className="w-3 h-3" /> Download
+                                    <button onClick={() => openInvoice(inv)} className="text-xs text-brand-neon hover:text-white underline transition-colors inline-flex items-center justify-end gap-1">
+                                       <FileText className="w-3 h-3" /> View
                                     </button>
                                  </td>
                               </tr>
@@ -635,6 +667,143 @@ const ClientDashboard: React.FC = () => {
           {renderContent()}
         </main>
       </div>
+
+      {selectedInvoice && (
+        <div className="fixed inset-0 z-[70] overflow-y-auto bg-black/80 p-4 backdrop-blur-md">
+          <div className="mx-auto flex min-h-full max-w-5xl items-center justify-center">
+            <div className="w-full rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+              <div className="flex flex-col gap-3 border-b border-white/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Invoice Preview</h3>
+                  <p className="text-xs text-gray-400">{selectedInvoice.id}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleInvoiceDownload(selectedInvoice)}
+                    disabled={invoiceExporting}
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand-neon px-4 py-2 text-sm font-bold text-black disabled:opacity-60"
+                  >
+                    {invoiceExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print
+                  </button>
+                  <button
+                    onClick={() => setSelectedInvoice(null)}
+                    className="rounded-xl bg-slate-800 p-2 text-white hover:bg-slate-700"
+                    aria-label="Close invoice preview"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid gap-6 p-4 lg:grid-cols-[1fr,320px]">
+                <div className="overflow-auto rounded-xl bg-white p-3">
+                  <div ref={invoiceRef} className="mx-auto min-h-[720px] w-[900px] bg-white p-10 text-slate-950">
+                    <div className="flex items-start justify-between border-b border-slate-200 pb-8">
+                      <div className="flex items-center gap-4">
+                        <img src="/brand/Final%20Logo%20(1).png" alt="Digital Solutions Hub" className="h-16 w-16 object-contain" />
+                        <div>
+                          <h1 className="text-2xl font-black tracking-wide">Digital Solutions Hub</h1>
+                          <p className="text-sm text-slate-500">Where Innovation Finds Direction</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-4xl font-black uppercase tracking-wide text-slate-900">Invoice</p>
+                        <p className="mt-2 font-mono text-sm text-slate-500">{selectedInvoice.id}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8 py-8">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Billed To</p>
+                        <h2 className="mt-2 text-xl font-bold">{client.name}</h2>
+                        <p className="text-sm text-slate-500">{authUser?.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm"><span className="font-bold">Issue Date:</span> {selectedInvoice.date || '-'}</p>
+                        <p className="text-sm"><span className="font-bold">Due Date:</span> {selectedInvoice.due || '-'}</p>
+                        <p className="text-sm"><span className="font-bold">Status:</span> {String(selectedInvoice.status || '').toUpperCase()}</p>
+                      </div>
+                    </div>
+
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-slate-950 text-left text-xs uppercase tracking-widest text-white">
+                          <th className="p-4">Description</th>
+                          <th className="p-4">Type</th>
+                          <th className="p-4 text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b border-slate-200">
+                          <td className="p-4">
+                            <p className="font-bold">{selectedInvoice.notes || 'Professional service invoice'}</p>
+                            {selectedInvoice.referenceId && <p className="mt-1 text-xs text-slate-500">Reference: {selectedInvoice.referenceId}</p>}
+                          </td>
+                          <td className="p-4 capitalize text-slate-600">{selectedInvoice.service || 'service'}</td>
+                          <td className="p-4 text-right font-bold">{selectedInvoice.amount}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <div className="mt-8 flex justify-end">
+                      <div className="w-72 rounded-xl bg-slate-50 p-5">
+                        <div className="flex justify-between text-sm text-slate-500">
+                          <span>Subtotal</span>
+                          <span>{selectedInvoice.amount}</span>
+                        </div>
+                        <div className="mt-4 flex justify-between border-t border-slate-200 pt-4 text-xl font-black">
+                          <span>Total</span>
+                          <span>{selectedInvoice.amount}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500">
+                      <p className="font-bold text-slate-700">Payment Instructions</p>
+                      <p className="mt-1">Bank Transfer, JazzCash/EasyPaisa, Cards, and Crypto are accepted. Please send payment proof from the client messages section.</p>
+                      <p className="mt-6 text-xs">Authorized by Sarkar Azeem, CEO. This invoice was generated from the Digital Solutions Hub client portal.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
+                    <h4 className="font-bold text-white">Request a Change</h4>
+                    <p className="mt-1 text-sm text-gray-400">Agar amount, service details, ya due date mein issue hai to yahan message bhej dein.</p>
+                    <textarea
+                      value={invoiceChangeText}
+                      onChange={(event) => setInvoiceChangeText(event.target.value)}
+                      rows={5}
+                      className="mt-4 w-full rounded-xl border border-white/10 bg-slate-950 p-3 text-white focus:border-brand-neon focus:outline-none"
+                      placeholder="Write what needs to be corrected..."
+                    />
+                    <button
+                      onClick={handleInvoiceChangeRequest}
+                      disabled={!invoiceChangeText.trim()}
+                      className="mt-3 w-full rounded-xl bg-brand-neon px-4 py-3 font-bold text-black disabled:opacity-50"
+                    >
+                      Send Change Request
+                    </button>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 text-sm text-gray-400">
+                    <p className="font-bold text-white">Invoice Status</p>
+                    <p className="mt-2">Current status: <span className="font-bold uppercase text-brand-neon">{selectedInvoice.status}</span></p>
+                    <p className="mt-2">Admin can update payment status after confirming your payment proof.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
