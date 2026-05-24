@@ -10,6 +10,8 @@ import {
   createClientProject,
   fetchClientDashboard,
   sendClientMessage,
+  updateClientProfile,
+  updateClientProject,
   type ClientPortalDashboard,
 } from '../utils/api';
 import { 
@@ -31,6 +33,8 @@ const ClientDashboard: React.FC = () => {
   const [portalError, setPortalError] = useState('');
   const [messageText, setMessageText] = useState('');
   const [projectForm, setProjectForm] = useState({ category: '', title: '', details: '' });
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', companyName: '', industry: '', website: '' });
+  const [editingProject, setEditingProject] = useState(false);
   const navigate = useNavigate();
   const { authUser, loadingAuth } = useRequireAuth(lang, 'client');
 
@@ -54,6 +58,13 @@ const ClientDashboard: React.FC = () => {
       setClientData(data);
       setProjects(data.projects);
       setMessages(data.messages);
+      setProfileForm({
+        name: authUser?.name || '',
+        phone: authUser?.phone || '',
+        companyName: data.profile?.company_name || authUser?.name || '',
+        industry: data.profile?.industry || '',
+        website: data.profile?.website || '',
+      });
     } catch (error) {
       setPortalError(error instanceof Error ? error.message : 'Unable to load client dashboard.');
     } finally {
@@ -77,6 +88,7 @@ const ClientDashboard: React.FC = () => {
 
   const handleProjectClick = (project: any) => {
     setSelectedProject(project);
+    setEditingProject(false);
     setCurrentView('project-details');
   };
 
@@ -176,6 +188,12 @@ const ClientDashboard: React.FC = () => {
                                         <Calendar className="w-4 h-4 text-brand-neon" /> {selectedProject.deadline}
                                     </div>
                                 </div>
+                                <button
+                                  onClick={() => setEditingProject((value) => !value)}
+                                  className="mt-4 rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50"
+                                >
+                                  {editingProject ? 'Cancel Edit' : 'Edit Project'}
+                                </button>
                             </div>
                         </div>
 
@@ -198,6 +216,28 @@ const ClientDashboard: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Details Column */}
                         <div className="lg:col-span-2 space-y-8">
+                            {editingProject && (
+                              <form
+                                className="glass rounded-2xl border border-white/10 p-6 grid gap-4"
+                                onSubmit={async (event) => {
+                                  event.preventDefault();
+                                  const updated = await updateClientProject(selectedProject.id, {
+                                    title: selectedProject.title,
+                                    category: selectedProject.category,
+                                    details: selectedProject.description,
+                                    deadline: selectedProject.deadline !== 'To be scheduled' ? selectedProject.deadline : undefined,
+                                  });
+                                  setSelectedProject(updated);
+                                  setProjects((prev) => prev.map((project) => project.id === updated.id ? updated : project));
+                                  setEditingProject(false);
+                                }}
+                              >
+                                <input value={selectedProject.title} onChange={(event) => setSelectedProject((prev: any) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Project name" />
+                                <textarea value={selectedProject.description} onChange={(event) => setSelectedProject((prev: any) => ({ ...prev, description: event.target.value }))} rows={4} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Project details" />
+                                <input value={selectedProject.deadline === 'To be scheduled' ? '' : selectedProject.deadline} onChange={(event) => setSelectedProject((prev: any) => ({ ...prev, deadline: event.target.value || 'To be scheduled' }))} type="date" className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" />
+                                <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save Project</button>
+                              </form>
+                            )}
                             <div className="glass p-6 rounded-2xl border border-white/5">
                                 <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-purple-400" /> Description
@@ -442,6 +482,30 @@ const ClientDashboard: React.FC = () => {
                      <button className="w-full py-3 bg-brand-neon text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all">
                         Submit Request
                      </button>
+                  </form>
+               </div>
+            );
+
+         case 'profile':
+            return (
+               <div className="max-w-2xl space-y-6 animate-in fade-in">
+                  <h2 className="text-2xl font-bold text-white">Profile</h2>
+                  <form
+                    className="glass rounded-2xl border border-white/10 p-6 grid gap-4"
+                    onSubmit={async (event) => {
+                      event.preventDefault();
+                      const updated = await updateClientProfile(profileForm);
+                      setClientData((prev) => prev ? { ...prev, profile: updated } : prev);
+                      alert('Profile updated successfully.');
+                    }}
+                  >
+                    <input value={profileForm.name} onChange={(event) => setProfileForm((prev) => ({ ...prev, name: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Your name" />
+                    <input value={authUser?.email || ''} disabled className="rounded-xl border border-white/10 bg-slate-900 p-3 text-gray-400" />
+                    <input value={profileForm.phone} onChange={(event) => setProfileForm((prev) => ({ ...prev, phone: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Phone" />
+                    <input value={profileForm.companyName} onChange={(event) => setProfileForm((prev) => ({ ...prev, companyName: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Company / brand name" />
+                    <input value={profileForm.industry} onChange={(event) => setProfileForm((prev) => ({ ...prev, industry: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Industry" />
+                    <input value={profileForm.website} onChange={(event) => setProfileForm((prev) => ({ ...prev, website: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="https://example.com" />
+                    <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save Profile</button>
                   </form>
                </div>
             );

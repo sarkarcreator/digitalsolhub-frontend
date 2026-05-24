@@ -472,6 +472,34 @@ export async function createClientProject(payload: {
   }, true);
 }
 
+export async function updateClientProject(
+  id: number | string,
+  payload: {
+    title: string;
+    category?: string;
+    details: string;
+    deadline?: string;
+  }
+): Promise<Record<string, any>> {
+  return request<Record<string, any>>(`/client/projects/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function updateClientProfile(payload: {
+  name: string;
+  phone?: string;
+  companyName?: string;
+  industry?: string;
+  website?: string;
+}): Promise<Record<string, any>> {
+  return request<Record<string, any>>('/client/profile', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
 export async function sendClientMessage(payload: {
   subject?: string;
   message: string;

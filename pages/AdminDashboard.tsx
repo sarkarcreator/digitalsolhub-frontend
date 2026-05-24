@@ -78,40 +78,6 @@ const AdminDashboard = () => {
     setStudentsLoading(false);
   }
 };
-  useEffect(() => {
-    const isRtl = lang === Language.URDU || lang === Language.ARABIC;
-    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
-    document.body.className = 'bg-slate-950 font-sans text-white';
-    
-    setCertificates(getAllCertificates());
-    setAttestations(getAllAttestations());
-    setLeads(getAllLeads());
-    setFranchises(getAllFranchises());
-    loadStudents();
-    loadOverview();
-  }, [lang]);
-
-  useEffect(() => {
-    if (
-      currentView !== 'overview' &&
-      currentView !== 'students' &&
-      currentView !== 'certifications' &&
-      !moduleItems[currentView]
-    ) {
-      loadModuleItems(currentView);
-    }
-  }, [currentView]);
-
-  if (loadingAuth) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
-      </div>
-    );
-  }
-
-
   // --- Actions ---
 
   const handleCertAction = (id: string, action: 'approve' | 'reject' | 'revoke') => {
@@ -223,6 +189,39 @@ const AdminDashboard = () => {
     await deleteAdminModuleItem(category, id);
     setModuleItems((prev) => ({ ...prev, [category]: (prev[category] || []).filter((item) => item.id !== id) }));
   };
+
+  useEffect(() => {
+    const isRtl = lang === Language.URDU || lang === Language.ARABIC;
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+    document.documentElement.lang = lang;
+    document.body.className = 'bg-slate-950 font-sans text-white';
+    
+    setCertificates(getAllCertificates());
+    setAttestations(getAllAttestations());
+    setLeads(getAllLeads());
+    setFranchises(getAllFranchises());
+    loadStudents();
+    loadOverview();
+  }, [lang]);
+
+  useEffect(() => {
+    if (
+      currentView !== 'overview' &&
+      currentView !== 'students' &&
+      currentView !== 'certifications' &&
+      !moduleItems[currentView]
+    ) {
+      loadModuleItems(currentView);
+    }
+  }, [currentView]);
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+      </div>
+    );
+  }
 
   const renderStudentsView = () => (
     <div className="space-y-8 animate-in fade-in">

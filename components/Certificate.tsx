@@ -88,7 +88,7 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
       <div 
         ref={ref}
         id="certificate-content"
-        className="certificate-sheet relative w-[1123px] h-[794px] max-w-full aspect-[1123/794] bg-white text-slate-900 shadow-2xl overflow-hidden print:shadow-none print:w-[1123px] print:h-[794px] print:max-w-none print:m-0 print:border-0"
+        className="certificate-sheet relative w-[1123px] max-w-full aspect-[1123/794] bg-white text-slate-900 shadow-2xl overflow-hidden print:shadow-none print:w-[1123px] print:h-[794px] print:max-w-none print:m-0 print:border-0"
         style={{ fontFamily: "'Playfair Display', serif", direction: 'ltr', pageBreakAfter: 'always' }}
       >
         {/* --- Borders & Frame with Dynamic Color --- */}
@@ -132,13 +132,13 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
         )}
 
         {/* --- Main Content --- */}
-        <div className="relative z-40 h-full flex flex-col items-center pt-16 pb-12 px-24 text-center justify-between">
+        <div className="relative z-40 h-full flex flex-col items-center pt-12 pb-10 px-20 text-center justify-between">
           
           {/* Header */}
              <div className="flex flex-col items-center w-full">
-             <div className="flex items-center gap-4 mb-2 min-h-[88px]">
+             <div className="flex items-center gap-4 mb-2 min-h-[76px]">
                 {issuerLogo ? (
-                    <img src={issuerLogo} alt="Logo" className="h-20 w-auto max-w-[220px] object-contain" />
+                    <img src={issuerLogo} alt="Logo" className="h-16 w-auto max-w-[210px] object-contain" />
                 ) : (
                     <Logo className="w-14 h-14 text-slate-900" />
                 )}
@@ -155,8 +155,8 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
                 </div>
              </div>
              
-             <div className="mt-8 mb-2">
-                <h1 className={`text-5xl font-bold text-slate-900 tracking-wide uppercase font-serif ${isRtl ? 'font-urdu' : ''}`} style={{ textShadow: '1px 1px 0px rgba(0,0,0,0.1)' }}>
+             <div className="mt-6 mb-2">
+                <h1 className={`text-4xl font-bold text-slate-900 tracking-wide uppercase font-serif ${isRtl ? 'font-urdu' : ''}`} style={{ textShadow: '1px 1px 0px rgba(0,0,0,0.1)' }}>
                   {t.header[currentLang]}
                 </h1>
              </div>
@@ -166,12 +166,12 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
 
           {/* Body */}
           <div className="w-full max-w-4xl flex flex-col items-center">
-             <p className={`text-xl text-slate-500 font-sans italic mt-6 ${isRtl ? 'font-urdu' : ''}`}>
+             <p className={`text-lg text-slate-500 font-sans italic mt-4 ${isRtl ? 'font-urdu' : ''}`}>
                 {t.certify[currentLang]}
              </p>
 
              <div className="relative mt-4 mb-6 w-full">
-                <h2 className="text-6xl font-bold text-slate-900 font-serif border-b-2 border-slate-900/10 inline-block pb-2 px-12 min-w-[60%] leading-tight">
+                <h2 className="text-5xl font-bold text-slate-900 font-serif border-b-2 border-slate-900/10 inline-block pb-2 px-12 min-w-[60%] leading-tight">
                    {studentName}
                 </h2>
              </div>
@@ -182,8 +182,8 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
                 </p>
              </div>
 
-             <div className="mt-6 bg-slate-50/80 px-8 py-3 rounded-lg border border-slate-100">
-                <h3 className={`text-3xl font-bold text-slate-900 font-sans uppercase tracking-tight ${isRtl ? 'font-urdu' : ''}`} style={{ color: themeColor }}>
+             <div className="mt-5 bg-slate-50/80 px-8 py-3 rounded-lg border border-slate-100">
+                <h3 className={`text-2xl font-bold text-slate-900 font-sans uppercase tracking-tight ${isRtl ? 'font-urdu' : ''}`} style={{ color: themeColor }}>
                    {courseName}
                 </h3>
              </div>
@@ -205,29 +205,29 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
              </div>
 
              {/* Center: Badge */}
-             <div className="flex justify-center -mb-8 relative z-50">
+             <div className="flex justify-center -mb-4 relative z-50">
                 {partnerMode ? (
                     <div className="w-32 h-32 rounded-full border-4 flex items-center justify-center bg-white shadow-xl" style={{ borderColor: themeColor }}>
                         {issuerLogo ? <img src={issuerLogo} className="w-20 object-contain" /> : <Logo className="w-20 h-20 text-slate-400" />}
                     </div>
                 ) : (
-                    <Badge level="Gold" className="w-40 h-40 scale-110 drop-shadow-2xl" lightMode={true} />
+                    <Badge level="Gold" className="w-36 h-36 drop-shadow-2xl" lightMode={true} />
                 )}
              </div>
 
              {/* Right: Signature/QR */}
-             <div className="text-right flex flex-col items-end gap-6 pr-4">
-                <div className="relative w-64 h-32 flex items-end justify-end">
+             <div className="text-right flex flex-col items-end gap-4 pr-4">
+                <div className="relative w-64 h-28 flex items-end justify-end">
                    {stampImage && (
                       <img
                          src={stampImage}
                          alt="Official stamp"
-                         className="absolute right-20 bottom-2 z-20 w-[136px] h-[136px] object-contain opacity-90 mix-blend-multiply"
+                         className="absolute right-20 bottom-0 z-20 w-[128px] h-[128px] object-contain opacity-90 mix-blend-multiply"
                       />
                    )}
                    <div className="relative z-10 text-center w-56">
                    {signatureImage ? (
-                      <img src={signatureImage} alt={`${instructorName} signature`} className="h-16 w-56 object-contain mx-auto mb-1" />
+                      <img src={signatureImage} alt={`${instructorName} signature`} className="h-14 w-56 object-contain mx-auto mb-1" />
                    ) : (
                       <div className="font-serif italic text-4xl text-slate-900 mb-2 px-8 -rotate-2" style={{ fontFamily: "'Dancing Script', cursive, serif" }}>
                          {instructorName}
