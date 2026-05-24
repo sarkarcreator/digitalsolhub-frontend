@@ -63,7 +63,7 @@ const AdminDashboard = () => {
   const [moduleItems, setModuleItems] = useState<Record<string, DashboardItem[]>>({});
   const [moduleLoading, setModuleLoading] = useState('');
   const [moduleError, setModuleError] = useState('');
-  const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active' });
+  const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active', group: '', type: '', details: '', image: '', location: '', category: '' });
   const [editingModuleItem, setEditingModuleItem] = useState<DashboardItem | null>(null);
   const [adminReplyAttachment, setAdminReplyAttachment] = useState<File | null>(null);
   const [editingFile, setEditingFile] = useState<any | null>(null);
@@ -163,6 +163,9 @@ const AdminDashboard = () => {
     courses: 'Courses',
     payments: 'Invoices',
     cms: 'Content & CMS',
+    marketplace: 'Marketplace',
+    jobs: 'Jobs',
+    'service-catalog': 'Website Services',
     proposals: 'Proposals',
     team: 'Team & Roles',
     reports: 'Reports',
@@ -191,9 +194,15 @@ const AdminDashboard = () => {
         title: moduleForm.title,
         amount: moduleForm.amount,
         status: moduleForm.status,
+        group: moduleForm.group,
+        type: moduleForm.type,
+        details: moduleForm.details,
+        image: moduleForm.image,
+        location: moduleForm.location,
+        category: moduleForm.category,
       });
       setModuleItems((prev) => ({ ...prev, [category]: [created, ...(prev[category] || [])] }));
-      setModuleForm({ title: '', amount: '', status: 'active' });
+      setModuleForm({ title: '', amount: '', status: 'active', group: '', type: '', details: '', image: '', location: '', category: '' });
     } catch (error) {
       setModuleError(error instanceof Error ? error.message : 'Unable to save record.');
     }
@@ -281,6 +290,10 @@ const AdminDashboard = () => {
       paymentLink: editingModuleItem.payload.paymentLink || '',
       bankAccountDetails: editingModuleItem.payload.bankAccountDetails || '',
       paymentInstructions: editingModuleItem.payload.paymentInstructions || '',
+      type: editingModuleItem.payload.type || '',
+      image: editingModuleItem.payload.image || '',
+      location: editingModuleItem.payload.location || '',
+      category: editingModuleItem.payload.category || '',
     });
     setModuleItems((prev) => ({
       ...prev,
@@ -743,6 +756,7 @@ const AdminDashboard = () => {
   const renderGenericModule = (category: string) => {
     const title = moduleLabels[category] || category;
     const items = moduleItems[category] || [];
+    const isPublicContentModule = ['marketplace', 'jobs', 'service-catalog', 'cms'].includes(category);
 
     return (
       <div className="space-y-6 animate-in fade-in">
@@ -766,14 +780,24 @@ const AdminDashboard = () => {
 
         {category !== 'certifications' && category !== 'requests' && (
         <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
-          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : `${title} title`} />
-          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : 'Value / amount'} />
+          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : category === 'jobs' ? 'Job title' : category === 'marketplace' ? 'Gig title' : category === 'service-catalog' ? 'Service title' : `${title} title`} />
+          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : category === 'jobs' ? 'Salary' : category === 'marketplace' ? 'Starting price' : category === 'service-catalog' ? 'Price / short value' : 'Value / amount'} />
           <select value={moduleForm.status} onChange={(event) => setModuleForm((prev) => ({ ...prev, status: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
             <option value="active">Active</option>
+            <option value="published">Published</option>
             <option value="pending">Pending</option>
             <option value="completed">Completed</option>
           </select>
           <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save</button>
+          {isPublicContentModule && (
+            <>
+              <input value={moduleForm.group} onChange={(event) => setModuleForm((prev) => ({ ...prev, group: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : 'Owner / group'} />
+              <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : 'Type'} />
+              <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : 'Category'} />
+              <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image URL optional" />
+              <textarea value={moduleForm.details} onChange={(event) => setModuleForm((prev) => ({ ...prev, details: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Description / details shown on website" rows={3} />
+            </>
+          )}
         </form>
         )}
 
@@ -800,8 +824,16 @@ const AdminDashboard = () => {
             {category === 'certifications' && (
               <input value={editingModuleItem.payload.studentName || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, studentName: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Student name" />
             )}
-            {(category === 'requests' || category === 'messages' || category === 'payments') && (
-              <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder={category === 'messages' ? 'Type admin reply here...' : category === 'payments' ? 'Invoice details / scope of work' : 'Project details / admin notes'} rows={3} />
+            {(category === 'requests' || category === 'messages' || category === 'payments' || isPublicContentModule) && (
+              <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder={category === 'messages' ? 'Type admin reply here...' : category === 'payments' ? 'Invoice details / scope of work' : isPublicContentModule ? 'Website description / details' : 'Project details / admin notes'} rows={3} />
+            )}
+            {isPublicContentModule && (
+              <>
+                <input value={editingModuleItem.payload.group || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, group: event.target.value, owner: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : 'Owner / group'} />
+                <input value={editingModuleItem.payload.type || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, type: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : 'Type'} />
+                <input value={editingModuleItem.payload.location || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, location: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : 'Category'} />
+                <input value={editingModuleItem.payload.image || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Image URL optional" />
+              </>
             )}
             {category === 'requests' && (
               <>

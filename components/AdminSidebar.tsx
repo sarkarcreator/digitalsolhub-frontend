@@ -6,7 +6,7 @@ import { logout } from '../utils/api';
 import { 
   LayoutDashboard, Users, UserCheck, Briefcase, CreditCard, 
   MessageSquare, FileText, Settings, LogOut, X, Shield, PenTool, 
-  Award, BookOpen, BarChart3, Globe, Lock, Target, GitBranch, TrendingUp, Presentation
+  Award, BookOpen, BarChart3, Globe, Lock, Target, GitBranch, TrendingUp, Presentation, Search
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -34,6 +34,9 @@ const AdminSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, currentVi
     { icon: Award, label: 'Certificates', id: 'certifications' },
     { icon: CreditCard, label: TRANSLATIONS.cdash_invoices[lang], id: 'payments' },
     { icon: Globe, label: 'Content & CMS', id: 'cms' },
+    { icon: Globe, label: 'Website Services', id: 'service-catalog' },
+    { icon: Briefcase, label: 'Marketplace', id: 'marketplace' },
+    { icon: Search, label: 'Jobs', id: 'jobs' },
     { icon: PenTool, label: 'Proposals', id: 'proposals' },
     { icon: Shield, label: 'Team & Roles', id: 'team' },
     { icon: BarChart3, label: 'Reports', id: 'reports' },

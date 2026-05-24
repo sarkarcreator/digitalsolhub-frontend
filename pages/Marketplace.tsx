@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { TRANSLATIONS } from '../constants';
 import { Search, Star, Filter, Briefcase, Code, PenTool, Globe, DollarSign, X, CheckCircle, ArrowRight } from 'lucide-react';
+import { fetchPublicModuleItems } from '../utils/api';
 
 const Marketplace: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
   const lang = (Object.values(Language).includes(paramLang as Language)) ? (paramLang as Language) : Language.ENGLISH;
   const [selectedGig, setSelectedGig] = useState<any>(null);
+  const [query, setQuery] = useState('');
+  const [adminGigs, setAdminGigs] = useState<any[]>([]);
 
   const categories = [
     { name: 'Development', icon: Code, count: 120 },
@@ -18,12 +21,33 @@ const Marketplace: React.FC = () => {
     { name: 'Writing', icon: Briefcase, count: 42 },
   ];
 
-  const gigs = [
+  const fallbackGigs = [
     { id: 1, title: 'I will build a React Website', author: 'Ali Ahmed', rating: 4.9, price: '$50', image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&q=80&w=400', desc: 'Professional React JS website with responsive design, API integration, and modern UI/UX.' },
     { id: 2, title: 'Logo Design & Branding', author: 'Sarah K.', rating: 5.0, price: '$30', image: 'https://images.unsplash.com/photo-1626785774573-4b7993143a26?auto=format&fit=crop&q=80&w=400', desc: 'Unique logo concepts with complete branding kit including business card and letterhead.' },
     { id: 3, title: 'SEO Audit & Ranking', author: 'Sarkar Azeem', rating: 5.0, price: '$100', image: 'https://images.unsplash.com/photo-1571786256017-aee7a0c009b6?auto=format&fit=crop&q=80&w=400', desc: 'Comprehensive SEO audit and optimization to rank your website on the first page of Google.' },
     { id: 4, title: 'Social Media Management', author: 'Zainab B.', rating: 4.8, price: '$200', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400', desc: 'Monthly management of Facebook, Instagram, and LinkedIn with content creation and posting.' },
   ];
+
+  useEffect(() => {
+    fetchPublicModuleItems('marketplace')
+      .then((items) => setAdminGigs(items.map((item) => ({
+        id: item.id,
+        title: item.payload.title,
+        author: item.payload.owner || item.payload.group || 'DSH Seller',
+        rating: item.payload.rating || 5,
+        price: item.payload.amount || 'Custom',
+        image: item.payload.image || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&q=80&w=400',
+        desc: item.payload.details || 'Professional service available through Digital Solutions Hub.',
+      }))))
+      .catch(() => setAdminGigs([]));
+  }, []);
+
+  const gigs = useMemo(() => {
+    const source = adminGigs.length ? adminGigs : fallbackGigs;
+    const needle = query.trim().toLowerCase();
+    if (!needle) return source;
+    return source.filter((gig) => `${gig.title} ${gig.author} ${gig.desc}`.toLowerCase().includes(needle));
+  }, [adminGigs, query]);
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-slate-950 font-sans text-white">
@@ -35,7 +59,7 @@ const Marketplace: React.FC = () => {
            <p className="text-gray-400 mb-8">Hire expert freelancers for your next project.</p>
            
            <div className="max-w-2xl mx-auto relative">
-              <input type="text" placeholder={TRANSLATIONS.search[lang]} className="w-full bg-slate-900 border border-white/10 rounded-full py-4 pl-6 pr-14 text-white focus:outline-none focus:border-green-500 transition-colors" />
+              <input value={query} onChange={(event) => setQuery(event.target.value)} type="text" placeholder={TRANSLATIONS.search[lang]} className="w-full bg-slate-900 border border-white/10 rounded-full py-4 pl-6 pr-14 text-white focus:outline-none focus:border-green-500 transition-colors" />
               <button className="absolute right-2 top-2 p-2 bg-green-500 rounded-full text-black hover:bg-green-400 rtl:right-auto rtl:left-2">
                  <Search className="w-6 h-6" />
               </button>

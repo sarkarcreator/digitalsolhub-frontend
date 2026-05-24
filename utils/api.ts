@@ -128,6 +128,9 @@ export interface ApplicationPayload {
   email: string;
   phone: string;
   targetCountry?: string;
+  category?: string;
+  budget?: string;
+  details?: string;
   document?: File | null;
 }
 
@@ -415,7 +418,7 @@ export async function fetchAdminModuleItems(category: string): Promise<Dashboard
 
 export async function createAdminModuleItem(
   category: string,
-  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentMethod?: string; paymentLink?: string; bankAccountDetails?: string; paymentInstructions?: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentMethod?: string; paymentLink?: string; bankAccountDetails?: string; paymentInstructions?: string; type?: string; image?: string; location?: string; category?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}`, {
     method: 'POST',
@@ -426,7 +429,7 @@ export async function createAdminModuleItem(
 export async function updateAdminModuleItem(
   category: string,
   id: number | string,
-  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentMethod?: string; paymentLink?: string; bankAccountDetails?: string; paymentInstructions?: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentMethod?: string; paymentLink?: string; bankAccountDetails?: string; paymentInstructions?: string; type?: string; image?: string; location?: string; category?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}/${id}`, {
     method: 'PUT',
@@ -610,6 +613,9 @@ export async function submitApplication(payload: ApplicationPayload): Promise<{ 
   formData.append('email', payload.email);
   formData.append('phone', payload.phone);
   if (payload.targetCountry) formData.append('targetCountry', payload.targetCountry);
+  if (payload.category) formData.append('category', payload.category);
+  if (payload.budget) formData.append('budget', payload.budget);
+  if (payload.details) formData.append('details', payload.details);
   if (payload.document) formData.append('document', payload.document);
 
   return request<{ id: number | string; message: string }>('/applications', {
@@ -617,6 +623,10 @@ export async function submitApplication(payload: ApplicationPayload): Promise<{ 
     body: formData,
     headers: {},
   });
+}
+
+export async function fetchPublicModuleItems(category: string): Promise<DashboardItem[]> {
+  return request<DashboardItem[]>(`/public/modules/${encodeURIComponent(category)}`);
 }
 
 /* ---------------- AI ---------------- */

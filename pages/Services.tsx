@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { TRANSLATIONS, SERVICE_CATEGORIES, PRICING_PACKAGES, PAYMENT_METHODS, PAYMENT_TERMS } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
-import { sendNotifications } from '../utils/notifications';
+import { fetchPublicModuleItems, submitApplication } from '../utils/api';
 import { ArrowRight, Check, Send, Sparkles, Monitor, Globe, Megaphone, Video, Cpu, Layers, DollarSign, Coins, Loader2, Landmark, Smartphone, CreditCard, Bitcoin, AlertTriangle } from 'lucide-react';
 
 const Services: React.FC = () => {
@@ -14,6 +14,7 @@ const Services: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [adminServices, setAdminServices] = useState<any[]>([]);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -37,6 +38,12 @@ const Services: React.FC = () => {
     } catch (e) {
       console.log('Timezone detection failed, defaulting to USD');
     }
+  }, []);
+
+  useEffect(() => {
+    fetchPublicModuleItems('service-catalog')
+      .then((items) => setAdminServices(items))
+      .catch(() => setAdminServices([]));
   }, []);
 
   // Icon mapping
@@ -76,17 +83,16 @@ const Services: React.FC = () => {
     setLoading(true);
     
     try {
-      const result = await sendNotifications('SERVICE_REQUEST', {
+      await submitApplication({
+        applicationType: 'service',
         name: formData.name,
         email: formData.email,
         phone: formData.whatsapp,
-        details: `Category: ${selectedCategory}, Budget: ${formData.budget}, Desc: ${formData.details}`
+        category: selectedCategory,
+        budget: formData.budget,
+        details: formData.details,
       });
-
-      if (result.success) {
-        window.open(result.adminUrl, '_blank');
-        setSubmitted(true);
-      }
+      setSubmitted(true);
       } catch (err) {
         alert('Unable to submit your request right now. Please try again.');
       } finally {
@@ -122,18 +128,23 @@ const Services: React.FC = () => {
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24 relative z-10">
-           {SERVICE_CATEGORIES.map((service) => {
-             const Icon = icons[service.id] || Sparkles;
+           {(adminServices.length ? adminServices.map((item) => ({
+             id: String(item.id),
+             title: { [lang]: item.payload.title },
+             items: String(item.payload.details || '').split(/\n+/).filter(Boolean),
+             iconKey: item.payload.type || item.payload.category || 'other',
+           })) : SERVICE_CATEGORIES).map((service: any) => {
+             const Icon = icons[service.id || service.iconKey] || Sparkles;
              return (
                <div key={service.id} className="group bg-slate-900/50 border border-white/5 rounded-2xl p-8 hover:bg-slate-800/60 hover:border-brand-neon/30 transition-all duration-300 flex flex-col">
                   <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-neon group-hover:text-black transition-colors text-brand-neon">
                      <Icon className="w-8 h-8" />
                   </div>
                   <Link to={`/${lang}/services/${service.id}`} className="block">
-                    <h3 className="text-2xl font-bold text-white mb-4 hover:text-brand-neon transition-colors cursor-pointer">{service.title[lang]}</h3>
+                    <h3 className="text-2xl font-bold text-white mb-4 hover:text-brand-neon transition-colors cursor-pointer">{service.title[lang] || service.title[Language.ENGLISH]}</h3>
                   </Link>
                   <ul className="space-y-3 mb-8 flex-grow">
-                    {service.items.map((item, i) => (
+                    {(service.items || []).map((item: string, i: number) => (
                       <li key={i} className="flex items-start gap-3 text-gray-400 text-sm">
                         <div className="mt-1 w-1.5 h-1.5 rounded-full bg-brand-neon shrink-0"></div>
                         <span>{item}</span>
@@ -269,7 +280,7 @@ const Services: React.FC = () => {
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.form_category[lang]}</label>
                        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors relative z-10">
                          <option value="">Select a Category</option>
-                         {SERVICE_CATEGORIES.map(c => (
+                         {(adminServices.length ? adminServices.map((item) => ({ id: String(item.id), title: { [lang]: item.payload.title } })) : SERVICE_CATEGORIES).map((c: any) => (
                            <option key={c.id} value={c.id}>{c.title[lang]}</option>
                          ))}
                        </select>

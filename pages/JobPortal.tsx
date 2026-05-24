@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import { Briefcase, MapPin, Clock, Search, X, Upload, CheckCircle } from 'lucide-react';
+import { fetchPublicModuleItems } from '../utils/api';
 
 const JobPortal: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -12,13 +13,36 @@ const JobPortal: React.FC = () => {
   
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [applied, setApplied] = useState(false);
+  const [query, setQuery] = useState('');
+  const [adminJobs, setAdminJobs] = useState<any[]>([]);
 
-  const jobs = [
+  const fallbackJobs = [
     { id: 1, title: 'Senior React Developer', company: 'TechFlow', location: 'Remote', type: 'Full-time', salary: '$3000 - $5000', desc: 'We are looking for an experienced React developer to lead our frontend team.' },
     { id: 2, title: 'Digital Marketing Specialist', company: 'GrowFast Agency', location: 'Dubai', type: 'Contract', salary: 'AED 5000', desc: 'Manage PPC campaigns and social media strategy for international clients.' },
     { id: 3, title: 'SEO Executive', company: 'DSH HQ', location: 'Islamabad', type: 'Full-time', salary: 'PKR 80,000', desc: 'Optimize website content and build backlinks to improve organic ranking.' },
     { id: 4, title: 'Graphic Design Intern', company: 'Creative Studio', location: 'Lahore', type: 'Internship', salary: 'PKR 25,000', desc: 'Assist senior designers in creating social media posts and branding materials.' },
   ];
+
+  useEffect(() => {
+    fetchPublicModuleItems('jobs')
+      .then((items) => setAdminJobs(items.map((item) => ({
+        id: item.id,
+        title: item.payload.title,
+        company: item.payload.owner || item.payload.group || 'Digital Solutions Hub',
+        location: item.payload.location || 'Remote',
+        type: item.payload.type || 'Full-time',
+        salary: item.payload.amount || 'Negotiable',
+        desc: item.payload.details || 'Role details will be shared by the hiring team.',
+      }))))
+      .catch(() => setAdminJobs([]));
+  }, []);
+
+  const jobs = useMemo(() => {
+    const source = adminJobs.length ? adminJobs : fallbackJobs;
+    const needle = query.trim().toLowerCase();
+    if (!needle) return source;
+    return source.filter((job) => `${job.title} ${job.company} ${job.location} ${job.type} ${job.salary} ${job.desc}`.toLowerCase().includes(needle));
+  }, [adminJobs, query]);
 
   const handleApply = () => {
       setApplied(true);
@@ -39,9 +63,9 @@ const JobPortal: React.FC = () => {
             <div className="flex gap-4 max-w-2xl mx-auto">
                <div className="flex-1 relative">
                   <Search className="absolute left-4 top-3.5 text-gray-500 w-5 h-5 rtl:right-4 rtl:left-auto" />
-                  <input type="text" placeholder={TRANSLATIONS.search[lang]} className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-12 pr-4 rtl:pr-12 rtl:pl-4 text-white focus:outline-none focus:border-blue-500" />
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} type="text" placeholder={TRANSLATIONS.search[lang]} className="w-full bg-slate-900 border border-white/10 rounded-xl py-3 pl-12 pr-4 rtl:pr-12 rtl:pl-4 text-white focus:outline-none focus:border-blue-500" />
                </div>
-               <button className="px-8 py-3 bg-blue-600 rounded-xl font-bold hover:bg-blue-700 transition-colors">Search</button>
+               <button onClick={() => setQuery(query.trim())} className="px-8 py-3 bg-blue-600 rounded-xl font-bold hover:bg-blue-700 transition-colors">Search</button>
             </div>
          </div>
 
