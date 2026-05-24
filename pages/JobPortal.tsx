@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
-import { Briefcase, MapPin, DollarSign, Clock, Search, X, Upload, CheckCircle } from 'lucide-react';
+import { Briefcase, MapPin, Clock, Search, X, Upload, CheckCircle } from 'lucide-react';
 
 const JobPortal: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -61,7 +61,7 @@ const JobPortal: React.FC = () => {
                   <div className="flex flex-wrap gap-4 md:gap-8 items-center text-sm text-gray-400 w-full md:w-auto justify-between md:justify-end">
                      <div className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {job.location}</div>
                      <div className="flex items-center gap-1"><Clock className="w-4 h-4" /> {job.type}</div>
-                     <div className="flex items-center gap-1 text-green-400 font-bold"><DollarSign className="w-4 h-4" /> {job.salary}</div>
+                     <div className="text-green-400 font-bold">{job.salary}</div>
                      <button 
                         onClick={() => setSelectedJob(job)}
                         className="px-6 py-2 border border-white/10 rounded-lg hover:bg-white hover:text-black transition-colors font-bold"
