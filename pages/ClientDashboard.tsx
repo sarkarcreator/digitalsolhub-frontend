@@ -102,6 +102,26 @@ const ClientDashboard: React.FC = () => {
   const isCompletedStatus = (status?: string) => String(status || '').toLowerCase() === 'completed';
   const isActiveStatus = (status?: string) => !['completed', 'cancelled'].includes(String(status || '').toLowerCase());
   const invoiceFileName = (invoice: any) => `${String(invoice?.id || 'DSH-invoice').replace(/[^a-z0-9-_]/gi, '-')}.pdf`;
+  const formatInvoiceLabel = (value?: string) => String(value || 'service')
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+  const invoiceProjectTitle = (invoice: any) => invoice?.projectTitle || String(invoice?.notes || '').match(/Project:\s*([^\n]+)/i)?.[1]?.trim() || 'Digital Solutions Hub Service';
+  const invoiceProjectDetails = (invoice: any) => {
+    if (invoice?.projectDetails) return invoice.projectDetails;
+    const notes = String(invoice?.notes || '');
+    const match = notes.match(/Scope \/ client request:\s*([\s\S]*?)(?:\n\s*\nPayment instructions:|$)/i);
+    return (match?.[1] || 'Professional service request approved by Digital Solutions Hub.').replace(/Preferred payment method:.*$/gim, '').trim();
+  };
+  const invoicePaymentInstructions = (invoice: any) => {
+    const raw = String(invoice?.paymentInstructions || '');
+    const fallback = 'Please complete payment using the shared method and send proof in Messages.';
+    if (!raw) return fallback;
+    return raw
+      .replace(/^Project:[\s\S]*?Payment instructions:\s*/i, '')
+      .replace(/Scope \/ client request:[\s\S]*?Payment instructions:\s*/i, '')
+      .trim() || fallback;
+  };
 
   const handleInvoiceDownload = async (invoice = selectedInvoice) => {
     if (!invoice || !invoiceRef.current) return;
@@ -833,10 +853,11 @@ const ClientDashboard: React.FC = () => {
                       <tbody>
                         <tr className="border-b border-slate-200">
                           <td className="p-4">
-                            <p className="font-bold">{selectedInvoice.notes || 'Professional service invoice'}</p>
+                            <p className="font-bold">{invoiceProjectTitle(selectedInvoice)}</p>
+                            <p className="mt-2 max-w-xl whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{invoiceProjectDetails(selectedInvoice)}</p>
                             {selectedInvoice.referenceId && <p className="mt-1 text-xs text-slate-500">Reference: {selectedInvoice.referenceId}</p>}
                           </td>
-                          <td className="p-4 capitalize text-slate-600">{selectedInvoice.service || 'service'}</td>
+                          <td className="p-4 text-slate-600">{formatInvoiceLabel(selectedInvoice.projectType || selectedInvoice.service)}</td>
                           <td className="p-4 text-right font-bold">{selectedInvoice.amount}</td>
                         </tr>
                       </tbody>
@@ -857,7 +878,20 @@ const ClientDashboard: React.FC = () => {
 
                     <div className="mt-12 border-t border-slate-200 pt-6 text-sm text-slate-500">
                       <p className="font-bold text-slate-700">Payment Instructions</p>
-                      <p className="mt-1">Bank Transfer, JazzCash/EasyPaisa, Cards, and Crypto are accepted. Please send payment proof from the client messages section.</p>
+                      <div className="mt-2 whitespace-pre-wrap rounded-xl bg-slate-50 p-4 leading-relaxed text-slate-700">{invoicePaymentInstructions(selectedInvoice)}</div>
+                      {selectedInvoice.paymentLink && (
+                        <p className="mt-3">
+                          <span className="font-bold text-slate-700">Payment Link: </span>
+                          <a href={selectedInvoice.paymentLink} className="text-cyan-700 underline">{selectedInvoice.paymentLink}</a>
+                        </p>
+                      )}
+                      {selectedInvoice.bankAccountDetails && (
+                        <div className="mt-3">
+                          <p className="font-bold text-slate-700">Bank Account</p>
+                          <p className="whitespace-pre-wrap">{selectedInvoice.bankAccountDetails}</p>
+                        </div>
+                      )}
+                      <p className="mt-3">Please send payment proof from the client messages section after payment.</p>
                       <p className="mt-6 text-xs">Authorized by Sarkar Azeem, CEO. This invoice was generated from the Digital Solutions Hub client portal.</p>
                     </div>
                   </div>
