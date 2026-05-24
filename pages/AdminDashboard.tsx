@@ -265,6 +265,9 @@ const AdminDashboard = () => {
       details: editingModuleItem.payload.details || '',
       deadline: editingModuleItem.payload.deadline || '',
       invoiceAmount: editingModuleItem.payload.invoiceAmount || '',
+      paymentMethod: editingModuleItem.payload.paymentMethod || '',
+      paymentLink: editingModuleItem.payload.paymentLink || '',
+      bankAccountDetails: editingModuleItem.payload.bankAccountDetails || '',
       paymentInstructions: editingModuleItem.payload.paymentInstructions || '',
     });
     setModuleItems((prev) => ({
@@ -792,7 +795,16 @@ const AdminDashboard = () => {
               <>
                 <input type="date" value={editingModuleItem.payload.deadline || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, deadline: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" />
                 <input type="number" min="0" step="0.01" value={editingModuleItem.payload.invoiceAmount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, invoiceAmount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Admin quote / invoice amount, e.g. 500" />
-                <textarea value={editingModuleItem.payload.paymentInstructions || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, paymentInstructions: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Payment instructions / crypto address / bank account. This is sent in the client invoice notes." rows={3} />
+                <select value={editingModuleItem.payload.paymentMethod || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, paymentMethod: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
+                  <option value="">Payment method</option>
+                  <option value="payment-link">Payment Link</option>
+                  <option value="bank-transfer">Bank Transfer</option>
+                  <option value="crypto">Crypto / Binance</option>
+                  <option value="other">Other</option>
+                </select>
+                <input value={editingModuleItem.payload.paymentLink || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, paymentLink: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-3" placeholder="Payment link, e.g. Stripe/PayPal/checkout URL" />
+                <textarea value={editingModuleItem.payload.bankAccountDetails || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, bankAccountDetails: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Bank account details: bank name, account title, account/IBAN, JazzCash/EasyPaisa if needed" rows={3} />
+                <textarea value={editingModuleItem.payload.paymentInstructions || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, paymentInstructions: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Extra payment instructions / crypto wallet / notes for client" rows={3} />
               </>
             )}
             <input required value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Title / key" />
@@ -837,6 +849,9 @@ const AdminDashboard = () => {
                             <div>Service: <span className="text-brand-neon">{formatServiceName(item.payload.category || item.payload.projectType)}</span></div>
                             <div>Client budget: <span className="text-white">{item.payload.amount || '-'}</span></div>
                             {item.payload.invoiceAmount && <div>Admin quote: <span className="text-emerald-300">USD {Number(item.payload.invoiceAmount).toFixed(2)}</span></div>}
+                            {item.payload.paymentMethod && <div>Payment method: <span className="text-white">{String(item.payload.paymentMethod).replace('-', ' ')}</span></div>}
+                            {item.payload.paymentLink && <div>Payment link: <a href={item.payload.paymentLink} target="_blank" rel="noopener noreferrer" className="text-brand-neon underline">Open link</a></div>}
+                            {item.payload.bankAccountDetails && <div className="max-w-xl whitespace-pre-wrap rounded-lg border border-white/10 bg-slate-950/60 p-2 text-gray-300">Bank account: {item.payload.bankAccountDetails}</div>}
                             <div className="max-w-xl whitespace-pre-wrap text-gray-500">{item.payload.details || 'No project details.'}</div>
                             {item.payload.paymentInstructions && <div className="max-w-xl whitespace-pre-wrap rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2 text-emerald-200">Payment instructions: {item.payload.paymentInstructions}</div>}
                           </div>

@@ -406,7 +406,7 @@ export async function fetchAdminModuleItems(category: string): Promise<Dashboard
 
 export async function createAdminModuleItem(
   category: string,
-  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentInstructions?: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentMethod?: string; paymentLink?: string; bankAccountDetails?: string; paymentInstructions?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}`, {
     method: 'POST',
@@ -417,7 +417,7 @@ export async function createAdminModuleItem(
 export async function updateAdminModuleItem(
   category: string,
   id: number | string,
-  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentInstructions?: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string; invoiceAmount?: string; paymentMethod?: string; paymentLink?: string; bankAccountDetails?: string; paymentInstructions?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}/${id}`, {
     method: 'PUT',
