@@ -284,7 +284,7 @@ const Services: React.FC = () => {
                      </div>
                      <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.form_whatsapp[lang]}</label>
-                       <input name="whatsapp" value={formData.whatsapp} onChange={handleInputChange} required type="tel" className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="+1 917 695 7737" />
+                       <input name="whatsapp" value={formData.whatsapp} onChange={handleInputChange} required type="tel" className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Enter WhatsApp number" />
                      </div>
                      <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.form_budget[lang]}</label>

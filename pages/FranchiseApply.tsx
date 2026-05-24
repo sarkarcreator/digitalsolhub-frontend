@@ -111,7 +111,7 @@ const FranchiseApply: React.FC = () => {
                     </div>
                     <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.phone_num[lang]}</label>
-                       <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="+1 917 695 7737" />
+                       <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Enter mobile number" />
                     </div>
                  </div>
                  <div className="flex justify-end">

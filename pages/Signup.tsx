@@ -248,7 +248,7 @@ const Signup: React.FC = () => {
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{TRANSLATIONS.phone_num[lang]}</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-3.5 w-5 h-5 text-gray-500 rtl:right-4 rtl:left-auto" />
-                      <input name="phone" type="tel" value={formData.phone} onChange={handleInputChange} className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-blue/50 focus:bg-slate-900 transition-all placeholder:text-gray-500" placeholder="+92 301 7862281" required />
+                      <input name="phone" type="tel" value={formData.phone} onChange={handleInputChange} className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-blue/50 focus:bg-slate-900 transition-all placeholder:text-gray-500" placeholder="Enter mobile number" required />
                     </div>
                  </div>
               </div>

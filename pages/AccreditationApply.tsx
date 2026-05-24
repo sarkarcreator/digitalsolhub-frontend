@@ -176,7 +176,7 @@ const AccreditationApply: React.FC = () => {
                     </div>
                     <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.phone_num[lang]}</label>
-                       <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="+92 301 7862281" />
+                       <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Enter mobile number" />
                     </div>
                     <div className="md:col-span-2">
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.lbl_experience[lang]}</label>

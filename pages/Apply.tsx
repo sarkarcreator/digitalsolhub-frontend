@@ -106,7 +106,7 @@ const Apply: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">{TRANSLATIONS.phone_num[lang]}</label>
-                  <input name="phone" value={formData.phone} onChange={handleInputChange} required type="tel" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="+92 301 7862281" />
+                  <input name="phone" value={formData.phone} onChange={handleInputChange} required type="tel" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Enter mobile number" />
                 </div>
               </div>
 

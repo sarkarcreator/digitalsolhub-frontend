@@ -434,7 +434,7 @@ const AdminDashboard = () => {
               value={studentForm.phone}
               onChange={(e) => handleStudentFieldChange('phone', e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white focus:outline-none focus:border-brand-neon/50"
-              placeholder="+92 301 7862281"
+              placeholder="Enter mobile number"
               required
             />
           </div>
