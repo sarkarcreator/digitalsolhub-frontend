@@ -157,13 +157,13 @@ const StudentDashboard: React.FC = () => {
 
   const handleCompleteCourse = async (courseId: string, courseName: string) => {
     try {
-      await updateStudentCourseProgress(courseId, 100);
-      alert(`Congratulations! You have completed ${courseName}. Your certificate is now available.`);
+      const result = await updateStudentCourseProgress(courseId, 100);
+      alert(result.message || `${courseName} submitted for admin approval.`);
       await loadDashboard();
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Unable to update course progress.');
     }
-    setCurrentView('certificates');
+    setCurrentView('courses');
   };
 
   const handlePrintCertificate = () => {
@@ -352,7 +352,7 @@ const StudentDashboard: React.FC = () => {
                               </button>
                               <div className="flex gap-2">
                                 <button onClick={() => handleCompleteCourse(course.id, course.title)} className="flex-1 py-2 rounded-lg text-xs font-bold border border-green-500/50 text-green-400 hover:bg-green-500/10 transition-all">
-                                   Mark as Completed
+                                   Submit for Approval
                                 </button>
                                 <button onClick={() => handleShareProgress(course.title, progress)} className="px-3 py-2 rounded-lg border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-all">
                                    <Share2 className="w-4 h-4" />

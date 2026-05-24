@@ -117,6 +117,8 @@ export interface ClientPortalDashboard {
     activeProjects: number;
     completedProjects: number;
     pendingAmount: number;
+    paidAmount?: number;
+    completedInvoices?: number;
   };
 }
 
@@ -415,7 +417,7 @@ export async function createAdminModuleItem(
 export async function updateAdminModuleItem(
   category: string,
   id: number | string,
-  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}/${id}`, {
     method: 'PUT',
@@ -426,6 +428,14 @@ export async function updateAdminModuleItem(
 export async function deleteAdminModuleItem(category: string, id: number | string): Promise<void> {
   await request(`/admin/modules/${encodeURIComponent(category)}/${id}`, {
     method: 'DELETE',
+  }, true);
+}
+
+export async function uploadAdminFile(payload: FormData): Promise<Record<string, any>> {
+  return request<Record<string, any>>('/admin/files', {
+    method: 'POST',
+    body: payload,
+    headers: {},
   }, true);
 }
 
@@ -449,8 +459,8 @@ export async function enrollStudentCourse(payload: {
 export async function updateStudentCourseProgress(
   courseId: number | string,
   progress: number
-): Promise<{ course: StudentPortalCourse; certificate: StudentPortalCertificate | null }> {
-  return request<{ course: StudentPortalCourse; certificate: StudentPortalCertificate | null }>(
+): Promise<{ course: StudentPortalCourse; certificate: StudentPortalCertificate | null; message?: string }> {
+  return request<{ course: StudentPortalCourse; certificate: StudentPortalCertificate | null; message?: string }>(
     `/student/courses/${courseId}/progress`,
     {
       method: 'PUT',
@@ -546,6 +556,12 @@ export async function uploadClientFile(payload: FormData): Promise<Record<string
     method: 'POST',
     body: payload,
     headers: {},
+  }, true);
+}
+
+export async function deleteClientProject(id: number | string): Promise<void> {
+  await request(`/client/projects/${id}`, {
+    method: 'DELETE',
   }, true);
 }
 

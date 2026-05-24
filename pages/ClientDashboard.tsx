@@ -8,6 +8,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useRequireAuth } from '../utils/auth';
 import {
   createClientProject,
+  deleteClientProject,
   fetchClientDashboard,
   sendClientMessage,
   updateClientProfile,
@@ -92,6 +93,9 @@ const ClientDashboard: React.FC = () => {
     setCurrentView('project-details');
   };
 
+  const isCompletedStatus = (status?: string) => String(status || '').toLowerCase() === 'completed';
+  const isActiveStatus = (status?: string) => !['completed', 'cancelled'].includes(String(status || '').toLowerCase());
+
   const renderContent = () => {
      switch(currentView) {
         case 'services':
@@ -125,8 +129,8 @@ const ClientDashboard: React.FC = () => {
                               <Briefcase className="w-6 h-6" />
                            </div>
                            <span className={`px-2 py-1 text-xs rounded-full border font-bold uppercase ${
-                               service.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                               service.status === 'Completed' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                               isActiveStatus(service.status) ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                               isCompletedStatus(service.status) ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                'bg-orange-500/10 text-orange-400 border-orange-500/20'
                            }`}>
                                {service.status}
@@ -142,7 +146,7 @@ const ClientDashboard: React.FC = () => {
                             </div>
                             <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                                <div className={`h-full rounded-full shadow-[0_0_10px_currentColor] transition-all duration-1000 ${
-                                   service.progress === 100 ? 'bg-green-500 text-green-500' : 'bg-brand-neon text-brand-neon'
+                                   Number(service.progress) === 100 ? 'bg-green-500 text-green-500' : 'bg-brand-neon text-brand-neon'
                                }`} style={{width: `${service.progress}%`}}></div>
                             </div>
                         </div>
@@ -172,8 +176,8 @@ const ClientDashboard: React.FC = () => {
                                 <div className="flex items-center gap-3 mb-2">
                                     <h1 className="text-3xl font-bold text-white">{selectedProject.title}</h1>
                                     <span className={`px-3 py-1 text-xs rounded-full border font-bold uppercase ${
-                                        selectedProject.status === 'Active' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                        selectedProject.status === 'Completed' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                        isActiveStatus(selectedProject.status) ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                        isCompletedStatus(selectedProject.status) ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                         'bg-orange-500/10 text-orange-400 border-orange-500/20'
                                     }`}>
                                         {selectedProject.status}
@@ -188,12 +192,29 @@ const ClientDashboard: React.FC = () => {
                                         <Calendar className="w-4 h-4 text-brand-neon" /> {selectedProject.deadline}
                                     </div>
                                 </div>
-                                <button
-                                  onClick={() => setEditingProject((value) => !value)}
-                                  className="mt-4 rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50"
-                                >
-                                  {editingProject ? 'Cancel Edit' : 'Edit Project'}
-                                </button>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                  <button
+                                    onClick={() => setEditingProject((value) => !value)}
+                                    className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50"
+                                  >
+                                    {editingProject ? 'Cancel Edit' : 'Edit Project'}
+                                  </button>
+                                  {!isCompletedStatus(selectedProject.status) && (
+                                    <button
+                                      onClick={async () => {
+                                        if (!confirm('Delete this project request?')) return;
+                                        await deleteClientProject(selectedProject.id);
+                                        setProjects((prev) => prev.filter((project) => project.id !== selectedProject.id));
+                                        setSelectedProject(null);
+                                        await loadClientDashboard();
+                                        setCurrentView('services');
+                                      }}
+                                      className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-bold text-red-300 hover:bg-red-500/20"
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
                             </div>
                         </div>
 
@@ -205,7 +226,7 @@ const ClientDashboard: React.FC = () => {
                             <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
                                 <div 
                                     className={`h-full rounded-full shadow-[0_0_15px_currentColor] transition-all duration-1000 ${
-                                        selectedProject.progress === 100 ? 'bg-green-500 text-green-500' : 'bg-brand-neon text-brand-neon'
+                                        Number(selectedProject.progress) === 100 ? 'bg-green-500 text-green-500' : 'bg-brand-neon text-brand-neon'
                                     }`} 
                                     style={{width: `${selectedProject.progress}%`}}
                                 ></div>
@@ -284,9 +305,9 @@ const ClientDashboard: React.FC = () => {
                                                     <p className="text-xs text-gray-500">{file.size} • {file.date}</p>
                                                 </div>
                                             </div>
-                                            <button className="p-2 text-gray-400 hover:text-brand-neon rounded-lg transition-colors">
+                                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-brand-neon rounded-lg transition-colors">
                                                 <Download className="w-4 h-4" />
-                                            </button>
+                                            </a>
                                         </div>
                                     ))}
                                 </div>
@@ -339,22 +360,25 @@ const ClientDashboard: React.FC = () => {
              <div className="space-y-6 animate-in fade-in">
                 <h2 className="text-2xl font-bold text-white">{TRANSLATIONS.cdash_files[lang]}</h2>
                 <div className="grid gap-4">
-                   {projects.flatMap((project) => project.files || []).map((file, i) => (
+                   {projects.flatMap((project) => (project.files || []).map((file: any) => ({ ...file, projectTitle: project.title }))).map((file, i) => (
                       <div key={i} className="flex items-center justify-between p-5 bg-slate-900/50 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group">
                          <div className="flex items-center gap-4">
                             <div className="p-3 bg-slate-800 rounded-lg text-brand-neon group-hover:text-white transition-colors">
                                <FileText className="w-6 h-6" />
                             </div>
                             <div>
-                                <span className="block text-white font-medium mb-1">{file}</span>
-                                <span className="text-xs text-gray-500">2.4 MB • Oct 24, 2024</span>
+                                <span className="block text-white font-medium mb-1">{file.name}</span>
+                                <span className="text-xs text-gray-500">{file.projectTitle} • {file.date || 'Uploaded file'}</span>
                             </div>
                          </div>
-                         <button className="p-2 text-gray-400 hover:text-brand-neon hover:bg-brand-neon/10 rounded-lg transition-all">
+                         <a href={file.url} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-brand-neon hover:bg-brand-neon/10 rounded-lg transition-all">
                             <Download className="w-5 h-5" />
-                         </button>
+                         </a>
                       </div>
                    ))}
+                   {projects.flatMap((project) => project.files || []).length === 0 && (
+                     <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-gray-500">Project files will appear here after admin uploads delivery files.</div>
+                   )}
                 </div>
              </div>
            );
@@ -517,7 +541,7 @@ const ClientDashboard: React.FC = () => {
                      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-[80px]"></div>
                      <div className="relative z-10">
                         <h1 className="text-3xl font-bold text-white mb-2">{TRANSLATIONS.dash_welcome[lang]}</h1>
-                        <p className="text-purple-200">You have {clientData?.stats.activeProjects ?? projects.filter((project) => project.status !== 'completed').length} active projects and {(clientData?.invoices || []).filter((invoice: any) => invoice.status !== 'completed').length} pending invoices.</p>
+                        <p className="text-purple-200">You have {clientData?.stats.activeProjects ?? projects.filter((project) => isActiveStatus(project.status)).length} active projects and {(clientData?.invoices || []).filter((invoice: any) => !isCompletedStatus(invoice.status)).length} pending invoices.</p>
                      </div>
                   </div>
 
@@ -526,9 +550,9 @@ const ClientDashboard: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                      {[
-                        { label: TRANSLATIONS.cdash_active_orders[lang], val: String(clientData?.stats.activeProjects ?? projects.filter((project) => project.status !== 'completed').length).padStart(2, '0'), icon: Activity, color: "text-brand-neon" },
+                        { label: TRANSLATIONS.cdash_active_orders[lang], val: String(clientData?.stats.activeProjects ?? projects.filter((project) => isActiveStatus(project.status)).length).padStart(2, '0'), icon: Activity, color: "text-brand-neon" },
                         { label: TRANSLATIONS.cdash_pending_pay[lang], val: `$${Number(clientData?.stats.pendingAmount || 0).toLocaleString()}`, icon: Clock, color: "text-orange-400" },
-                        { label: TRANSLATIONS.cdash_completed_proj[lang], val: String(clientData?.stats.completedProjects ?? projects.filter((project) => project.status === 'completed').length).padStart(2, '0'), icon: CheckCircle, color: "text-green-400" }
+                        { label: TRANSLATIONS.cdash_completed_proj[lang], val: String(clientData?.stats.completedProjects ?? projects.filter((project) => isCompletedStatus(project.status)).length).padStart(2, '0'), icon: CheckCircle, color: "text-green-400" }
                      ].map((stat, i) => (
                         <div key={i} className="glass p-6 rounded-2xl border border-white/5">
                            <div className="flex justify-between items-start mb-4">

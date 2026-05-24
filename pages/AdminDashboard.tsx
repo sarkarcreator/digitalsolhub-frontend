@@ -21,6 +21,7 @@ import {
   fetchAdminStudents,
   updateAdminModuleItem,
   updateAdminStudent,
+  uploadAdminFile,
   type AdminOverview,
   type AdminStudentLead,
   type DashboardItem,
@@ -61,6 +62,7 @@ const AdminDashboard = () => {
   const [moduleError, setModuleError] = useState('');
   const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active' });
   const [editingModuleItem, setEditingModuleItem] = useState<DashboardItem | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   
   // Blockchain State
@@ -248,6 +250,33 @@ const AdminDashboard = () => {
       [category]: (prev[category] || []).map((item) => item.id === updated.id ? updated : item),
     }));
     setEditingModuleItem(null);
+  };
+
+  const handleAdminFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    purpose: 'project-file' | 'worksheet',
+    targetId?: number | string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploadingFile(true);
+    setModuleError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('purpose', purpose);
+      if (purpose === 'project-file' && targetId) formData.append('projectId', String(targetId));
+      if (purpose === 'worksheet' && targetId) formData.append('studentUserId', String(targetId));
+      if (purpose === 'worksheet') formData.append('isPublic', 'false');
+      await uploadAdminFile(formData);
+      await loadModuleItems(currentView);
+      alert('File uploaded successfully.');
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to upload file.');
+    } finally {
+      setUploadingFile(false);
+      event.target.value = '';
+    }
   };
 
   useEffect(() => {
@@ -551,8 +580,8 @@ const AdminDashboard = () => {
 
         {category !== 'certifications' && (
         <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
-          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : `${title} title`} />
-          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : 'Value / amount'} />
+          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : `${title} title`} />
+          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : 'Value / amount'} />
           <select value={moduleForm.status} onChange={(event) => setModuleForm((prev) => ({ ...prev, status: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
             <option value="active">Active</option>
             <option value="pending">Pending</option>
@@ -567,8 +596,11 @@ const AdminDashboard = () => {
             {category === 'certifications' && (
               <input value={editingModuleItem.payload.studentName || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, studentName: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Student name" />
             )}
+            {(category === 'requests' || category === 'messages' || category === 'payments') && (
+              <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder={category === 'messages' ? 'Type admin reply here...' : category === 'payments' ? 'Invoice details / scope of work' : 'Project details / admin notes'} rows={3} />
+            )}
             {category === 'requests' && (
-              <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Project details / admin notes" rows={3} />
+              <input type="date" value={editingModuleItem.payload.deadline || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, deadline: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" />
             )}
             <input required value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Title / key" />
             <input value={editingModuleItem.payload.amount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, amount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Value / certificate ID" />
@@ -611,6 +643,18 @@ const AdminDashboard = () => {
                       <td className="px-5 py-4"><span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase">{item.status}</span></td>
                       <td className="px-5 py-4 text-right space-x-3">
                         <button onClick={() => setEditingModuleItem(item)} className="text-cyan-300 hover:text-cyan-200">Edit</button>
+                        {category === 'requests' && (
+                          <label className={`cursor-pointer text-blue-300 hover:text-blue-200 ${uploadingFile ? 'opacity-50' : ''}`}>
+                            Upload File
+                            <input disabled={uploadingFile} type="file" className="hidden" onChange={(event) => handleAdminFileUpload(event, 'project-file', item.id)} />
+                          </label>
+                        )}
+                        {category === 'courses' && item.payload.studentUserId && (
+                          <label className={`cursor-pointer text-blue-300 hover:text-blue-200 ${uploadingFile ? 'opacity-50' : ''}`}>
+                            Worksheet
+                            <input disabled={uploadingFile} type="file" className="hidden" onChange={(event) => handleAdminFileUpload(event, 'worksheet', item.payload.studentUserId)} />
+                          </label>
+                        )}
                         <button onClick={() => handleDeleteModuleItem(category, item.id)} className="text-red-300 hover:text-red-200">Delete</button>
                       </td>
                     </tr>
