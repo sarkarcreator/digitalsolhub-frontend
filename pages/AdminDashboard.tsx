@@ -856,6 +856,16 @@ const AdminDashboard = () => {
                             {item.payload.paymentInstructions && <div className="max-w-xl whitespace-pre-wrap rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2 text-emerald-200">Payment instructions: {item.payload.paymentInstructions}</div>}
                           </div>
                         )}
+                        {category === 'crm' && item.payload.applicationType && (
+                          <div className="mt-2 space-y-1 text-xs text-gray-400">
+                            <div>Applied for: <span className="text-brand-neon">{item.payload.applicationLabel || item.payload.applicationType}</span></div>
+                            <div>Email: <span className="text-white">{item.payload.email || item.payload.amount || '-'}</span></div>
+                            <div>Phone: <span className="text-white">{item.payload.phone || '-'}</span></div>
+                            {item.payload.targetCountry && <div>Country: <span className="text-white">{item.payload.targetCountry}</span></div>}
+                            {item.payload.documentUrl && <a href={item.payload.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex text-brand-neon underline">Open document</a>}
+                            <div className="max-w-xl whitespace-pre-wrap text-gray-500">{item.payload.details || ''}</div>
+                          </div>
+                        )}
                         {(category === 'requests' || category === 'courses') && renderFileManager(item.payload.files || [])}
                       </td>
                       <td className="px-5 py-4">{item.payload.amount || '-'}</td>

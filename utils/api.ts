@@ -122,6 +122,15 @@ export interface ClientPortalDashboard {
   };
 }
 
+export interface ApplicationPayload {
+  applicationType: string;
+  name: string;
+  email: string;
+  phone: string;
+  targetCountry?: string;
+  document?: File | null;
+}
+
 export interface AdminOverview {
   students: number;
   clients: number;
@@ -590,6 +599,24 @@ export async function deleteClientProject(id: number | string): Promise<void> {
   await request(`/client/projects/${id}`, {
     method: 'DELETE',
   }, true);
+}
+
+/* ---------------- PUBLIC APPLICATIONS ---------------- */
+
+export async function submitApplication(payload: ApplicationPayload): Promise<{ id: number | string; message: string }> {
+  const formData = new FormData();
+  formData.append('applicationType', payload.applicationType);
+  formData.append('name', payload.name);
+  formData.append('email', payload.email);
+  formData.append('phone', payload.phone);
+  if (payload.targetCountry) formData.append('targetCountry', payload.targetCountry);
+  if (payload.document) formData.append('document', payload.document);
+
+  return request<{ id: number | string; message: string }>('/applications', {
+    method: 'POST',
+    body: formData,
+    headers: {},
+  });
 }
 
 /* ---------------- AI ---------------- */

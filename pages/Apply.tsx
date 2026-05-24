@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { TRANSLATIONS } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
-import { sendNotifications } from '../utils/notifications';
+import { submitApplication } from '../utils/api';
 import { Upload, Check, Send, Loader2 } from 'lucide-react';
 
 const Apply: React.FC = () => {
@@ -20,6 +20,7 @@ const Apply: React.FC = () => {
     email: '',
     targetCountry: ''
   });
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,17 +31,16 @@ const Apply: React.FC = () => {
     setLoading(true);
 
     try {
-      const result = await sendNotifications('COURSE_ENROLLMENT', {
+      await submitApplication({
+        applicationType,
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        details: `Type: ${applicationType}${formData.targetCountry ? `, Country: ${formData.targetCountry}` : ''}`
+        targetCountry: formData.targetCountry,
+        document: documentFile,
       });
 
-      if (result.success) {
-        window.open(result.adminUrl, '_blank');
-        setFormStep(2);
-      }
+      setFormStep(2);
       } catch (err) {
         alert('Unable to submit your application right now. Please try again.');
       } finally {
@@ -70,7 +70,7 @@ const Apply: React.FC = () => {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">{TRANSLATIONS.appSubmitted[lang]}</h2>
             <p className="text-gray-400 mb-8">{TRANSLATIONS.thankYouApp[lang]}</p>
-            <p className="text-sm text-gray-500 mb-8">Admin notified via WhatsApp.</p>
+            <p className="text-sm text-gray-500 mb-8">Your full application details are saved for the admin team.</p>
             <button onClick={() => setFormStep(0)} className="px-6 py-2 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors">
               {TRANSLATIONS.submitAnother[lang]}
             </button>
@@ -125,11 +125,11 @@ const Apply: React.FC = () => {
 
               {/* File Upload */}
               <div className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center hover:border-gold-500/50 transition-colors cursor-pointer bg-slate-950/50">
-                <input type="file" className="hidden" id="file-upload" />
+                <input type="file" className="hidden" id="file-upload" onChange={(event) => setDocumentFile(event.target.files?.[0] || null)} />
                 <label htmlFor="file-upload" className="cursor-pointer">
                    <Upload className="w-10 h-10 text-gray-500 mx-auto mb-3" />
                    <p className="text-sm text-gray-300 font-medium">{TRANSLATIONS.uploadDoc[lang]}</p>
-                   <p className="text-xs text-gray-500 mt-1">CV, ID Card, or Educational Certificates (PDF/JPG)</p>
+                   <p className="text-xs text-gray-500 mt-1">{documentFile ? documentFile.name : 'CV, ID Card, or Educational Certificates (PDF/JPG)'}</p>
                 </label>
               </div>
 
