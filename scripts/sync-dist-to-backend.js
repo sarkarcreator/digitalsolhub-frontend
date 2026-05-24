@@ -2,7 +2,11 @@ import fs from 'fs';
 import path from 'path';
 
 const distAssets = path.resolve(process.cwd(), 'dist', 'assets');
-const targetAssets = path.resolve(process.cwd(), '..', '..', 'laravel-backend', 'public', 'assets');
+const distBrand = path.resolve(process.cwd(), 'dist', 'brand');
+const distIndex = path.resolve(process.cwd(), 'dist', 'index.html');
+const backendPublic = path.resolve(process.cwd(), '..', 'dsh-backend', 'public');
+const targetAssets = path.resolve(backendPublic, 'assets');
+const targetBrand = path.resolve(backendPublic, 'brand');
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -14,6 +18,7 @@ function sync() {
     process.exit(1);
   }
   ensureDir(targetAssets);
+  ensureDir(targetBrand);
 
   const srcFiles = fs.readdirSync(distAssets);
   const dstFiles = fs.readdirSync(targetAssets);
@@ -37,6 +42,28 @@ function sync() {
       }
     }
   });
+
+  if (fs.existsSync(distBrand)) {
+    const brandFiles = fs.readdirSync(distBrand);
+    const targetBrandFiles = fs.readdirSync(targetBrand);
+
+    brandFiles.forEach(f => {
+      fs.copyFileSync(path.join(distBrand, f), path.join(targetBrand, f));
+      console.log('copied brand', f);
+    });
+
+    targetBrandFiles.forEach(f => {
+      if (!brandFiles.includes(f)) {
+        fs.unlinkSync(path.join(targetBrand, f));
+        console.log('removed stale brand', f);
+      }
+    });
+  }
+
+  if (fs.existsSync(distIndex)) {
+    fs.copyFileSync(distIndex, path.resolve(backendPublic, 'app.html'));
+    console.log('copied app.html');
+  }
 }
 
 sync();

@@ -1,0 +1,17 @@
+{
+  "name": "Digital Solutions Hub",
+  "short_name": "DSH",
+  "description": "Digital Solutions Hub platform",
+  "start_url": "/en",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/brand/Final%20Logo%20(1).png",
+      "sizes": "1024x1536",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -13,7 +13,15 @@ const initStorage = () => {
 export const getAllCertificates = (): CertificateData[] => {
   initStorage();
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : CERTIFICATES_DB;
+  const certs = stored ? JSON.parse(stored) : CERTIFICATES_DB;
+  const seen = new Set<string>();
+
+  return certs.filter((cert: CertificateData) => {
+    const key = `${cert.studentName.trim().toLowerCase()}::${cert.courseName.trim().toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 };
 
 export const getCertificateById = (id: string): CertificateData | undefined => {
@@ -39,9 +47,14 @@ export const generateCertificateId = (courseName: string): string => {
 
 export const issueCertificate = (studentName: string, courseName: string): CertificateData => {
   const certs = getAllCertificates();
+  const normalizedStudent = studentName.trim().toLowerCase();
+  const normalizedCourse = courseName.trim().toLowerCase();
   
   // Check if already exists to prevent duplicates
-  const existing = certs.find(c => c.studentName === studentName && c.courseName === courseName);
+  const existing = certs.find(c => 
+    c.studentName.trim().toLowerCase() === normalizedStudent &&
+    c.courseName.trim().toLowerCase() === normalizedCourse
+  );
   if (existing) return existing;
 
   const newCert: CertificateData = {

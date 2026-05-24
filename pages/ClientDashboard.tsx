@@ -6,6 +6,12 @@ import SEO from '../components/SEO';
 import ClientSidebar from '../components/ClientSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useRequireAuth } from '../utils/auth';
+import {
+  createClientProject,
+  fetchClientDashboard,
+  sendClientMessage,
+  type ClientPortalDashboard,
+} from '../utils/api';
 import { 
   Bell, Search, Menu, Activity, CheckCircle, 
   Clock, CreditCard, MessageSquare, Briefcase, PlusCircle, FileText, Save, Download, ArrowLeft, ShieldCheck, FolderOpen, Calendar, Loader2
@@ -18,6 +24,13 @@ const ClientDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
   const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [clientData, setClientData] = useState<ClientPortalDashboard | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState('');
+  const [messageText, setMessageText] = useState('');
+  const [projectForm, setProjectForm] = useState({ category: '', title: '', details: '' });
   const navigate = useNavigate();
   const { authUser, loadingAuth } = useRequireAuth(lang, 'client');
 
@@ -28,6 +41,26 @@ const ClientDashboard: React.FC = () => {
     document.body.className = 'bg-slate-950 font-sans text-white';
   }, [lang]);
 
+  useEffect(() => {
+    if (!authUser) return;
+    loadClientDashboard();
+  }, [authUser?.id]);
+
+  const loadClientDashboard = async () => {
+    setPortalLoading(true);
+    setPortalError('');
+    try {
+      const data = await fetchClientDashboard();
+      setClientData(data);
+      setProjects(data.projects);
+      setMessages(data.messages);
+    } catch (error) {
+      setPortalError(error instanceof Error ? error.message : 'Unable to load client dashboard.');
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
   if (loadingAuth) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -36,58 +69,11 @@ const ClientDashboard: React.FC = () => {
     );
   }
 
-  // Mock Data
   const client = {
-    name: authUser?.name ?? "Business Solutions Ltd",
+    name: authUser?.name ?? "Client",
     logo: "https://picsum.photos/200/200?random=client",
-    plan: "Enterprise"
+    plan: clientData?.profile?.status || "Active"
   };
-
-  const services = [
-    {
-      id: 1,
-      title: "E-Commerce Website",
-      category: "Web Development",
-      status: "Active",
-      progress: 75,
-      nextMilestone: "Payment Gateway",
-      deadline: "Nov 15, 2024",
-      description: "Comprehensive e-commerce platform development focusing on user experience, secure payment integration, and inventory management automation.",
-      files: [
-        { name: "Project_Requirements.pdf", date: "Oct 10, 2024", size: "1.2 MB" },
-        { name: "UI_Design_Mockups.zip", date: "Oct 15, 2024", size: "45 MB" },
-        { name: "Contract_Signed.pdf", date: "Oct 05, 2024", size: "0.8 MB" }
-      ]
-    },
-    {
-      id: 2,
-      title: "SEO Optimization",
-      category: "Digital Marketing",
-      status: "In Progress",
-      progress: 40,
-      nextMilestone: "Content Strategy",
-      deadline: "Dec 01, 2024",
-      description: "On-page and off-page SEO optimization to improve organic search rankings, including keyword research, content optimization, and backlink strategy.",
-      files: [
-        { name: "SEO_Audit_Report.pdf", date: "Oct 20, 2024", size: "3.5 MB" },
-        { name: "Keyword_Strategy.xlsx", date: "Oct 22, 2024", size: "0.5 MB" }
-      ]
-    },
-    {
-      id: 3,
-      title: "Corporate Branding",
-      category: "Graphic Design",
-      status: "Completed",
-      progress: 100,
-      nextMilestone: "Project Delivered",
-      deadline: "Oct 10, 2024",
-      description: "Complete brand identity design including logo, color palette, typography, and brand guidelines document.",
-      files: [
-        { name: "Brand_Guidelines.pdf", date: "Oct 10, 2024", size: "12 MB" },
-        { name: "Logo_Pack.zip", date: "Oct 09, 2024", size: "28 MB" }
-      ]
-    }
-  ];
 
   const handleProjectClick = (project: any) => {
     setSelectedProject(project);
@@ -106,7 +92,14 @@ const ClientDashboard: React.FC = () => {
                    </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                   {services.map(service => (
+                   {projects.length === 0 && (
+                     <div className="md:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-white/10 bg-slate-900/40 p-8 text-center">
+                       <Briefcase className="mx-auto mb-3 h-10 w-10 text-brand-neon" />
+                       <h3 className="text-xl font-bold text-white">No projects yet</h3>
+                       <p className="mt-2 text-sm text-gray-400">Create your first request when you are ready.</p>
+                     </div>
+                   )}
+                   {projects.map(service => (
                      <div 
                         key={service.id} 
                         onClick={() => handleProjectClick(service)}
@@ -237,6 +230,9 @@ const ClientDashboard: React.FC = () => {
                                     <FolderOpen className="w-5 h-5 text-blue-400" /> Project Files
                                 </h3>
                                 <div className="space-y-3">
+                                    {(selectedProject.files || []).length === 0 && (
+                                        <div className="rounded-xl border border-dashed border-white/10 p-4 text-sm text-gray-500">No files uploaded for this project yet.</div>
+                                    )}
                                     {selectedProject.files?.map((file: any, i: number) => (
                                         <div key={i} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group">
                                             <div className="flex items-center gap-3 overflow-hidden">
@@ -270,7 +266,7 @@ const ClientDashboard: React.FC = () => {
                     <div className="glass p-8 rounded-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-neon/5 rounded-full blur-3xl"></div>
                         <div className="space-y-8 relative z-10">
-                            {services.map(svc => (
+                            {projects.map(svc => (
                                 <div key={svc.id} className="border-l-2 border-slate-800 pl-6 relative">
                                     <div className="absolute -left-[9px] top-0 w-4 h-4 bg-slate-950 border-2 border-brand-neon rounded-full"></div>
                                     <h3 className="text-lg font-bold text-white mb-2">{svc.title}</h3>
@@ -290,6 +286,9 @@ const ClientDashboard: React.FC = () => {
                                     </div>
                                 </div>
                             ))}
+                            {projects.length === 0 && (
+                                <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-gray-500">Project timeline will appear after you create a request.</div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -300,7 +299,7 @@ const ClientDashboard: React.FC = () => {
              <div className="space-y-6 animate-in fade-in">
                 <h2 className="text-2xl font-bold text-white">{TRANSLATIONS.cdash_files[lang]}</h2>
                 <div className="grid gap-4">
-                   {['Contract_Agreement.pdf', 'Website_Assets.zip', 'SEO_Report_Oct.pdf', 'Logo_Source_Files.ai'].map((file, i) => (
+                   {projects.flatMap((project) => project.files || []).map((file, i) => (
                       <div key={i} className="flex items-center justify-between p-5 bg-slate-900/50 rounded-xl border border-white/5 hover:bg-white/5 transition-colors group">
                          <div className="flex items-center gap-4">
                             <div className="p-3 bg-slate-800 rounded-lg text-brand-neon group-hover:text-white transition-colors">
@@ -344,17 +343,17 @@ const ClientDashboard: React.FC = () => {
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                           {[
-                             { id: "INV-001", service: "Web Development", date: "Oct 24", due: "Oct 24", amount: "$500.00", status: "Paid" },
-                             { id: "INV-002", service: "SEO Services", date: "Oct 20", due: "Nov 01", amount: "$1,250.00", status: "Unpaid" }
-                           ].map((inv, i) => (
+                           {(clientData?.invoices || []).length === 0 && (
+                              <tr><td className="p-8 text-center text-gray-500" colSpan={7}>No invoices yet.</td></tr>
+                           )}
+                           {(clientData?.invoices || []).map((inv: any, i) => (
                               <tr key={i} className="hover:bg-white/5 transition-colors">
                                  <td className="p-5 font-bold text-white font-mono text-sm">{inv.id}</td>
                                  <td className="p-5 text-white">{inv.service}</td>
                                  <td className="p-5 text-sm">{inv.date}</td>
                                  <td className="p-5 text-sm text-brand-neon">{inv.due}</td>
                                  <td className="p-5 text-white font-bold">{inv.amount}</td>
-                                 <td className="p-5"><span className={`px-2 py-1 rounded text-xs font-bold uppercase ${inv.status === 'Paid' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{inv.status}</span></td>
+                                 <td className="p-5"><span className={`px-2 py-1 rounded text-xs font-bold uppercase ${['Paid', 'completed'].includes(inv.status) ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>{inv.status}</span></td>
                                  <td className="p-5 text-right">
                                     <button className="text-xs text-brand-neon hover:text-white underline transition-colors flex items-center justify-end gap-1 w-full">
                                        <Download className="w-3 h-3" /> Download
@@ -387,23 +386,20 @@ const ClientDashboard: React.FC = () => {
                      </div>
                   </div>
                   <div className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar">
-                     <div className="flex gap-3">
-                        <div className="bg-slate-800 p-3 rounded-2xl rounded-tl-none text-sm text-gray-300 max-w-[80%] border border-white/5">
-                           Hello! The dashboard designs are ready for review.
+                     {messages.map((message) => (
+                        <div key={message.id} className={`flex gap-3 ${message.role === 'client' ? 'flex-row-reverse' : ''}`}>
+                           <div className={`${message.role === 'client' ? 'bg-brand-neon text-black rounded-tr-none font-medium shadow-lg shadow-brand-neon/20' : 'bg-slate-800 text-gray-300 rounded-tl-none border border-white/5'} p-3 rounded-2xl text-sm max-w-[80%]`}>
+                              {message.text}
+                           </div>
                         </div>
-                     </div>
-                     <div className="flex gap-3 flex-row-reverse">
-                        <div className="bg-brand-neon text-black p-3 rounded-2xl rounded-tr-none text-sm font-medium max-w-[80%] shadow-lg shadow-brand-neon/20">
-                           Great! I'll take a look shortly.
-                        </div>
-                     </div>
+                     ))}
                   </div>
-                  <div className="p-4 border-t border-white/10 bg-slate-900/50 flex gap-2">
-                     <input type="text" placeholder={TRANSLATIONS.send_message[lang]} className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-all" />
+                  <form onSubmit={async (event) => { event.preventDefault(); if (!messageText.trim()) return; const sent = await sendClientMessage({ message: messageText.trim() }); setMessages((prev) => [...prev, sent]); setMessageText(''); }} className="p-4 border-t border-white/10 bg-slate-900/50 flex gap-2">
+                     <input value={messageText} onChange={(event) => setMessageText(event.target.value)} type="text" placeholder={TRANSLATIONS.send_message[lang]} className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-all" />
                      <button className="p-3 bg-brand-neon text-black rounded-xl hover:bg-cyan-400 transition-colors shadow-lg shadow-brand-neon/20">
                         <MessageSquare className="w-5 h-5" />
                      </button>
-                  </div>
+                  </form>
                </div>
             );
 
@@ -414,10 +410,21 @@ const ClientDashboard: React.FC = () => {
                      <ArrowLeft className="w-4 h-4 rtl:rotate-180" /> Back to Services
                   </button>
                   <h2 className="text-2xl font-bold text-white">{TRANSLATIONS.cdash_create_new[lang]}</h2>
-                  <form className="glass p-8 rounded-2xl space-y-6 border border-white/10">
+                  <form onSubmit={async (event) => {
+                    event.preventDefault();
+                    const nextProject = await createClientProject({
+                      title: projectForm.title,
+                      category: SERVICE_CATEGORIES.find((category) => category.id === projectForm.category)?.title[lang] || 'Service Request',
+                      details: projectForm.details,
+                    });
+                    setProjects([nextProject, ...projects]);
+                    setClientData((prev) => prev ? { ...prev, projects: [nextProject, ...prev.projects] } : prev);
+                    setProjectForm({ category: '', title: '', details: '' });
+                    setCurrentView('services');
+                  }} className="glass p-8 rounded-2xl space-y-6 border border-white/10">
                      <div>
                         <label className="block text-sm text-gray-400 mb-2">{TRANSLATIONS.form_category[lang]}</label>
-                        <select className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors relative z-10">
+                        <select required value={projectForm.category} onChange={(event) => setProjectForm((prev) => ({ ...prev, category: event.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors relative z-10">
                            <option value="">Select Service</option>
                            {SERVICE_CATEGORIES.map(c => (
                               <option key={c.id} value={c.id}>{c.title[lang]}</option>
@@ -426,13 +433,13 @@ const ClientDashboard: React.FC = () => {
                      </div>
                      <div>
                         <label className="block text-sm text-gray-400 mb-2">Project Name</label>
-                        <input type="text" className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="e.g. Corporate Website Redesign" />
+                        <input required value={projectForm.title} onChange={(event) => setProjectForm((prev) => ({ ...prev, title: event.target.value }))} type="text" className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="e.g. Corporate Website Redesign" />
                      </div>
                      <div>
                         <label className="block text-sm text-gray-400 mb-2">{TRANSLATIONS.form_details[lang]}</label>
-                        <textarea rows={4} className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Describe your project requirements..."></textarea>
+                        <textarea required value={projectForm.details} onChange={(event) => setProjectForm((prev) => ({ ...prev, details: event.target.value }))} rows={4} className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Describe your project requirements..."></textarea>
                      </div>
-                     <button type="button" onClick={() => setCurrentView('services')} className="w-full py-3 bg-brand-neon text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all">
+                     <button className="w-full py-3 bg-brand-neon text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all">
                         Submit Request
                      </button>
                   </form>
@@ -446,15 +453,18 @@ const ClientDashboard: React.FC = () => {
                      <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-[80px]"></div>
                      <div className="relative z-10">
                         <h1 className="text-3xl font-bold text-white mb-2">{TRANSLATIONS.dash_welcome[lang]}</h1>
-                        <p className="text-purple-200">You have 2 active projects and 1 pending invoice.</p>
+                        <p className="text-purple-200">You have {clientData?.stats.activeProjects ?? projects.filter((project) => project.status !== 'completed').length} active projects and {(clientData?.invoices || []).filter((invoice: any) => invoice.status !== 'completed').length} pending invoices.</p>
                      </div>
                   </div>
 
+                  {portalError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{portalError}</div>}
+                  {portalLoading && <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 text-sm text-gray-400">Loading live client data...</div>}
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                      {[
-                        { label: TRANSLATIONS.cdash_active_orders[lang], val: "02", icon: Activity, color: "text-brand-neon" },
-                        { label: TRANSLATIONS.cdash_pending_pay[lang], val: "$1,250", icon: Clock, color: "text-orange-400" },
-                        { label: TRANSLATIONS.cdash_completed_proj[lang], val: "12", icon: CheckCircle, color: "text-green-400" }
+                        { label: TRANSLATIONS.cdash_active_orders[lang], val: String(clientData?.stats.activeProjects ?? projects.filter((project) => project.status !== 'completed').length).padStart(2, '0'), icon: Activity, color: "text-brand-neon" },
+                        { label: TRANSLATIONS.cdash_pending_pay[lang], val: `$${Number(clientData?.stats.pendingAmount || 0).toLocaleString()}`, icon: Clock, color: "text-orange-400" },
+                        { label: TRANSLATIONS.cdash_completed_proj[lang], val: String(clientData?.stats.completedProjects ?? projects.filter((project) => project.status === 'completed').length).padStart(2, '0'), icon: CheckCircle, color: "text-green-400" }
                      ].map((stat, i) => (
                         <div key={i} className="glass p-6 rounded-2xl border border-white/5">
                            <div className="flex justify-between items-start mb-4">

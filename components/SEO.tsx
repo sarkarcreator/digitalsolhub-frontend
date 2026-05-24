@@ -11,7 +11,7 @@ interface SEOProps {
   schema?: Record<string, any>; // JSON-LD Schema
 }
 
-const SEO: React.FC<SEOProps> = ({ title, description, lang, image = 'https://digitalsolhub.com/og-image.jpg', schema }) => {
+const SEO: React.FC<SEOProps> = ({ title, description, lang, image = 'https://digitalsolhub.com/brand/Final%20Logo%20(1).png', schema }) => {
   const location = useLocation();
   
   // Construct absolute URL
@@ -61,6 +61,23 @@ const SEO: React.FC<SEOProps> = ({ title, description, lang, image = 'https://di
     updateMeta('twitter:title', title);
     updateMeta('twitter:description', description);
     updateMeta('twitter:image', image);
+    updateMeta('application-name', 'Digital Solutions Hub');
+    updateMeta('apple-mobile-web-app-title', 'DSH');
+
+    const updateLink = (rel: string, href: string, type?: string) => {
+      let element = document.querySelector(`link[rel='${rel}']`);
+      if (!element) {
+        element = document.createElement('link');
+        element.setAttribute('rel', rel);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('href', href);
+      if (type) element.setAttribute('type', type);
+    };
+
+    updateLink('icon', '/brand/Final%20Logo%20(1).png', 'image/png');
+    updateLink('apple-touch-icon', '/brand/Final%20Logo%20(1).png');
+    updateLink('manifest', '/manifest.webmanifest');
 
     // 4. Canonical Tag
     let linkCanonical = document.querySelector("link[rel='canonical']");

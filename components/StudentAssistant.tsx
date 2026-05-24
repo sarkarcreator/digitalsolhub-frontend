@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
 import { Mic, MicOff, X, Volume2, WifiOff, ShieldCheck, Sparkles, BookOpen, GraduationCap } from 'lucide-react';
 import { Language } from '../types';
 
@@ -81,157 +80,10 @@ const StudentAssistant: React.FC<StudentAssistantProps> = ({
   const connectToLiveAPI = async () => {
     setStatus('connecting');
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || '';
-      if (!apiKey) {
-        setStatus('error');
-        throw new Error('Gemini API key not configured');
-      }
-      const ai = new GoogleGenAI({ apiKey });
-      
-      inputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      // Construct Course Context String
-      const courseContext = courses.map(c => `${c.name} (${c.progress}% complete)`).join(', ');
-
-      const systemInstruction = `
-        You are the **Official Learning Assistant & Mentor** for **Digital Solutions Hub**.
-        
-        **BRAND IDENTITY:**
-        - **Organization:** Digital Solutions Hub
-        - **CEO:** Sarkar Azeem
-        - **Support:** +92301-7862281
-
-        **YOUR ROLE:**
-        - Act as a personal tutor and daily guide for the student: ${studentName}.
-        - **Tone:** Friendly, Supportive, Motivating, clear human-like voice. Slow-medium pace for better understanding.
-
-        **OFFICIAL SYLLABUS & CURRICULUM (Knowledge Base):**
-        **LEVEL 1: FOUNDATION (Beginner)**
-        - Module 1: Digital Basics (Internet, Freelancing vs Jobs, Tools, Mindset)
-        - Module 2: Personal Branding Basics (Profile optimization, Online presence, Trust)
-        - Module 3: Data Entry (Tools, Platforms, Speed)
-        - Module 4: Affiliate Marketing Intro (How it works, First commission)
-        - Module 5: AI Introduction (ChatGPT, AI tools, Productivity)
-
-        **LEVEL 2: PROFESSIONAL (Skill Builder)**
-        - Module 6: Shopify & Dropshipping (Store setup, Product research, Payments, Fulfillment)
-        - Module 7: eBay & Marketplaces (Seller accounts, Listing, Scaling)
-        - Module 8: SEO Complete (Keyword research, On-page/Technical SEO, Backlinks)
-        - Module 9: Digital Marketing (FB/Google/TikTok Ads, Funnels)
-        - Module 10: Web Design (WordPress, Themes, Speed)
-        - Module 11: Graphic Design (Canva, Branding, Social media creatives)
-
-        **LEVEL 3: EXPERT (Earning + Automation)**
-        - Module 12: Advanced SEO & Traffic (Scaling, Analytics)
-        - Module 13: Personal Branding Authority (Content strategy, Growth, Monetization)
-        - Module 14: AI Automation (Workflows, Chatbots, Zapier)
-        - Module 15: Freelancing Mastery (Fiverr/Upwork, Proposal writing, Clients)
-        - Module 16: Monetization Systems (YouTube, AdSense, Affiliate funnels)
-        - Module 17: Agency Setup (Pricing, Team building)
-
-        **SOFT SKILLS:** Communication, Time Management, Client Handling, Confidence.
-
-        **STUDENT CONTEXT:**
-        - **Enrolled Courses:** ${courseContext}.
-        - **Current Status:** Needs guidance on next steps, assignments, or earning strategies.
-
-        **CORE BEHAVIORS:**
-        1. **Daily Guide:** If asked "Today's lesson" or "What to study", suggest the next topic based on their course progress.
-        2. **Progress Tracking:** Read out progress percentages. Be motivating (e.g., "You're 75% done with Module 6, keep going!").
-        3. **Assignment Help:** Explain concepts step-by-step. **Give hints, NOT full answers.** Encourage independent work.
-        4. **Career & Earning:** Explain how to earn via Upwork/Fiverr using their specific skills. Mention "Personal Branding".
-        5. **Admin Support:** If they have account/payment/dashboard issues, refer to **WhatsApp: +1 917 695 7737**.
-
-        **RESPONSE RULES:**
-        - **Language:** Detect user language (English, Urdu, Arabic, Russian) and switch FULLY to that language.
-        - **Urdu Mix:** Use natural Urdu-English mix for Pakistani students (e.g., "Ghabrana nahi hai, step-by-step seekhein.").
-        - **Unknowns:** If a query is outside your training data, say: "For accurate details, please contact our team on WhatsApp: +92301-7862281". NEVER make up information.
-        - **Security:** "Your learning data is secure with Digital Solutions Hub."
-        - **No Negativity:** Never demotivate. Always encourage. "Earning learning ke baad hi start hoti hai, focus on skills."
-      `;
-
-      const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-        callbacks: {
-          onopen: () => {
-            setIsConnected(true);
-            setStatus('listening');
-            
-            const source = inputContextRef.current!.createMediaStreamSource(stream);
-            const processor = inputContextRef.current!.createScriptProcessor(4096, 1, 1);
-            
-            processor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const pcm16 = floatTo16BitPCM(inputData);
-              const base64Audio = arrayBufferToBase64(pcm16.buffer);
-              
-              sessionPromiseRef.current?.then((session) => {
-                session.sendRealtimeInput({
-                  media: { mimeType: 'audio/pcm;rate=16000', data: base64Audio }
-                });
-              });
-            };
-
-            source.connect(processor);
-            processor.connect(inputContextRef.current!.destination);
-            sourceRef.current = source;
-            processorRef.current = processor;
-          },
-          onmessage: async (msg: LiveServerMessage) => {
-            const audioData = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (audioData) {
-              setStatus('speaking');
-              setIsSpeaking(true);
-              
-              const audioBytes = base64ToUint8Array(audioData);
-              const dataInt16 = new Int16Array(audioBytes.buffer);
-              const audioBuffer = audioContextRef.current!.createBuffer(1, dataInt16.length, 24000);
-              const channelData = audioBuffer.getChannelData(0);
-              for (let i = 0; i < dataInt16.length; i++) {
-                 channelData[i] = dataInt16[i] / 32768.0;
-              }
-
-              const source = audioContextRef.current!.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(audioContextRef.current!.destination);
-              
-              const currentTime = audioContextRef.current!.currentTime;
-              const startTime = Math.max(currentTime, nextStartTimeRef.current);
-              source.start(startTime);
-              nextStartTimeRef.current = startTime + audioBuffer.duration;
-
-              source.onended = () => {
-                 if (audioContextRef.current!.currentTime >= nextStartTimeRef.current - 0.1) {
-                    setIsSpeaking(false);
-                    setStatus('listening');
-                 }
-              };
-            }
-          },
-          onclose: () => disconnectVoice(),
-          onerror: (err) => {
-            console.error(err);
-            setStatus('error');
-            disconnectVoice();
-          }
-        },
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
-          },
-          systemInstruction: systemInstruction
-        }
-      });
-
-      sessionPromiseRef.current = sessionPromise;
+      setStatus('error');
+      throw new Error('Voice mode is disabled until backend streaming is enabled.');
 
     } catch (error) {
-      console.error(error);
       setStatus('error');
     }
   };

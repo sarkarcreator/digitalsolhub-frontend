@@ -11,11 +11,18 @@ import Certificate from '../components/Certificate';
 import LinkedInShareModal from '../components/LinkedInShareModal';
 import SkillBadgeCard from '../components/SkillBadgeCard';
 import { QRCodeSVG } from 'qrcode.react';
-import { getAllCertificates, issueCertificate } from '../utils/certificateManager';
 import { getStudentBadges } from '../utils/badgeManager';
 import { requestAttestation, getAttestationByCertId } from '../utils/attestationManager';
-import { sendNotifications } from '../utils/notifications';
 import { useRequireAuth } from '../utils/auth';
+import { exportElementAsPdf } from '../utils/certificateExport';
+import {
+  enrollStudentCourse,
+  fetchStudentDashboard,
+  sendStudentSupportMessage,
+  updateStudentCourseProgress,
+  updateStudentProfile,
+  type StudentPortalDashboard,
+} from '../utils/api';
 import { 
   Bell, Search, Menu, PlayCircle, FileText, 
   Award, CheckCircle, Clock, 
@@ -35,8 +42,13 @@ const StudentDashboard: React.FC = () => {
   const [myCertificates, setMyCertificates] = useState<any[]>([]);
   const [myBadges, setMyBadges] = useState<any[]>([]);
 
-  // Simulate Enrolled Courses mapped from Global Data
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+  const [portalData, setPortalData] = useState<StudentPortalDashboard | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState('');
+  const [supportText, setSupportText] = useState('');
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', bio: '', linkedinUrl: '', portfolioUrl: '' });
+  const [exportingCertificate, setExportingCertificate] = useState(false);
 
   const navigate = useNavigate();
   const { authUser, loadingAuth } = useRequireAuth(lang, 'student');
@@ -51,25 +63,48 @@ const StudentDashboard: React.FC = () => {
       return;
     }
 
-    loadCertificates(authUser.name);
+    loadDashboard();
     loadBadges(authUser.name);
-    
-    const mockEnrollment = COURSES.slice(0, 3).map(course => ({
-       ...course,
-       progress: Math.floor(Math.random() * 100), // Random progress
-       status: 'Active'
-    }));
-    setEnrolledCourses(mockEnrollment);
 
   }, [lang, authUser]);
 
-  const loadCertificates = (studentName: string) => {
-    const allCerts = getAllCertificates();
-    const studentCerts = allCerts.filter(c => c.studentName === studentName).map(cert => {
-        const attestation = getAttestationByCertId(cert.id);
-        return { ...cert, attestation };
-    });
-    setMyCertificates(studentCerts);
+  const loadDashboard = async () => {
+    setPortalLoading(true);
+    setPortalError('');
+    try {
+      const data = await fetchStudentDashboard();
+      setPortalData(data);
+      setProfileForm({
+        name: authUser?.name || '',
+        phone: authUser?.phone || '',
+        bio: data.profile?.bio || '',
+        linkedinUrl: data.profile?.linkedin_url || '',
+        portfolioUrl: data.profile?.portfolio_url || '',
+      });
+      setMyCertificates(data.certificates.map((cert) => ({
+        ...cert,
+        studentName: authUser?.name || 'Student',
+        attestation: getAttestationByCertId(cert.id),
+      })));
+      setEnrolledCourses(data.courses.map((course) => {
+        const catalogCourse = COURSES.find((item) => item.id === course.courseId || item.title === course.courseName);
+        return {
+          ...(catalogCourse || {}),
+          id: course.id,
+          courseId: course.courseId,
+          title: course.courseName,
+          progress: course.progress,
+          status: course.status === 'completed' ? 'Completed' : 'Active',
+          image: catalogCourse?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
+          instructor: catalogCourse?.instructor || { name: 'DSH Academy' },
+          learningOutcomes: catalogCourse?.learningOutcomes || [],
+        };
+      }));
+    } catch (error) {
+      setPortalError(error instanceof Error ? error.message : 'Unable to load your dashboard.');
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   const loadBadges = (studentName: string) => {
@@ -96,7 +131,7 @@ const StudentDashboard: React.FC = () => {
       if (!cert.attestation) {
           requestAttestation(cert.id, cert.studentName, cert.courseName, 'Academy');
           alert("Attestation Request Submitted! Admin will review shortly.");
-          loadCertificates(student.name);
+          loadDashboard();
       }
   };
 
@@ -106,30 +141,47 @@ const StudentDashboard: React.FC = () => {
     window.open(linkedinUrl, '_blank');
   };
 
+  const handleEnrollCourse = async (course: any) => {
+    try {
+      await enrollStudentCourse({
+        courseId: course.id,
+        courseName: course.title,
+        totalLessons: (course.learningOutcomes?.length || 0) * 3,
+      });
+      await loadDashboard();
+      setCurrentView('courses');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Unable to enroll in this course.');
+    }
+  };
+
   const handleCompleteCourse = async (courseId: string, courseName: string) => {
-    // 1. Update Course Progress locally
-    setEnrolledCourses(prev => prev.map(c => c.id === courseId ? { ...c, progress: 100, status: 'Completed' } : c));
-    
-    // 2. Auto-Issue Certificate
-    const newCert = issueCertificate(student.name, courseName);
-    
-    // 3. Trigger Email Notification (Simulation)
-    await sendNotifications('CERTIFICATE_ISSUED', {
-        name: student.name,
-        email: student.email,
-        details: `${courseName} (ID: ${newCert.id})`
-    });
-
-    alert(`Congratulations! You have completed ${courseName}. Certificate has been issued and emailed.`);
-
-    // 4. Refresh Dashboard
-    loadCertificates(student.name);
+    try {
+      await updateStudentCourseProgress(courseId, 100);
+      alert(`Congratulations! You have completed ${courseName}. Your certificate is now available.`);
+      await loadDashboard();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Unable to update course progress.');
+    }
     setCurrentView('certificates');
   };
 
-  const handleDownloadCertificate = () => {
-    // Uses window.print() but the CSS will hide everything else due to @media print
+  const handlePrintCertificate = () => {
     window.print();
+  };
+
+  const handleDownloadCertificate = async () => {
+    if (!certificateRef.current || !viewCertificate) return;
+
+    setExportingCertificate(true);
+    try {
+      await exportElementAsPdf(
+        certificateRef.current,
+        `${viewCertificate.id}-certificate.pdf`
+      );
+    } finally {
+      setExportingCertificate(false);
+    }
   };
   
   const openLinkedInShare = (cert: any) => {
@@ -259,13 +311,20 @@ const StudentDashboard: React.FC = () => {
                {TRANSLATIONS.dash_my_courses[lang]}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {enrolledCourses.length === 0 && (
+                 <div className="md:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-white/10 bg-slate-900/40 p-8 text-center">
+                   <BookOpen className="mx-auto mb-3 h-10 w-10 text-brand-neon" />
+                   <h3 className="text-xl font-bold text-white">No enrolled courses yet</h3>
+                   <p className="mt-2 text-sm text-gray-400">Choose a course from the catalog below to start learning.</p>
+                 </div>
+               )}
                {enrolledCourses.map(course => {
                  const progress = course.progress || 0;
                  const status = progress === 100 ? 'Completed' : 'Active';
 
                  return (
                  <div key={course.id} className="glass p-4 rounded-2xl group hover:border-brand-neon/30 transition-all flex flex-col h-full border border-white/5">
-                    <div className="relative h-40 rounded-xl overflow-hidden mb-4 cursor-pointer" onClick={() => navigate(`/${lang}/course/${course.id}`)}>
+                    <div className="relative h-40 rounded-xl overflow-hidden mb-4 cursor-pointer" onClick={() => navigate(`/${lang}/course/${course.courseId || course.id}`)}>
                        <img src={course.image} alt={course.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-white" />
@@ -288,7 +347,7 @@ const StudentDashboard: React.FC = () => {
                     <div className="mt-auto flex flex-col gap-2">
                         {status !== 'Completed' ? (
                            <>
-                              <button onClick={() => navigate(`/${lang}/course/${course.id}`)} className="w-full py-2 rounded-lg text-sm font-bold bg-brand-neon text-black hover:shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
+                              <button onClick={() => navigate(`/${lang}/course/${course.courseId || course.id}`)} className="w-full py-2 rounded-lg text-sm font-bold bg-brand-neon text-black hover:shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
                                  <PlayCircle className="w-4 h-4" /> Continue Learning
                               </button>
                               <div className="flex gap-2">
@@ -302,7 +361,7 @@ const StudentDashboard: React.FC = () => {
                            </>
                         ) : (
                            <div className="flex gap-2">
-                               <button onClick={() => navigate(`/${lang}/course/${course.id}`)} className="flex-1 py-2 rounded-lg text-sm font-bold bg-slate-800 text-green-400 hover:bg-slate-700 flex items-center justify-center gap-2 transition-all">
+                               <button onClick={() => navigate(`/${lang}/course/${course.courseId || course.id}`)} className="flex-1 py-2 rounded-lg text-sm font-bold bg-slate-800 text-green-400 hover:bg-slate-700 flex items-center justify-center gap-2 transition-all">
                                   <CheckCircle className="w-4 h-4" /> Review
                                </button>
                                <button onClick={() => handleShareProgress(course.title, 100)} className="px-3 py-2 rounded-lg bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 transition-all">
@@ -313,6 +372,22 @@ const StudentDashboard: React.FC = () => {
                     </div>
                  </div>
                )})}
+            </div>
+
+            <div className="mt-10">
+              <h3 className="mb-4 text-xl font-bold text-white">Available Courses</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {COURSES.filter((course) => !enrolledCourses.some((enrolled) => enrolled.courseId === course.id)).map((course) => (
+                  <div key={course.id} className="glass rounded-2xl border border-white/5 p-4">
+                    <img src={course.image} alt={course.title} className="mb-4 h-36 w-full rounded-xl object-cover" />
+                    <h4 className="font-bold text-white">{course.title}</h4>
+                    <p className="mt-1 text-xs text-gray-400">Instructor: {course.instructor?.name}</p>
+                    <button onClick={() => handleEnrollCourse(course)} className="mt-4 w-full rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black">
+                      Enroll
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
             
             {/* Soft Skills Quick Access */}
@@ -333,6 +408,77 @@ const StudentDashboard: React.FC = () => {
           </div>
         );
 
+      case 'worksheets':
+        return (
+          <div className="space-y-6 animate-in fade-in">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><FileText className="w-6 h-6 text-brand-neon" /> Worksheets</h2>
+            <div className="grid gap-4">
+              {(portalData?.worksheets || []).length === 0 && (
+                <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-gray-500">
+                  Worksheets will appear here after they are uploaded for your courses.
+                </div>
+              )}
+              {(portalData?.worksheets || []).map((file: any) => (
+                <a
+                  key={file.id}
+                  href={file.url}
+                  className="glass rounded-xl border border-white/10 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-brand-neon/40"
+                >
+                  <div>
+                    <h3 className="font-bold text-white">{file.name}</h3>
+                    <p className="text-sm text-gray-400">Course resource</p>
+                  </div>
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-brand-neon"><Download className="w-4 h-4" /> Download</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'announcements':
+        return (
+          <div className="space-y-4 animate-in fade-in">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Bell className="w-6 h-6 text-brand-neon" /> Announcements</h2>
+            {(portalData?.announcements || []).length === 0 && (
+              <div className="glass rounded-xl border border-white/10 p-5 text-gray-500">No announcements yet.</div>
+            )}
+            {(portalData?.announcements || []).map((item: any) => (
+              <div key={item.id} className="glass rounded-xl border border-white/10 p-5 text-gray-300">
+                <h3 className="mb-1 font-bold text-white">{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
+            ))}
+          </div>
+        );
+
+      case 'support':
+        return (
+          <div className="max-w-2xl space-y-6 animate-in fade-in">
+            <h2 className="text-2xl font-bold text-white">Support</h2>
+            <form className="glass rounded-2xl border border-white/10 p-6 space-y-4" onSubmit={async (event) => { event.preventDefault(); if (!supportText.trim()) return; await sendStudentSupportMessage({ message: supportText.trim() }); setSupportText(''); alert('Support message sent to the DSH team.'); }}>
+              <textarea required rows={5} value={supportText} onChange={(event) => setSupportText(event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950 p-4 text-white focus:outline-none focus:border-brand-neon" placeholder="Describe your question or issue..." />
+              <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Send Message</button>
+            </form>
+          </div>
+        );
+
+      case 'profile':
+        return (
+          <div className="max-w-2xl space-y-6 animate-in fade-in">
+            <h2 className="text-2xl font-bold text-white">Profile</h2>
+            <form className="glass rounded-2xl border border-white/10 p-6 grid gap-4" onSubmit={async (event) => { event.preventDefault(); await updateStudentProfile(profileForm); alert('Profile changes saved.'); }}>
+              <input value={profileForm.name} onChange={(event) => setProfileForm((prev) => ({ ...prev, name: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" />
+              <input defaultValue={student.email} disabled className="rounded-xl border border-white/10 bg-slate-900 p-3 text-gray-400" />
+              <input value={profileForm.phone} onChange={(event) => setProfileForm((prev) => ({ ...prev, phone: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Phone" />
+              <textarea value={profileForm.bio} onChange={(event) => setProfileForm((prev) => ({ ...prev, bio: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Bio" />
+              <input value={profileForm.linkedinUrl} onChange={(event) => setProfileForm((prev) => ({ ...prev, linkedinUrl: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="LinkedIn URL" />
+              <input value={profileForm.portfolioUrl} onChange={(event) => setProfileForm((prev) => ({ ...prev, portfolioUrl: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 p-3 text-white" placeholder="Portfolio URL" />
+              <input defaultValue={student.id} disabled className="rounded-xl border border-white/10 bg-slate-900 p-3 text-gray-400" />
+              <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save Profile</button>
+            </form>
+          </div>
+        );
+
       case 'dashboard':
       default:
         return (
@@ -350,13 +496,15 @@ const StudentDashboard: React.FC = () => {
                 </div>
              </div>
              
+             {portalError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{portalError}</div>}
+             {portalLoading && <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 text-sm text-gray-400">Loading live dashboard data...</div>}
              {/* Stats */}
              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                   { label: "Active Courses", val: enrolledCourses.filter(c => c.status === 'Active').length.toString(), icon: BookOpen, color: "text-blue-400", bg: "bg-blue-500/10" },
-                   { label: "Completed", val: enrolledCourses.filter(c => c.status === 'Completed').length.toString(), icon: CheckCircle, color: "text-green-400", bg: "bg-green-500/10" },
-                   { label: "Certificates", val: myCertificates.length.toString(), icon: Award, color: "text-gold-500", bg: "bg-gold-500/10" },
-                   { label: "Attestations", val: myCertificates.filter(c => c.attestation?.status === 'Issued').length.toString(), icon: FileBadge, color: "text-brand-neon", bg: "bg-cyan-500/10" }
+                   { label: "Active Courses", val: String(portalData?.stats.activeCourses ?? enrolledCourses.filter(c => c.status === 'Active').length), icon: BookOpen, color: "text-blue-400", bg: "bg-blue-500/10" },
+                   { label: "Completed", val: String(portalData?.stats.completedCourses ?? enrolledCourses.filter(c => c.status === 'Completed').length), icon: CheckCircle, color: "text-green-400", bg: "bg-green-500/10" },
+                   { label: "Certificates", val: String(portalData?.stats.certificates ?? myCertificates.length), icon: Award, color: "text-gold-500", bg: "bg-gold-500/10" },
+                   { label: "Attestations", val: String(portalData?.stats.attestations ?? myCertificates.filter(c => c.attestation?.status === 'Issued').length), icon: FileBadge, color: "text-brand-neon", bg: "bg-cyan-500/10" }
                 ].map((stat, i) => (
                    <div key={i} className="glass p-4 rounded-xl border border-white/5 hover:bg-white/5 transition-colors flex flex-col justify-between h-32">
                       <div className={`p-2 rounded-lg w-fit ${stat.bg}`}>
@@ -423,8 +571,11 @@ const StudentDashboard: React.FC = () => {
            <div id="certificate-container" className="relative w-full max-w-[1200px]">
               <div className="flex justify-between items-center mb-4 text-white print:hidden">
                  <h2 className="text-xl font-bold flex items-center gap-2"><Award className="w-6 h-6 text-gold-500" /> Certificate Preview</h2>
-                 <div className="flex items-center gap-3">
-                    <button onClick={handleDownloadCertificate} className="bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center gap-2"><Printer className="w-4 h-4" /> Download PDF / Print</button>
+                 <div className="flex flex-wrap items-center justify-end gap-3">
+                    <button onClick={handleDownloadCertificate} disabled={exportingCertificate} className="bg-brand-neon text-black px-4 py-2 rounded-lg font-bold hover:bg-cyan-300 transition-colors flex items-center gap-2 disabled:opacity-60">
+                       {exportingCertificate ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Download PDF
+                    </button>
+                    <button onClick={handlePrintCertificate} className="bg-white text-black px-4 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center gap-2"><Printer className="w-4 h-4" /> Print Certificate</button>
                     <button onClick={() => setViewCertificate(null)} className="bg-slate-800 text-white p-2 rounded-lg hover:bg-slate-700 transition-colors"><X className="w-5 h-5" /></button>
                  </div>
               </div>
@@ -437,6 +588,9 @@ const StudentDashboard: React.FC = () => {
                     certificateId={viewCertificate.id}
                     attestation={viewCertificate.attestation} // Pass attestation data
                     lang={lang}
+                    issuerLogo="/brand/Final%20Logo%20(1).png"
+                    stampImage="/brand/stemp.png"
+                    signatureImage="/brand/sig.png"
                  />
               </div>
            </div>

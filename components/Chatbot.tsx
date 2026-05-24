@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleGenAI, LiveServerMessage, Modality } from "@google/genai";
 import { MessageSquare, Send, X, Minimize2, User, Bot, Loader2, Phone, ShieldCheck, Sparkles, Mic, MicOff, Volume2, WifiOff } from 'lucide-react';
 import { Language } from '../types';
 import Logo from './Logo';
@@ -169,7 +168,6 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
         action
       }]);
     } catch (error) {
-      console.error(error);
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: `Service temporarily unavailable. Please contact WhatsApp: +1 917 695 7737 (https://wa.me/${ADMIN_WHATSAPP})` }]);
     } finally {
       setIsTextLoading(false);
@@ -209,97 +207,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
   const connectToLiveAPI = async () => {
     setVoiceStatus('connecting');
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || '';
-      if (!apiKey) {
-        setVoiceStatus('error');
-        throw new Error('Gemini API key not configured');
-      }
-      const ai = new GoogleGenAI({ apiKey });
-      
-      inputContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-
-      const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-        callbacks: {
-          onopen: () => {
-            setIsConnected(true);
-            setVoiceStatus('listening');
-            
-            const source = inputContextRef.current!.createMediaStreamSource(stream);
-            const processor = inputContextRef.current!.createScriptProcessor(4096, 1, 1);
-            
-            processor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const pcm16 = floatTo16BitPCM(inputData);
-              const base64Audio = arrayBufferToBase64(pcm16.buffer);
-              
-              sessionPromiseRef.current?.then((session) => {
-                session.sendRealtimeInput({
-                  media: { mimeType: 'audio/pcm;rate=16000', data: base64Audio }
-                });
-              });
-            };
-
-            source.connect(processor);
-            processor.connect(inputContextRef.current!.destination);
-            sourceRef.current = source;
-            processorRef.current = processor;
-          },
-          onmessage: async (msg: LiveServerMessage) => {
-            const audioData = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (audioData) {
-              setVoiceStatus('speaking');
-              setIsSpeaking(true);
-              
-              const audioBytes = base64ToUint8Array(audioData);
-              const dataInt16 = new Int16Array(audioBytes.buffer);
-              const audioBuffer = audioContextRef.current!.createBuffer(1, dataInt16.length, 24000);
-              const channelData = audioBuffer.getChannelData(0);
-              for (let i = 0; i < dataInt16.length; i++) {
-                 channelData[i] = dataInt16[i] / 32768.0;
-              }
-
-              const source = audioContextRef.current!.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(audioContextRef.current!.destination);
-              
-              const currentTime = audioContextRef.current!.currentTime;
-              const startTime = Math.max(currentTime, nextStartTimeRef.current);
-              source.start(startTime);
-              nextStartTimeRef.current = startTime + audioBuffer.duration;
-
-              source.onended = () => {
-                 if (audioContextRef.current!.currentTime >= nextStartTimeRef.current - 0.1) {
-                    setIsSpeaking(false);
-                    setVoiceStatus('listening');
-                 }
-              };
-            }
-          },
-          onclose: () => disconnectVoice(),
-          onerror: (err) => {
-            console.error(err);
-            setVoiceStatus('error');
-            disconnectVoice();
-          }
-        },
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
-          },
-          systemInstruction: getSystemInstruction()
-        }
-      });
-
-      sessionPromiseRef.current = sessionPromise;
+      setVoiceStatus('error');
+      throw new Error('Voice mode is disabled until backend streaming is enabled.');
 
     } catch (error) {
-      console.error(error);
       setVoiceStatus('error');
     }
   };

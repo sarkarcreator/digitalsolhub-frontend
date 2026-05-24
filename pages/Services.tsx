@@ -87,9 +87,9 @@ const Services: React.FC = () => {
         window.open(result.adminUrl, '_blank');
         setSubmitted(true);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
+      } catch (err) {
+        alert('Unable to submit your request right now. Please try again.');
+      } finally {
       setLoading(false);
     }
   };

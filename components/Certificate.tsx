@@ -20,6 +20,8 @@ interface CertificateProps {
   isAccredited?: boolean;
   attestation?: AttestationRecord; // New Prop
   partnerMode?: boolean; // If true, apply white-label styles
+  signatureImage?: string;
+  stampImage?: string;
 }
 
 const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({ 
@@ -35,7 +37,9 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
   themeColor = "#CA8A04", // Default Gold-600
   isAccredited = false,
   attestation,
-  partnerMode = false
+  partnerMode = false,
+  signatureImage = '/brand/sig.png',
+  stampImage = '/brand/stemp.png'
 }, ref) => {
   
   // Use partner verification URL if in partner mode (mocked)
@@ -84,8 +88,8 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
       <div 
         ref={ref}
         id="certificate-content"
-        className="relative w-[1123px] h-[794px] bg-white text-slate-900 shadow-2xl overflow-hidden print:shadow-none print:w-full print:h-full print:m-0 print:border-0"
-        style={{ fontFamily: "'Playfair Display', serif", direction: 'ltr', pageBreakAfter: 'always' }} 
+        className="certificate-sheet relative w-[1123px] h-[794px] max-w-full aspect-[1123/794] bg-white text-slate-900 shadow-2xl overflow-hidden print:shadow-none print:w-[1123px] print:h-[794px] print:max-w-none print:m-0 print:border-0"
+        style={{ fontFamily: "'Playfair Display', serif", direction: 'ltr', pageBreakAfter: 'always' }}
       >
         {/* --- Borders & Frame with Dynamic Color --- */}
         <div className="absolute inset-3 border-[4px] border-slate-900 z-20"></div>
@@ -110,7 +114,7 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
            {issuerLogo ? (
                <img src={issuerLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
            ) : (
-               <Logo className="w-[500px] h-[500px] text-slate-900" />
+               <img src="/brand/Final%20Logo%20(1).png" alt="" className="w-[460px] h-[460px] object-contain grayscale" />
            )}
         </div>
 
@@ -131,10 +135,10 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
         <div className="relative z-40 h-full flex flex-col items-center pt-16 pb-12 px-24 text-center justify-between">
           
           {/* Header */}
-          <div className="flex flex-col items-center w-full">
-             <div className="flex items-center gap-3 mb-2">
+             <div className="flex flex-col items-center w-full">
+             <div className="flex items-center gap-4 mb-2 min-h-[88px]">
                 {issuerLogo ? (
-                    <img src={issuerLogo} alt="Logo" className="h-14 object-contain" />
+                    <img src={issuerLogo} alt="Logo" className="h-20 w-auto max-w-[220px] object-contain" />
                 ) : (
                     <Logo className="w-14 h-14 text-slate-900" />
                 )}
@@ -213,12 +217,25 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
 
              {/* Right: Signature/QR */}
              <div className="text-right flex flex-col items-end gap-6 pr-4">
-                <div className="text-center relative">
-                   <div className="font-serif italic text-4xl text-slate-900 mb-2 px-8 -rotate-2" style={{ fontFamily: "'Dancing Script', cursive, serif" }}>
-                      {instructorName}
-                   </div>
+                <div className="relative w-64 h-32 flex items-end justify-end">
+                   {stampImage && (
+                      <img
+                         src={stampImage}
+                         alt="Official stamp"
+                         className="absolute right-20 bottom-2 z-20 w-[136px] h-[136px] object-contain opacity-90 mix-blend-multiply"
+                      />
+                   )}
+                   <div className="relative z-10 text-center w-56">
+                   {signatureImage ? (
+                      <img src={signatureImage} alt={`${instructorName} signature`} className="h-16 w-56 object-contain mx-auto mb-1" />
+                   ) : (
+                      <div className="font-serif italic text-4xl text-slate-900 mb-2 px-8 -rotate-2" style={{ fontFamily: "'Dancing Script', cursive, serif" }}>
+                         {instructorName}
+                      </div>
+                   )}
                    <div className="border-t border-slate-900 w-48 mx-auto"></div>
                    <p className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: themeColor }}>Authorized Signatory</p>
+                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 bg-white p-1.5 rounded border border-slate-200 shadow-sm">

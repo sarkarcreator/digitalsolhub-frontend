@@ -41,9 +41,9 @@ const Apply: React.FC = () => {
         window.open(result.adminUrl, '_blank');
         setFormStep(2);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
+      } catch (err) {
+        alert('Unable to submit your application right now. Please try again.');
+      } finally {
       setLoading(false);
     }
   };

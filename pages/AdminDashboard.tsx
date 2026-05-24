@@ -11,7 +11,17 @@ import { getAllLeads, updateLeadStatus } from '../utils/crmManager';
 import { getAllFranchises, updateFranchiseStatus } from '../utils/franchiseManager';
 import { getAllAttestations, updateAttestationStatus } from '../utils/attestationManager';
 import { mintCertificateOnChain } from '../utils/blockchainManager';
-import { createAdminStudent, fetchAdminStudents, type AdminStudentLead } from '../utils/api';
+import {
+  createAdminModuleItem,
+  createAdminStudent,
+  deleteAdminModuleItem,
+  fetchAdminModuleItems,
+  fetchAdminOverview,
+  fetchAdminStudents,
+  type AdminOverview,
+  type AdminStudentLead,
+  type DashboardItem,
+} from '../utils/api';
 import { 
   Menu, Users, Briefcase, DollarSign, 
   CheckCircle, XCircle, Clock, ShieldOff, Award, Shield,
@@ -41,6 +51,11 @@ const AdminDashboard = () => {
     phone: '',
     course: 'Web Development'
   });
+  const [moduleItems, setModuleItems] = useState<Record<string, DashboardItem[]>>({});
+  const [moduleLoading, setModuleLoading] = useState('');
+  const [moduleError, setModuleError] = useState('');
+  const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active' });
+  const [overview, setOverview] = useState<AdminOverview | null>(null);
   
   // Blockchain State
   const [mintingId, setMintingId] = useState<string | null>(null);
@@ -74,7 +89,19 @@ const AdminDashboard = () => {
     setLeads(getAllLeads());
     setFranchises(getAllFranchises());
     loadStudents();
+    loadOverview();
   }, [lang]);
+
+  useEffect(() => {
+    if (
+      currentView !== 'overview' &&
+      currentView !== 'students' &&
+      currentView !== 'certifications' &&
+      !moduleItems[currentView]
+    ) {
+      loadModuleItems(currentView);
+    }
+  }, [currentView]);
 
   if (loadingAuth) {
     return (
@@ -110,7 +137,7 @@ const AdminDashboard = () => {
       const updatedList = attachBlockchainRecord(cert.id, record);
       setCertificates(updatedList);
     } catch (error) {
-      console.error("Minting failed", error);
+      alert('Minting failed. Please try again.');
     } finally {
       setMintingId(null);
     }
@@ -136,6 +163,65 @@ const AdminDashboard = () => {
     } catch (error) {
       setStudentsError(error instanceof Error ? error.message : 'Unable to create student ID.');
     }
+  };
+
+  const loadOverview = async () => {
+    try {
+      setOverview(await fetchAdminOverview());
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to load admin overview.');
+    }
+  };
+
+  const moduleLabels: Record<string, string> = {
+    deck: 'Investor Pitch Deck',
+    financials: 'Financial Projections',
+    franchises: 'Franchise Network',
+    crm: 'CRM & Sales',
+    requests: 'Services',
+    clients: 'Clients',
+    courses: 'Courses',
+    payments: 'Invoices',
+    cms: 'Content & CMS',
+    proposals: 'Proposals',
+    team: 'Team & Roles',
+    reports: 'Reports',
+    messages: 'Messages',
+    settings: 'Settings',
+  };
+
+  const loadModuleItems = async (category: string) => {
+    setModuleLoading(category);
+    setModuleError('');
+    try {
+      const data = await fetchAdminModuleItems(category);
+      setModuleItems((prev) => ({ ...prev, [category]: data }));
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to load records.');
+    } finally {
+      setModuleLoading('');
+    }
+  };
+
+  const handleCreateModuleItem = async (event: React.FormEvent, category: string) => {
+    event.preventDefault();
+    setModuleError('');
+    try {
+      const created = await createAdminModuleItem(category, {
+        title: moduleForm.title,
+        amount: moduleForm.amount,
+        status: moduleForm.status,
+      });
+      setModuleItems((prev) => ({ ...prev, [category]: [created, ...(prev[category] || [])] }));
+      setModuleForm({ title: '', amount: '', status: 'active' });
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to save record.');
+    }
+  };
+
+  const handleDeleteModuleItem = async (category: string, id: number | string) => {
+    await deleteAdminModuleItem(category, id);
+    setModuleItems((prev) => ({ ...prev, [category]: (prev[category] || []).filter((item) => item.id !== id) }));
   };
 
   const renderStudentsView = () => (
@@ -326,6 +412,98 @@ const AdminDashboard = () => {
       </div>
   );
 
+  const renderOverview = () => {
+    const stats = [
+      { label: 'Students', value: overview?.students ?? students.length, icon: Users },
+      { label: 'Clients', value: overview?.clients ?? 0, icon: Briefcase },
+      { label: 'Certificates', value: overview?.certificates ?? certificates.length, icon: Award },
+      { label: 'Open Projects', value: overview?.openProjects ?? 0, icon: Target },
+    ];
+
+    return (
+      <div className="space-y-8 animate-in fade-in">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="glass rounded-2xl border border-white/10 p-5">
+              <stat.icon className="w-6 h-6 text-brand-neon mb-4" />
+              <div className="text-3xl font-bold text-white">{stat.value}</div>
+              <div className="text-xs uppercase tracking-wider text-gray-400">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+        <div className="glass rounded-2xl border border-white/10 p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-2">Operational Snapshot</h2>
+              <p className="text-gray-400">Live counts are loaded from the production MySQL schema.</p>
+            </div>
+            <button onClick={loadOverview} className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50">
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderGenericModule = (category: string) => {
+    const title = moduleLabels[category] || category;
+    const items = moduleItems[category] || [];
+
+    return (
+      <div className="space-y-6 animate-in fade-in">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white">{title}</h2>
+            <p className="text-sm text-gray-400">Create, track, search, and delete live admin records for this module.</p>
+          </div>
+          <button onClick={() => loadModuleItems(category)} className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50">
+            Refresh
+          </button>
+        </div>
+
+        {moduleError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{moduleError}</div>}
+
+        <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
+          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={`${title} title`} />
+          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Value / amount" />
+          <select value={moduleForm.status} onChange={(event) => setModuleForm((prev) => ({ ...prev, status: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+          <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save</button>
+        </form>
+
+        <div className="glass rounded-2xl border border-white/10 overflow-hidden">
+          {moduleLoading === category ? (
+            <div className="p-10 flex justify-center text-gray-400"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-gray-300">
+                <thead className="bg-slate-900 text-xs uppercase text-gray-500">
+                  <tr><th className="px-5 py-4">Title</th><th className="px-5 py-4">Value</th><th className="px-5 py-4">Status</th><th className="px-5 py-4 text-right">Actions</th></tr>
+                </thead>
+                <tbody>
+                  {items.length === 0 ? (
+                    <tr><td colSpan={4} className="px-5 py-8 text-gray-500">No records yet.</td></tr>
+                  ) : items.map((item) => (
+                    <tr key={item.id} className="border-t border-white/5">
+                      <td className="px-5 py-4 font-semibold text-white">{item.payload.title || 'Untitled'}</td>
+                      <td className="px-5 py-4">{item.payload.amount || '-'}</td>
+                      <td className="px-5 py-4"><span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase">{item.status}</span></td>
+                      <td className="px-5 py-4 text-right"><button onClick={() => handleDeleteModuleItem(category, item.id)} className="text-red-300 hover:text-red-200">Delete</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch(currentView) {
       case 'certifications': return (
@@ -340,9 +518,9 @@ const AdminDashboard = () => {
             {renderAttestationsView()}
         </div>
       );
-      case 'overview': return <div className="text-center p-10 text-gray-500">Dashboard Overview</div>;
+      case 'overview': return renderOverview();
       case 'students': return renderStudentsView();
-      default: return <div className="text-center p-10 text-gray-500">Select a menu item</div>;
+      default: return renderGenericModule(currentView);
     }
   };
 

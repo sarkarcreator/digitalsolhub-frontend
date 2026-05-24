@@ -5,6 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Digital Solutions Hub</title>
+    <meta name="theme-color" content="#020617" />
+    <link rel="icon" type="image/png" href="/brand/Final%20Logo%20(1).png" />
+    <link rel="apple-touch-icon" href="/brand/Final%20Logo%20(1).png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta property="og:image" content="/brand/Final%20Logo%20(1).png" />
     <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     <link rel="dns-prefetch" href="https://esm.sh">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -172,6 +177,18 @@
         @page {
           size: landscape;
           margin: 0;
+        }
+        body * {
+          visibility: hidden;
+        }
+        #certificate-content, #certificate-content * {
+          visibility: visible;
+        }
+        #certificate-content {
+          position: fixed !important;
+          left: 0 !important;
+          top: 0 !important;
+          transform: none !important;
         }
         body {
           -webkit-print-color-adjust: exact !important;
