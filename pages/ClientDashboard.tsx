@@ -127,7 +127,10 @@ const ClientDashboard: React.FC = () => {
     if (!invoice || !invoiceRef.current) return;
     setInvoiceExporting(true);
     try {
-      await exportElementAsPdf(invoiceRef.current, invoiceFileName(invoice));
+      await exportElementAsPdf(invoiceRef.current, invoiceFileName(invoice), {
+        orientation: 'portrait',
+        margin: 0,
+      });
     } finally {
       setInvoiceExporting(false);
     }
@@ -814,7 +817,7 @@ const ClientDashboard: React.FC = () => {
 
               <div className="grid gap-6 p-4 lg:grid-cols-[1fr,320px]">
                 <div className="overflow-auto rounded-xl bg-white p-3">
-                  <div ref={invoiceRef} className="mx-auto min-h-[720px] w-[900px] bg-white p-10 text-slate-950">
+                  <div ref={invoiceRef} className="mx-auto min-h-[1123px] w-[794px] bg-white p-10 text-slate-950">
                     <div className="flex items-start justify-between border-b border-slate-200 pb-8">
                       <div className="flex items-center gap-4">
                         <img src="/brand/Final%20Logo%20(1).png" alt="Digital Solutions Hub" className="h-16 w-16 object-contain" />

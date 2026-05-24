@@ -1,4 +1,9 @@
-export async function exportElementAsPdf(element: HTMLElement, filename: string) {
+type PdfExportOptions = {
+  orientation?: 'portrait' | 'landscape';
+  margin?: number;
+};
+
+export async function exportElementAsPdf(element: HTMLElement, filename: string, options: PdfExportOptions = {}) {
   const [{ jsPDF }, html2canvasModule] = await Promise.all([
     import('jspdf'),
     import('html2canvas'),
@@ -18,7 +23,7 @@ export async function exportElementAsPdf(element: HTMLElement, filename: string)
   });
 
   const pdf = new jsPDF({
-    orientation: 'landscape',
+    orientation: options.orientation || 'landscape',
     unit: 'pt',
     format: 'a4',
     compress: true,
@@ -26,7 +31,10 @@ export async function exportElementAsPdf(element: HTMLElement, filename: string)
 
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
-  const ratio = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+  const margin = options.margin ?? 0;
+  const maxWidth = pageWidth - margin * 2;
+  const maxHeight = pageHeight - margin * 2;
+  const ratio = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
   const width = canvas.width * ratio;
   const height = canvas.height * ratio;
   const x = (pageWidth - width) / 2;
