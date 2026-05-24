@@ -14,11 +14,13 @@ import { mintCertificateOnChain } from '../utils/blockchainManager';
 import {
   createAdminModuleItem,
   createAdminStudent,
+  deleteAdminStudent,
   deleteAdminModuleItem,
   fetchAdminModuleItems,
   fetchAdminOverview,
   fetchAdminStudents,
   updateAdminModuleItem,
+  updateAdminStudent,
   type AdminOverview,
   type AdminStudentLead,
   type DashboardItem,
@@ -50,8 +52,10 @@ const AdminDashboard = () => {
     name: '',
     email: '',
     phone: '',
-    course: 'Web Development'
+    course: 'Web Development',
+    status: 'invited'
   });
+  const [editingStudentId, setEditingStudentId] = useState<number | string | null>(null);
   const [moduleItems, setModuleItems] = useState<Record<string, DashboardItem[]>>({});
   const [moduleLoading, setModuleLoading] = useState('');
   const [moduleError, setModuleError] = useState('');
@@ -126,7 +130,8 @@ const AdminDashboard = () => {
         name: '',
         email: '',
         phone: '',
-        course: 'Web Development'
+        course: 'Web Development',
+        status: 'invited'
       });
     } catch (error) {
       setStudentsError(error instanceof Error ? error.message : 'Unable to create student ID.');
@@ -192,6 +197,40 @@ const AdminDashboard = () => {
     setModuleItems((prev) => ({ ...prev, [category]: (prev[category] || []).filter((item) => item.id !== id) }));
   };
 
+  const handleSaveStudent = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setStudentsError('');
+    try {
+      if (editingStudentId) {
+        const updated = await updateAdminStudent(editingStudentId, studentForm);
+        setStudents((prev) => prev.map((student) => student.id === updated.id ? updated : student));
+      } else {
+        const created = await createAdminStudent(studentForm);
+        setStudents((prev) => [created, ...prev]);
+      }
+      setEditingStudentId(null);
+      setStudentForm({ name: '', email: '', phone: '', course: 'Web Development', status: 'invited' });
+    } catch (error) {
+      setStudentsError(error instanceof Error ? error.message : 'Unable to save student.');
+    }
+  };
+
+  const handleEditStudent = (student: AdminStudentLead) => {
+    setEditingStudentId(student.id);
+    setStudentForm({
+      name: student.name,
+      email: student.email,
+      phone: student.phone,
+      course: student.course,
+      status: student.status,
+    });
+  };
+
+  const handleDeleteStudent = async (id: number | string) => {
+    await deleteAdminStudent(id);
+    setStudents((prev) => prev.map((student) => student.id === id ? { ...student, status: 'disabled' } : student));
+  };
+
   const handleUpdateModuleItem = async (event: React.FormEvent, category: string) => {
     event.preventDefault();
     if (!editingModuleItem) return;
@@ -201,6 +240,8 @@ const AdminDashboard = () => {
       status: editingModuleItem.status || 'active',
       group: editingModuleItem.payload.group || 'general',
       studentName: editingModuleItem.payload.studentName || editingModuleItem.payload.owner || '',
+      details: editingModuleItem.payload.details || '',
+      deadline: editingModuleItem.payload.deadline || '',
     });
     setModuleItems((prev) => ({
       ...prev,
@@ -244,9 +285,9 @@ const AdminDashboard = () => {
   const renderStudentsView = () => (
     <div className="space-y-8 animate-in fade-in">
       <div className="grid grid-cols-1 xl:grid-cols-[420px,1fr] gap-6">
-        <form onSubmit={handleCreateStudent} className="glass rounded-2xl border border-white/10 p-6 space-y-4">
+        <form onSubmit={handleSaveStudent} className="glass rounded-2xl border border-white/10 p-6 space-y-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">Create Student ID</h2>
+            <h2 className="text-2xl font-bold text-white">{editingStudentId ? 'Edit Student' : 'Create Student ID'}</h2>
             <p className="text-sm text-gray-400 mt-1">
               Admin pehle real student ka record banayega. Student baad mein isi generated ID se signup karega.
             </p>
@@ -307,12 +348,32 @@ const AdminDashboard = () => {
             </select>
           </div>
 
+          {editingStudentId && (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Status</label>
+              <select
+                value={studentForm.status}
+                onChange={(e) => handleStudentFieldChange('status', e.target.value)}
+                className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white focus:outline-none focus:border-brand-neon/50 relative z-10"
+              >
+                <option value="invited">Invited</option>
+                <option value="registered">Registered</option>
+                <option value="disabled">Disabled</option>
+              </select>
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 font-bold text-white transition hover:opacity-90"
           >
-            Generate Student ID
+            {editingStudentId ? 'Save Student' : 'Generate Student ID'}
           </button>
+          {editingStudentId && (
+            <button type="button" onClick={() => { setEditingStudentId(null); setStudentForm({ name: '', email: '', phone: '', course: 'Web Development', status: 'invited' }); }} className="w-full rounded-xl border border-white/10 px-4 py-3 font-bold text-white">
+              Cancel Edit
+            </button>
+          )}
         </form>
 
         <div className="glass rounded-2xl border border-white/10 overflow-hidden">
@@ -343,12 +404,13 @@ const AdminDashboard = () => {
                     <th className="px-6 py-4">Student ID</th>
                     <th className="px-6 py-4">Course</th>
                     <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {students.length === 0 ? (
                     <tr>
-                      <td className="px-6 py-8 text-gray-500" colSpan={4}>
+                      <td className="px-6 py-8 text-gray-500" colSpan={5}>
                         No backend student records yet.
                       </td>
                     </tr>
@@ -365,6 +427,10 @@ const AdminDashboard = () => {
                           <span className="inline-flex rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-wider text-gray-300">
                             {student.status}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-3">
+                          <button onClick={() => handleEditStudent(student)} className="text-cyan-300 hover:text-cyan-200">Edit</button>
+                          <button onClick={() => handleDeleteStudent(student.id)} className="text-red-300 hover:text-red-200">Disable</button>
                         </td>
                       </tr>
                     ))
@@ -410,16 +476,12 @@ const AdminDashboard = () => {
                                   </span>
                               </td>
                               <td className="p-4 text-right flex items-center justify-end gap-2">
-                                  {att.status === 'Pending' && (
-                                      <>
-                                          <button onClick={() => handleAttestationAction(att.id, 'approve')} className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20" title="Issue Seal">
-                                              <Award className="w-4 h-4" />
-                                          </button>
-                                          <button onClick={() => handleAttestationAction(att.id, 'reject')} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20" title="Reject">
-                                              <XCircle className="w-4 h-4" />
-                                          </button>
-                                      </>
-                                  )}
+                                  <button onClick={() => handleAttestationAction(att.id, 'approve')} className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20" title="Issue / Re-issue Seal">
+                                      <Award className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => handleAttestationAction(att.id, 'reject')} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20" title="Reject / Revoke">
+                                      <XCircle className="w-4 h-4" />
+                                  </button>
                               </td>
                           </tr>
                       ))}
@@ -505,12 +567,19 @@ const AdminDashboard = () => {
             {category === 'certifications' && (
               <input value={editingModuleItem.payload.studentName || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, studentName: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Student name" />
             )}
+            {category === 'requests' && (
+              <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Project details / admin notes" rows={3} />
+            )}
             <input required value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Title / key" />
             <input value={editingModuleItem.payload.amount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, amount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Value / certificate ID" />
             <select value={editingModuleItem.status || 'active'} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, status: event.target.value } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
               <option value="active">Active</option>
               <option value="pending">Pending</option>
+              <option value="open">Open</option>
+              <option value="assigned">Scheduled</option>
+              <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
               <option value="revoked">Revoked</option>
               <option value="editable">Editable</option>
               <option value="locked">Locked</option>

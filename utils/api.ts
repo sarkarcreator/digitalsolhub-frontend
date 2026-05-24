@@ -374,6 +374,26 @@ export async function createAdminStudent(
   );
 }
 
+export async function updateAdminStudent(
+  id: number | string,
+  payload: AdminStudentCreatePayload & { status: string }
+): Promise<AdminStudentLead> {
+  return request<AdminStudentLead>(
+    `/admin/students/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    },
+    true
+  );
+}
+
+export async function deleteAdminStudent(id: number | string): Promise<void> {
+  await request(`/admin/students/${id}`, {
+    method: 'DELETE',
+  }, true);
+}
+
 export async function fetchAdminOverview(): Promise<AdminOverview> {
   return request<AdminOverview>('/admin/overview', {}, true);
 }
@@ -384,7 +404,7 @@ export async function fetchAdminModuleItems(category: string): Promise<Dashboard
 
 export async function createAdminModuleItem(
   category: string,
-  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string; details?: string; deadline?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}`, {
     method: 'POST',
