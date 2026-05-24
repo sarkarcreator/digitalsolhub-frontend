@@ -196,7 +196,7 @@ const Signup: React.FC = () => {
                 </label>
                 <div className="relative">
                   <User className="absolute left-4 top-3.5 w-5 h-5 text-gray-500 rtl:right-4 rtl:left-auto" />
-                  <input name="name" type="text" value={formData.name} onChange={handleInputChange} className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-blue/50 focus:bg-slate-900 transition-all" placeholder={activeTab === 'student' ? "John Doe" : "Tech Solutions Inc."} required />
+                  <input name="name" type="text" value={formData.name} onChange={handleInputChange} className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-blue/50 focus:bg-slate-900 transition-all" placeholder={activeTab === 'student' ? "Enter full name" : "Enter business name"} required />
                 </div>
               </div>
 
