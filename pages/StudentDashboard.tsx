@@ -47,6 +47,7 @@ const StudentDashboard: React.FC = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState('');
   const [supportText, setSupportText] = useState('');
+  const [supportAttachment, setSupportAttachment] = useState<File | null>(null);
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', bio: '', linkedinUrl: '', portfolioUrl: '' });
   const [exportingCertificate, setExportingCertificate] = useState(false);
 
@@ -455,8 +456,22 @@ const StudentDashboard: React.FC = () => {
         return (
           <div className="max-w-2xl space-y-6 animate-in fade-in">
             <h2 className="text-2xl font-bold text-white">Support</h2>
-            <form className="glass rounded-2xl border border-white/10 p-6 space-y-4" onSubmit={async (event) => { event.preventDefault(); if (!supportText.trim()) return; await sendStudentSupportMessage({ message: supportText.trim() }); setSupportText(''); alert('Support message sent to the DSH team.'); }}>
-              <textarea required rows={5} value={supportText} onChange={(event) => setSupportText(event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950 p-4 text-white focus:outline-none focus:border-brand-neon" placeholder="Describe your question or issue..." />
+            <form className="glass rounded-2xl border border-white/10 p-6 space-y-4" onSubmit={async (event) => {
+              event.preventDefault();
+              if (!supportText.trim() && !supportAttachment) return;
+              const payload = new FormData();
+              payload.append('message', supportText.trim());
+              if (supportAttachment) payload.append('attachment', supportAttachment);
+              await sendStudentSupportMessage(payload);
+              setSupportText('');
+              setSupportAttachment(null);
+              alert('Support message sent to the DSH team.');
+            }}>
+              <textarea rows={5} value={supportText} onChange={(event) => setSupportText(event.target.value)} className="w-full rounded-xl border border-white/10 bg-slate-950 p-4 text-white focus:outline-none focus:border-brand-neon" placeholder="Describe your question or issue..." />
+              <label className="inline-flex cursor-pointer rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-gray-300 hover:border-brand-neon/50">
+                {supportAttachment ? `Attached: ${supportAttachment.name}` : 'Attach screenshot / file'}
+                <input type="file" accept="image/*,.pdf" className="hidden" onChange={(event) => setSupportAttachment(event.target.files?.[0] || null)} />
+              </label>
               <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Send Message</button>
             </form>
           </div>

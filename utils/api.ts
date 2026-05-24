@@ -425,6 +425,14 @@ export async function updateAdminModuleItem(
   }, true);
 }
 
+export async function replyAdminMessage(id: number | string, payload: FormData): Promise<DashboardItem> {
+  return request<DashboardItem>(`/admin/messages/${id}/reply`, {
+    method: 'POST',
+    body: payload,
+    headers: {},
+  }, true);
+}
+
 export async function deleteAdminModuleItem(category: string, id: number | string): Promise<void> {
   await request(`/admin/modules/${encodeURIComponent(category)}/${id}`, {
     method: 'DELETE',
@@ -489,10 +497,11 @@ export async function updateStudentCourseProgress(
 export async function sendStudentSupportMessage(payload: {
   subject?: string;
   message: string;
-}): Promise<Record<string, any>> {
+} | FormData): Promise<Record<string, any>> {
   return request<Record<string, any>>('/student/support/messages', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    headers: payload instanceof FormData ? {} : undefined,
   }, true);
 }
 
@@ -521,6 +530,7 @@ export async function createClientProject(payload: {
   details: string;
   budgetMin?: number;
   budgetMax?: number;
+  paymentPreference?: string;
   deadline?: string;
 }): Promise<Record<string, any>> {
   return request<Record<string, any>>('/client/projects', {
@@ -560,10 +570,11 @@ export async function updateClientProfile(payload: {
 export async function sendClientMessage(payload: {
   subject?: string;
   message: string;
-}): Promise<{ id: number | string; role: 'client' | 'team'; text: string }> {
+} | FormData): Promise<{ id: number | string; role: 'client' | 'team'; text: string }> {
   return request<{ id: number | string; role: 'client' | 'team'; text: string }>('/client/messages', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: payload instanceof FormData ? payload : JSON.stringify(payload),
+    headers: payload instanceof FormData ? {} : undefined,
   }, true);
 }
 

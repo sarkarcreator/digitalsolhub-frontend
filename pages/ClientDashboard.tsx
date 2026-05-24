@@ -34,7 +34,8 @@ const ClientDashboard: React.FC = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState('');
   const [messageText, setMessageText] = useState('');
-  const [projectForm, setProjectForm] = useState({ category: '', title: '', details: '' });
+  const [messageAttachment, setMessageAttachment] = useState<File | null>(null);
+  const [projectForm, setProjectForm] = useState({ category: '', title: '', details: '', budgetMin: '', budgetMax: '', paymentPreference: '' });
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', companyName: '', industry: '', website: '' });
   const [editingProject, setEditingProject] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
@@ -161,6 +162,23 @@ const ClientDashboard: React.FC = () => {
     setInvoiceChangeText('');
     alert('Change request sent to the DSH team.');
   };
+
+  const renderMessageText = (text: string) => (
+    <div className="space-y-2 whitespace-pre-wrap">
+      {String(text || '').split(/\n+/).map((line, index) => {
+        const url = line.replace(/^Attachment:\s*/i, '').trim();
+        const isUrl = /^https?:\/\//i.test(url);
+        const isImage = /\.(png|jpe?g|gif|webp)$/i.test(url);
+        if (isUrl && isImage) {
+          return <a key={index} href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt="Attachment" className="mt-2 max-h-56 rounded-xl border border-white/10 object-contain" /></a>;
+        }
+        if (isUrl) {
+          return <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="block text-brand-neon underline">Open attachment</a>;
+        }
+        return <p key={index}>{line}</p>;
+      })}
+    </div>
+  );
 
   const renderContent = () => {
      switch(currentView) {
@@ -519,12 +537,26 @@ const ClientDashboard: React.FC = () => {
                      {messages.map((message) => (
                         <div key={message.id} className={`flex gap-3 ${message.role === 'client' ? 'flex-row-reverse' : ''}`}>
                            <div className={`${message.role === 'client' ? 'bg-brand-neon text-black rounded-tr-none font-medium shadow-lg shadow-brand-neon/20' : 'bg-slate-800 text-gray-300 rounded-tl-none border border-white/5'} p-3 rounded-2xl text-sm max-w-[80%]`}>
-                              {message.text}
+                              {renderMessageText(message.text)}
                            </div>
                         </div>
                      ))}
                   </div>
-                  <form onSubmit={async (event) => { event.preventDefault(); if (!messageText.trim()) return; const sent = await sendClientMessage({ message: messageText.trim() }); setMessages((prev) => [...prev, sent]); setMessageText(''); }} className="p-4 border-t border-white/10 bg-slate-900/50 flex gap-2">
+                  <form onSubmit={async (event) => {
+                    event.preventDefault();
+                    if (!messageText.trim() && !messageAttachment) return;
+                    const payload = new FormData();
+                    payload.append('message', messageText.trim());
+                    if (messageAttachment) payload.append('attachment', messageAttachment);
+                    const sent = await sendClientMessage(payload);
+                    setMessages((prev) => [...prev, sent]);
+                    setMessageText('');
+                    setMessageAttachment(null);
+                  }} className="p-4 border-t border-white/10 bg-slate-900/50 flex gap-2">
+                     <label className="cursor-pointer rounded-xl border border-white/10 px-3 py-3 text-xs font-bold text-gray-300 hover:border-brand-neon/50">
+                        {messageAttachment ? 'Attached' : 'Image'}
+                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={(event) => setMessageAttachment(event.target.files?.[0] || null)} />
+                     </label>
                      <input value={messageText} onChange={(event) => setMessageText(event.target.value)} type="text" placeholder={TRANSLATIONS.send_message[lang]} className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-all" />
                      <button className="p-3 bg-brand-neon text-black rounded-xl hover:bg-cyan-400 transition-colors shadow-lg shadow-brand-neon/20">
                         <MessageSquare className="w-5 h-5" />
@@ -546,10 +578,13 @@ const ClientDashboard: React.FC = () => {
                       title: projectForm.title,
                       category: SERVICE_CATEGORIES.find((category) => category.id === projectForm.category)?.title[lang] || 'Service Request',
                       details: projectForm.details,
+                      budgetMin: Number(projectForm.budgetMin || 0),
+                      budgetMax: Number(projectForm.budgetMax || 0),
+                      paymentPreference: projectForm.paymentPreference,
                     });
                     setProjects([nextProject, ...projects]);
                     setClientData((prev) => prev ? { ...prev, projects: [nextProject, ...prev.projects] } : prev);
-                    setProjectForm({ category: '', title: '', details: '' });
+                    setProjectForm({ category: '', title: '', details: '', budgetMin: '', budgetMax: '', paymentPreference: '' });
                     setCurrentView('services');
                   }} className="glass p-8 rounded-2xl space-y-6 border border-white/10">
                      <div>
@@ -568,6 +603,26 @@ const ClientDashboard: React.FC = () => {
                      <div>
                         <label className="block text-sm text-gray-400 mb-2">{TRANSLATIONS.form_details[lang]}</label>
                         <textarea required value={projectForm.details} onChange={(event) => setProjectForm((prev) => ({ ...prev, details: event.target.value }))} rows={4} className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Describe your project requirements..."></textarea>
+                     </div>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-sm text-gray-400 mb-2">Minimum Budget (USD)</label>
+                           <input value={projectForm.budgetMin} onChange={(event) => setProjectForm((prev) => ({ ...prev, budgetMin: event.target.value }))} type="number" min="0" className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="250" />
+                        </div>
+                        <div>
+                           <label className="block text-sm text-gray-400 mb-2">Maximum Budget (USD)</label>
+                           <input value={projectForm.budgetMax} onChange={(event) => setProjectForm((prev) => ({ ...prev, budgetMax: event.target.value }))} type="number" min="0" className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="500" />
+                        </div>
+                     </div>
+                     <div>
+                        <label className="block text-sm text-gray-400 mb-2">Preferred Payment Method</label>
+                        <select value={projectForm.paymentPreference} onChange={(event) => setProjectForm((prev) => ({ ...prev, paymentPreference: event.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-brand-neon transition-colors">
+                          <option value="">Select payment option</option>
+                          <option>Bank Transfer</option>
+                          <option>JazzCash / EasyPaisa</option>
+                          <option>Card</option>
+                          <option>Crypto</option>
+                        </select>
                      </div>
                      <button className="w-full py-3 bg-brand-neon text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all">
                         Submit Request

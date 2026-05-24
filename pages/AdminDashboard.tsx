@@ -20,6 +20,7 @@ import {
   fetchAdminModuleItems,
   fetchAdminOverview,
   fetchAdminStudents,
+  replyAdminMessage,
   updateAdminModuleItem,
   updateAdminStudent,
   updateAdminFile,
@@ -64,6 +65,7 @@ const AdminDashboard = () => {
   const [moduleError, setModuleError] = useState('');
   const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active' });
   const [editingModuleItem, setEditingModuleItem] = useState<DashboardItem | null>(null);
+  const [adminReplyAttachment, setAdminReplyAttachment] = useState<File | null>(null);
   const [editingFile, setEditingFile] = useState<any | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
@@ -239,6 +241,21 @@ const AdminDashboard = () => {
   const handleUpdateModuleItem = async (event: React.FormEvent, category: string) => {
     event.preventDefault();
     if (!editingModuleItem) return;
+    if (category === 'messages') {
+      const payload = new FormData();
+      payload.append('title', editingModuleItem.payload.title || '');
+      payload.append('details', editingModuleItem.payload.details || '');
+      if (adminReplyAttachment) payload.append('attachment', adminReplyAttachment);
+      const updated = await replyAdminMessage(editingModuleItem.id, payload);
+      setModuleItems((prev) => ({
+        ...prev,
+        [category]: (prev[category] || []).map((item) => item.id === updated.id ? updated : item),
+      }));
+      setEditingModuleItem(null);
+      setAdminReplyAttachment(null);
+      return;
+    }
+
     const updated = await updateAdminModuleItem(category, editingModuleItem.id, {
       title: editingModuleItem.payload.title || '',
       amount: editingModuleItem.payload.amount || '',
@@ -254,6 +271,23 @@ const AdminDashboard = () => {
     }));
     setEditingModuleItem(null);
   };
+
+  const renderRichText = (text: string) => (
+    <div className="space-y-2 whitespace-pre-wrap">
+      {String(text || '').split(/\n+/).map((line, index) => {
+        const url = line.replace(/^Attachment:\s*/i, '').trim();
+        const isUrl = /^https?:\/\//i.test(url);
+        const isImage = /\.(png|jpe?g|gif|webp)$/i.test(url);
+        if (isUrl && isImage) {
+          return <a key={index} href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt="Attachment" className="mt-2 max-h-64 rounded-xl border border-white/10 object-contain" /></a>;
+        }
+        if (isUrl) {
+          return <a key={index} href={url} target="_blank" rel="noopener noreferrer" className="block text-brand-neon underline">Open attachment</a>;
+        }
+        return <p key={index}>{line}</p>;
+      })}
+    </div>
+  );
 
   const handleAdminFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -600,7 +634,7 @@ const AdminDashboard = () => {
                   <h3 className="text-lg font-bold text-white">{item.payload.title || 'Message'}</h3>
                   <p className="mt-1 flex items-center gap-2 text-sm text-gray-400"><User className="h-4 w-4" /> {item.payload.senderName || item.payload.owner || 'Unknown sender'}</p>
                   <p className="mt-1 flex items-center gap-2 text-xs text-gray-500"><Mail className="h-3.5 w-3.5" /> {item.payload.senderEmail || 'No email'}</p>
-                  <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/70 p-4 text-sm leading-relaxed text-gray-200 whitespace-pre-wrap">{item.payload.details || item.payload.amount}</div>
+                  <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/70 p-4 text-sm leading-relaxed text-gray-200">{renderRichText(item.payload.details || item.payload.amount)}</div>
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <button onClick={() => setEditingModuleItem(item)} className="rounded-xl bg-brand-neon px-4 py-2 text-sm font-bold text-black">Reply</button>
@@ -615,6 +649,10 @@ const AdminDashboard = () => {
             <h3 className="mb-3 font-bold text-white">Reply to {editingModuleItem.payload.senderName || editingModuleItem.payload.owner}</h3>
             <input value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="mb-3 w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white" placeholder="Subject" />
             <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} rows={4} className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white" placeholder="Type admin reply here..." />
+            <label className="mt-3 inline-flex cursor-pointer rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-gray-300 hover:border-brand-neon/50">
+              {adminReplyAttachment ? `Attached: ${adminReplyAttachment.name}` : 'Attach screenshot / file'}
+              <input type="file" accept="image/*,.pdf" className="hidden" onChange={(event) => setAdminReplyAttachment(event.target.files?.[0] || null)} />
+            </label>
             <div className="mt-3 flex justify-end gap-2">
               <button type="button" onClick={() => setEditingModuleItem(null)} className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-white">Cancel</button>
               <button className="rounded-xl bg-brand-neon px-4 py-2 text-sm font-bold text-black">Send Reply</button>
@@ -765,6 +803,12 @@ const AdminDashboard = () => {
                     <tr key={item.id} className="border-t border-white/5 align-top">
                       <td className="px-5 py-4 font-semibold text-white">
                         {item.payload.title || 'Untitled'}
+                        {category === 'requests' && (
+                          <div className="mt-2 space-y-1 text-xs text-gray-400">
+                            <div>Service: <span className="text-brand-neon">{item.payload.category || item.payload.projectType || '-'}</span></div>
+                            <div className="max-w-xl whitespace-pre-wrap text-gray-500">{item.payload.details || 'No project details.'}</div>
+                          </div>
+                        )}
                         {(category === 'requests' || category === 'courses') && renderFileManager(item.payload.files || [])}
                       </td>
                       <td className="px-5 py-4">{item.payload.amount || '-'}</td>
