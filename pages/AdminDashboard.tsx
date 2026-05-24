@@ -238,6 +238,18 @@ const AdminDashboard = () => {
     setStudents((prev) => prev.map((student) => student.id === id ? { ...student, status: 'disabled' } : student));
   };
 
+  const startStudentFromApplication = (item: DashboardItem) => {
+    setStudentForm({
+      name: item.payload.owner || item.payload.name || '',
+      email: item.payload.email || item.payload.amount || '',
+      phone: item.payload.phone || '',
+      course: item.payload.applicationLabel || 'Web Development',
+      status: 'invited',
+    });
+    setEditingStudentId(null);
+    setCurrentView('students');
+  };
+
   const handleUpdateModuleItem = async (event: React.FormEvent, category: string) => {
     event.preventDefault();
     if (!editingModuleItem) return;
@@ -864,6 +876,9 @@ const AdminDashboard = () => {
                             {item.payload.targetCountry && <div>Country: <span className="text-white">{item.payload.targetCountry}</span></div>}
                             {item.payload.documentUrl && <a href={item.payload.documentUrl} target="_blank" rel="noopener noreferrer" className="inline-flex text-brand-neon underline">Open document</a>}
                             <div className="max-w-xl whitespace-pre-wrap text-gray-500">{item.payload.details || ''}</div>
+                            <button onClick={() => startStudentFromApplication(item)} className="mt-2 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-bold text-cyan-200 hover:bg-cyan-400/20">
+                              Create Student ID
+                            </button>
                           </div>
                         )}
                         {(category === 'requests' || category === 'courses') && renderFileManager(item.payload.files || [])}
