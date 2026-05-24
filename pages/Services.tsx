@@ -276,11 +276,11 @@ const Services: React.FC = () => {
                      </div>
                      <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.form_name[lang]}</label>
-                       <input name="name" value={formData.name} onChange={handleInputChange} required type="text" className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="John Doe" />
+                       <input name="name" value={formData.name} onChange={handleInputChange} required type="text" className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Enter full name" />
                      </div>
                      <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.form_email[lang]}</label>
-                       <input name="email" value={formData.email} onChange={handleInputChange} required type="email" className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="john@example.com" />
+                       <input name="email" value={formData.email} onChange={handleInputChange} required type="email" className="w-full bg-slate-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="email@example.com" />
                      </div>
                      <div>
                        <label className="block text-sm font-bold text-gray-400 mb-2">{TRANSLATIONS.form_whatsapp[lang]}</label>

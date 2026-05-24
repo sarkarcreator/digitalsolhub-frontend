@@ -102,7 +102,7 @@ const Apply: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">{TRANSLATIONS.full_name[lang]}</label>
-                  <input name="name" value={formData.name} onChange={handleInputChange} required type="text" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="John Doe" />
+                  <input name="name" value={formData.name} onChange={handleInputChange} required type="text" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="Enter full name" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">{TRANSLATIONS.phone_num[lang]}</label>
@@ -112,7 +112,7 @@ const Apply: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">{TRANSLATIONS.email[lang]}</label>
-                <input name="email" value={formData.email} onChange={handleInputChange} required type="email" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="john@example.com" />
+                <input name="email" value={formData.email} onChange={handleInputChange} required type="email" className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold-500 transition-colors" placeholder="email@example.com" />
               </div>
 
               {/* Dynamic Fields based on Type */}
