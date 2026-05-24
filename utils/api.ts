@@ -439,6 +439,22 @@ export async function uploadAdminFile(payload: FormData): Promise<Record<string,
   }, true);
 }
 
+export async function updateAdminFile(
+  id: number | string,
+  payload: { name: string; description?: string; isPublic?: boolean }
+): Promise<Record<string, any>> {
+  return request<Record<string, any>>(`/admin/files/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function deleteAdminFile(id: number | string): Promise<void> {
+  await request(`/admin/files/${id}`, {
+    method: 'DELETE',
+  }, true);
+}
+
 /* ---------------- STUDENT PORTAL ---------------- */
 
 export async function fetchStudentDashboard(): Promise<StudentPortalDashboard> {

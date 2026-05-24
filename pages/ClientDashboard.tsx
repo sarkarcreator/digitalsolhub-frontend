@@ -112,6 +112,40 @@ const ClientDashboard: React.FC = () => {
     }
   };
 
+  const handleInvoicePrint = () => {
+    if (!invoiceRef.current) return;
+    const printWindow = window.open('', '_blank', 'width=1000,height=800');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <title>${selectedInvoice?.id || 'Invoice'}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; background: #fff; font-family: Arial, sans-serif; }
+            img { max-width: 100%; }
+            @page { size: A4; margin: 12mm; }
+            @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+          </style>
+          <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body>
+          ${invoiceRef.current.outerHTML}
+          <script>
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+                window.close();
+              }, 400);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const openInvoice = (invoice: any) => {
     setSelectedInvoice(invoice);
     setInvoiceChangeText('');
@@ -687,7 +721,7 @@ const ClientDashboard: React.FC = () => {
                     Download PDF
                   </button>
                   <button
-                    onClick={() => window.print()}
+                    onClick={handleInvoicePrint}
                     className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50"
                   >
                     <Printer className="h-4 w-4" />

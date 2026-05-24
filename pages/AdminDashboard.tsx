@@ -14,6 +14,7 @@ import { mintCertificateOnChain } from '../utils/blockchainManager';
 import {
   createAdminModuleItem,
   createAdminStudent,
+  deleteAdminFile,
   deleteAdminStudent,
   deleteAdminModuleItem,
   fetchAdminModuleItems,
@@ -21,6 +22,7 @@ import {
   fetchAdminStudents,
   updateAdminModuleItem,
   updateAdminStudent,
+  updateAdminFile,
   uploadAdminFile,
   type AdminOverview,
   type AdminStudentLead,
@@ -29,7 +31,7 @@ import {
 import { 
   Menu, Users, Briefcase, DollarSign, 
   CheckCircle, XCircle, Clock, ShieldOff, Award, Shield,
-  Globe, BarChart3, Target, GitBranch, TrendingUp, Laptop, Loader2, Link as LinkIcon, Database, Presentation, ChevronLeft, ChevronRight, AlertTriangle, FileBadge
+  Globe, BarChart3, Target, GitBranch, TrendingUp, Laptop, Loader2, Link as LinkIcon, Database, Presentation, ChevronLeft, ChevronRight, AlertTriangle, FileBadge, MessageSquare, Mail, User, FileText
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -62,6 +64,7 @@ const AdminDashboard = () => {
   const [moduleError, setModuleError] = useState('');
   const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active' });
   const [editingModuleItem, setEditingModuleItem] = useState<DashboardItem | null>(null);
+  const [editingFile, setEditingFile] = useState<any | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   
@@ -277,6 +280,24 @@ const AdminDashboard = () => {
       setUploadingFile(false);
       event.target.value = '';
     }
+  };
+
+  const handleUpdateFile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!editingFile) return;
+    await updateAdminFile(editingFile.id, {
+      name: editingFile.name,
+      description: editingFile.description || '',
+      isPublic: Boolean(editingFile.isPublic),
+    });
+    setEditingFile(null);
+    await loadModuleItems(currentView);
+  };
+
+  const handleDeleteFile = async (fileId: number | string) => {
+    if (!confirm('Delete this uploaded file?')) return;
+    await deleteAdminFile(fileId);
+    await loadModuleItems(currentView);
   };
 
   useEffect(() => {
@@ -554,6 +575,111 @@ const AdminDashboard = () => {
     );
   };
 
+  const renderMessagesView = () => {
+    const items = moduleItems.messages || [];
+    return (
+      <div className="space-y-6 animate-in fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Messages</h2>
+            <p className="text-sm text-gray-400">Client aur student messages ko sender, role, subject aur reply area ke sath manage karein.</p>
+          </div>
+          <button onClick={() => loadModuleItems('messages')} className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50">Refresh</button>
+        </div>
+        {moduleLoading === 'messages' && <div className="rounded-xl border border-white/10 bg-slate-900/60 p-4 text-gray-400">Loading messages...</div>}
+        <div className="grid gap-4">
+          {items.length === 0 && <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-gray-500">No messages yet.</div>}
+          {items.map((item) => (
+            <div key={item.id} className="glass rounded-2xl border border-white/10 p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${item.status === 'unread' ? 'bg-cyan-500/10 text-brand-neon' : 'bg-slate-800 text-gray-400'}`}>{item.status}</span>
+                    <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase text-gray-300">{item.payload.senderRole || 'user'}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white">{item.payload.title || 'Message'}</h3>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-gray-400"><User className="h-4 w-4" /> {item.payload.senderName || item.payload.owner || 'Unknown sender'}</p>
+                  <p className="mt-1 flex items-center gap-2 text-xs text-gray-500"><Mail className="h-3.5 w-3.5" /> {item.payload.senderEmail || 'No email'}</p>
+                  <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/70 p-4 text-sm leading-relaxed text-gray-200 whitespace-pre-wrap">{item.payload.details || item.payload.amount}</div>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <button onClick={() => setEditingModuleItem(item)} className="rounded-xl bg-brand-neon px-4 py-2 text-sm font-bold text-black">Reply</button>
+                  <button onClick={() => handleDeleteModuleItem('messages', item.id)} className="rounded-xl border border-red-500/30 px-4 py-2 text-sm font-bold text-red-300">Delete</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {editingModuleItem && (
+          <form onSubmit={(event) => handleUpdateModuleItem(event, 'messages')} className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-3xl rounded-2xl border border-cyan-500/30 bg-slate-950 p-5 shadow-2xl">
+            <h3 className="mb-3 font-bold text-white">Reply to {editingModuleItem.payload.senderName || editingModuleItem.payload.owner}</h3>
+            <input value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="mb-3 w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white" placeholder="Subject" />
+            <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} rows={4} className="w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white" placeholder="Type admin reply here..." />
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={() => setEditingModuleItem(null)} className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-white">Cancel</button>
+              <button className="rounded-xl bg-brand-neon px-4 py-2 text-sm font-bold text-black">Send Reply</button>
+            </div>
+          </form>
+        )}
+      </div>
+    );
+  };
+
+  const renderReportsView = () => {
+    const items = moduleItems.reports || [];
+    return (
+      <div className="space-y-6 animate-in fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Reports</h2>
+            <p className="text-sm text-gray-400">Course approvals, pending project follow-ups, aur operational alerts yahan show honge.</p>
+          </div>
+          <button onClick={() => loadModuleItems('reports')} className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50">Refresh</button>
+        </div>
+        <div className="grid gap-4">
+          {items.length === 0 && <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-gray-500">No pending reports right now.</div>}
+          {items.map((item) => (
+            <div key={item.id} className="glass rounded-2xl border border-white/10 p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-bold uppercase text-amber-300">{item.status}</span>
+                  <h3 className="mt-3 text-lg font-bold text-white">{item.payload.title}</h3>
+                  <p className="mt-1 text-sm text-gray-400">{item.payload.details}</p>
+                  <p className="mt-2 text-xs text-gray-500">Owner: {item.payload.owner || 'Unknown'} • Value: {item.payload.amount || '-'}</p>
+                </div>
+                <button onClick={() => { setCurrentView(item.payload.sourceModule || 'overview'); loadModuleItems(item.payload.sourceModule || 'overview'); }} className="rounded-xl bg-brand-neon px-4 py-2 text-sm font-bold text-black">
+                  Open {item.payload.sourceModule || 'Module'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderFileManager = (files: any[] = []) => {
+    if (!files.length) return null;
+    return (
+      <div className="mt-3 space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3 text-left">
+        {files.map((file) => (
+          <div key={file.id} className="flex flex-col gap-2 rounded-lg bg-slate-900/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <a href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 truncate text-sm font-bold text-white hover:text-brand-neon">
+                <FileText className="h-4 w-4 shrink-0" /> {file.name}
+              </a>
+              <p className="text-xs text-gray-500">{file.type} • {file.date || 'Uploaded file'}</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setEditingFile(file)} className="text-xs font-bold text-cyan-300">Edit</button>
+              <button onClick={() => handleDeleteFile(file.id)} className="text-xs font-bold text-red-300">Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderGenericModule = (category: string) => {
     const title = moduleLabels[category] || category;
     const items = moduleItems[category] || [];
@@ -636,8 +762,11 @@ const AdminDashboard = () => {
                   {items.length === 0 ? (
                     <tr><td colSpan={5} className="px-5 py-8 text-gray-500">No records yet.</td></tr>
                   ) : items.map((item) => (
-                    <tr key={item.id} className="border-t border-white/5">
-                      <td className="px-5 py-4 font-semibold text-white">{item.payload.title || 'Untitled'}</td>
+                    <tr key={item.id} className="border-t border-white/5 align-top">
+                      <td className="px-5 py-4 font-semibold text-white">
+                        {item.payload.title || 'Untitled'}
+                        {(category === 'requests' || category === 'courses') && renderFileManager(item.payload.files || [])}
+                      </td>
                       <td className="px-5 py-4">{item.payload.amount || '-'}</td>
                       <td className="px-5 py-4">{item.payload.owner || item.payload.group || '-'}</td>
                       <td className="px-5 py-4"><span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase">{item.status}</span></td>
@@ -670,6 +799,8 @@ const AdminDashboard = () => {
 
   const renderContent = () => {
     switch(currentView) {
+      case 'messages': return renderMessagesView();
+      case 'reports': return renderReportsView();
       case 'certifications': return (
         <div className="space-y-8">
             {renderGenericModule('certifications')}
@@ -716,6 +847,25 @@ const AdminDashboard = () => {
             {renderContent()}
          </main>
       </div>
+
+      {editingFile && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <form onSubmit={handleUpdateFile} className="w-full max-w-lg rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-white">Edit Uploaded File</h3>
+            <p className="mt-1 text-sm text-gray-400">Filename aur description update karein. File content replace karna ho to purani delete karke new upload karein.</p>
+            <input value={editingFile.name || ''} onChange={(event) => setEditingFile((prev: any) => ({ ...prev, name: event.target.value }))} className="mt-5 w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white" placeholder="File name" required />
+            <textarea value={editingFile.description || ''} onChange={(event) => setEditingFile((prev: any) => ({ ...prev, description: event.target.value }))} rows={3} className="mt-3 w-full rounded-xl border border-white/10 bg-slate-900 p-3 text-white" placeholder="Description" />
+            <label className="mt-3 flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" checked={Boolean(editingFile.isPublic)} onChange={(event) => setEditingFile((prev: any) => ({ ...prev, isPublic: event.target.checked }))} />
+              Public worksheet/file
+            </label>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => setEditingFile(null)} className="rounded-xl border border-white/10 px-4 py-2 font-bold text-white">Cancel</button>
+              <button className="rounded-xl bg-brand-neon px-4 py-2 font-bold text-black">Save File</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
