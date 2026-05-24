@@ -264,6 +264,8 @@ const AdminDashboard = () => {
       studentName: editingModuleItem.payload.studentName || editingModuleItem.payload.owner || '',
       details: editingModuleItem.payload.details || '',
       deadline: editingModuleItem.payload.deadline || '',
+      invoiceAmount: editingModuleItem.payload.invoiceAmount || '',
+      paymentInstructions: editingModuleItem.payload.paymentInstructions || '',
     });
     setModuleItems((prev) => ({
       ...prev,
@@ -288,6 +290,11 @@ const AdminDashboard = () => {
       })}
     </div>
   );
+
+  const formatServiceName = (value?: string) => String(value || '-')
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 
   const handleAdminFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -742,7 +749,7 @@ const AdminDashboard = () => {
 
         {moduleError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{moduleError}</div>}
 
-        {category !== 'certifications' && (
+        {category !== 'certifications' && category !== 'requests' && (
         <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
           <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : `${title} title`} />
           <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : 'Value / amount'} />
@@ -757,6 +764,24 @@ const AdminDashboard = () => {
 
         {editingModuleItem && (
           <form onSubmit={(event) => handleUpdateModuleItem(event, category)} className="glass rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
+            {category === 'requests' && (
+              <div className="lg:col-span-4 rounded-xl border border-white/10 bg-slate-950/70 p-4">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase text-gray-500">Client</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{editingModuleItem.payload.owner || 'Unknown client'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase text-gray-500">Requested Service</p>
+                    <p className="mt-1 text-sm font-semibold text-brand-neon">{formatServiceName(editingModuleItem.payload.category || editingModuleItem.payload.projectType)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase text-gray-500">Client Budget</p>
+                    <p className="mt-1 text-sm font-semibold text-white">{editingModuleItem.payload.amount || 'Not provided'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             {category === 'certifications' && (
               <input value={editingModuleItem.payload.studentName || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, studentName: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Student name" />
             )}
@@ -764,10 +789,14 @@ const AdminDashboard = () => {
               <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder={category === 'messages' ? 'Type admin reply here...' : category === 'payments' ? 'Invoice details / scope of work' : 'Project details / admin notes'} rows={3} />
             )}
             {category === 'requests' && (
-              <input type="date" value={editingModuleItem.payload.deadline || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, deadline: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" />
+              <>
+                <input type="date" value={editingModuleItem.payload.deadline || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, deadline: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" />
+                <input type="number" min="0" step="0.01" value={editingModuleItem.payload.invoiceAmount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, invoiceAmount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Admin quote / invoice amount, e.g. 500" />
+                <textarea value={editingModuleItem.payload.paymentInstructions || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, paymentInstructions: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Payment instructions / crypto address / bank account. This is sent in the client invoice notes." rows={3} />
+              </>
             )}
             <input required value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Title / key" />
-            <input value={editingModuleItem.payload.amount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, amount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Value / certificate ID" />
+            <input value={editingModuleItem.payload.amount || ''} readOnly={category === 'requests'} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, amount: event.target.value } } : prev)} className={`rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white ${category === 'requests' ? 'cursor-not-allowed text-gray-400' : ''}`} placeholder={category === 'requests' ? 'Client budget' : 'Value / certificate ID'} />
             <select value={editingModuleItem.status || 'active'} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, status: event.target.value } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
               <option value="active">Active</option>
               <option value="pending">Pending</option>
@@ -805,8 +834,11 @@ const AdminDashboard = () => {
                         {item.payload.title || 'Untitled'}
                         {category === 'requests' && (
                           <div className="mt-2 space-y-1 text-xs text-gray-400">
-                            <div>Service: <span className="text-brand-neon">{item.payload.category || item.payload.projectType || '-'}</span></div>
+                            <div>Service: <span className="text-brand-neon">{formatServiceName(item.payload.category || item.payload.projectType)}</span></div>
+                            <div>Client budget: <span className="text-white">{item.payload.amount || '-'}</span></div>
+                            {item.payload.invoiceAmount && <div>Admin quote: <span className="text-emerald-300">USD {Number(item.payload.invoiceAmount).toFixed(2)}</span></div>}
                             <div className="max-w-xl whitespace-pre-wrap text-gray-500">{item.payload.details || 'No project details.'}</div>
+                            {item.payload.paymentInstructions && <div className="max-w-xl whitespace-pre-wrap rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2 text-emerald-200">Payment instructions: {item.payload.paymentInstructions}</div>}
                           </div>
                         )}
                         {(category === 'requests' || category === 'courses') && renderFileManager(item.payload.files || [])}
