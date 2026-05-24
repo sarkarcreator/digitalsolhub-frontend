@@ -18,6 +18,7 @@ import {
   fetchAdminModuleItems,
   fetchAdminOverview,
   fetchAdminStudents,
+  updateAdminModuleItem,
   type AdminOverview,
   type AdminStudentLead,
   type DashboardItem,
@@ -55,6 +56,7 @@ const AdminDashboard = () => {
   const [moduleLoading, setModuleLoading] = useState('');
   const [moduleError, setModuleError] = useState('');
   const [moduleForm, setModuleForm] = useState({ title: '', amount: '', status: 'active' });
+  const [editingModuleItem, setEditingModuleItem] = useState<DashboardItem | null>(null);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   
   // Blockchain State
@@ -190,6 +192,23 @@ const AdminDashboard = () => {
     setModuleItems((prev) => ({ ...prev, [category]: (prev[category] || []).filter((item) => item.id !== id) }));
   };
 
+  const handleUpdateModuleItem = async (event: React.FormEvent, category: string) => {
+    event.preventDefault();
+    if (!editingModuleItem) return;
+    const updated = await updateAdminModuleItem(category, editingModuleItem.id, {
+      title: editingModuleItem.payload.title || '',
+      amount: editingModuleItem.payload.amount || '',
+      status: editingModuleItem.status || 'active',
+      group: editingModuleItem.payload.group || 'general',
+      studentName: editingModuleItem.payload.studentName || editingModuleItem.payload.owner || '',
+    });
+    setModuleItems((prev) => ({
+      ...prev,
+      [category]: (prev[category] || []).map((item) => item.id === updated.id ? updated : item),
+    }));
+    setEditingModuleItem(null);
+  };
+
   useEffect(() => {
     const isRtl = lang === Language.URDU || lang === Language.ARABIC;
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
@@ -208,7 +227,6 @@ const AdminDashboard = () => {
     if (
       currentView !== 'overview' &&
       currentView !== 'students' &&
-      currentView !== 'certifications' &&
       !moduleItems[currentView]
     ) {
       loadModuleItems(currentView);
@@ -454,7 +472,13 @@ const AdminDashboard = () => {
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white">{title}</h2>
-            <p className="text-sm text-gray-400">Create, track, search, and delete live admin records for this module.</p>
+            <p className="text-sm text-gray-400">
+              {category === 'settings'
+                ? 'Manage live website settings, course prices, labels, and configurable values.'
+                : category === 'certifications'
+                  ? 'Review and correct issued certificate names, IDs, and statuses.'
+                  : 'Create, track, search, edit, and delete live admin records for this module.'}
+            </p>
           </div>
           <button onClick={() => loadModuleItems(category)} className="rounded-xl border border-white/10 bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:border-brand-neon/50">
             Refresh
@@ -463,9 +487,10 @@ const AdminDashboard = () => {
 
         {moduleError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{moduleError}</div>}
 
+        {category !== 'certifications' && (
         <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
-          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={`${title} title`} />
-          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Value / amount" />
+          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : `${title} title`} />
+          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : 'Value / amount'} />
           <select value={moduleForm.status} onChange={(event) => setModuleForm((prev) => ({ ...prev, status: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
             <option value="active">Active</option>
             <option value="pending">Pending</option>
@@ -473,6 +498,29 @@ const AdminDashboard = () => {
           </select>
           <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save</button>
         </form>
+        )}
+
+        {editingModuleItem && (
+          <form onSubmit={(event) => handleUpdateModuleItem(event, category)} className="glass rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
+            {category === 'certifications' && (
+              <input value={editingModuleItem.payload.studentName || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, studentName: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Student name" />
+            )}
+            <input required value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Title / key" />
+            <input value={editingModuleItem.payload.amount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, amount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Value / certificate ID" />
+            <select value={editingModuleItem.status || 'active'} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, status: event.target.value } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
+              <option value="active">Active</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+              <option value="revoked">Revoked</option>
+              <option value="editable">Editable</option>
+              <option value="locked">Locked</option>
+            </select>
+            <div className="flex gap-2">
+              <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Update</button>
+              <button type="button" onClick={() => setEditingModuleItem(null)} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-white">Cancel</button>
+            </div>
+          </form>
+        )}
 
         <div className="glass rounded-2xl border border-white/10 overflow-hidden">
           {moduleLoading === category ? (
@@ -481,17 +529,21 @@ const AdminDashboard = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-gray-300">
                 <thead className="bg-slate-900 text-xs uppercase text-gray-500">
-                  <tr><th className="px-5 py-4">Title</th><th className="px-5 py-4">Value</th><th className="px-5 py-4">Status</th><th className="px-5 py-4 text-right">Actions</th></tr>
+                  <tr><th className="px-5 py-4">Title</th><th className="px-5 py-4">Value</th><th className="px-5 py-4">Owner / Group</th><th className="px-5 py-4">Status</th><th className="px-5 py-4 text-right">Actions</th></tr>
                 </thead>
                 <tbody>
                   {items.length === 0 ? (
-                    <tr><td colSpan={4} className="px-5 py-8 text-gray-500">No records yet.</td></tr>
+                    <tr><td colSpan={5} className="px-5 py-8 text-gray-500">No records yet.</td></tr>
                   ) : items.map((item) => (
                     <tr key={item.id} className="border-t border-white/5">
                       <td className="px-5 py-4 font-semibold text-white">{item.payload.title || 'Untitled'}</td>
                       <td className="px-5 py-4">{item.payload.amount || '-'}</td>
+                      <td className="px-5 py-4">{item.payload.owner || item.payload.group || '-'}</td>
                       <td className="px-5 py-4"><span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase">{item.status}</span></td>
-                      <td className="px-5 py-4 text-right"><button onClick={() => handleDeleteModuleItem(category, item.id)} className="text-red-300 hover:text-red-200">Delete</button></td>
+                      <td className="px-5 py-4 text-right space-x-3">
+                        <button onClick={() => setEditingModuleItem(item)} className="text-cyan-300 hover:text-cyan-200">Edit</button>
+                        <button onClick={() => handleDeleteModuleItem(category, item.id)} className="text-red-300 hover:text-red-200">Delete</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -507,13 +559,7 @@ const AdminDashboard = () => {
     switch(currentView) {
       case 'certifications': return (
         <div className="space-y-8">
-            {/* Standard Certs Table - omitted for brevity, similar to existing */}
-            <div className="glass rounded-xl p-6 mb-8">
-                <h3 className="text-xl font-bold text-white mb-4">Certificate Management</h3>
-                <p className="text-gray-400">Manage standard certificates here.</p>
-                {/* ... existing table code ... */}
-            </div>
-            {/* Attestation Table */}
+            {renderGenericModule('certifications')}
             {renderAttestationsView()}
         </div>
       );

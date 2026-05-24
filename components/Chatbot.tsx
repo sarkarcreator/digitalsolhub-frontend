@@ -4,6 +4,7 @@ import { MessageSquare, Send, X, Minimize2, User, Bot, Loader2, Phone, ShieldChe
 import { Language } from '../types';
 import Logo from './Logo';
 import { ADMIN_WHATSAPP } from '../utils/notifications';
+import { sendAiChat } from '../utils/api';
 
 interface ChatbotProps {
   lang: Language;
@@ -128,22 +129,11 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
     setInput('');
 
     try {
-      // Prefer server-side AI proxy. Backend should proxy requests to Gemini/GenAI.
-      const resp = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: getSystemInstruction(),
-          history: messages,
-          prompt: userText,
-        }),
+      const json = await sendAiChat({
+        systemInstruction: getSystemInstruction(),
+        history: messages,
+        prompt: userText,
       });
-
-      if (!resp.ok) {
-        throw new Error('AI service error');
-      }
-
-      const json = await resp.json();
       const responseText = (json?.text as string) || "Please contact our team on WhatsApp: +1 917 695 7737";
       
       // Auto-detect actions based on AI response content

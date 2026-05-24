@@ -384,10 +384,21 @@ export async function fetchAdminModuleItems(category: string): Promise<Dashboard
 
 export async function createAdminModuleItem(
   category: string,
-  payload: { title: string; amount?: string; status: string }
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string }
 ): Promise<DashboardItem> {
   return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}`, {
     method: 'POST',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function updateAdminModuleItem(
+  category: string,
+  id: number | string,
+  payload: { title: string; amount?: string; status: string; group?: string; studentName?: string }
+): Promise<DashboardItem> {
+  return request<DashboardItem>(`/admin/modules/${encodeURIComponent(category)}/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(payload),
   }, true);
 }
@@ -516,6 +527,19 @@ export async function uploadClientFile(payload: FormData): Promise<Record<string
     body: payload,
     headers: {},
   }, true);
+}
+
+/* ---------------- AI ---------------- */
+
+export async function sendAiChat(payload: {
+  systemInstruction?: string;
+  history?: Array<Record<string, any>>;
+  prompt: string;
+}): Promise<{ text: string }> {
+  return request<{ text: string }>('/ai/chat', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 /* ---------------- DASHBOARD ITEMS ---------------- */
