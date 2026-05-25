@@ -38,8 +38,8 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
   isAccredited = false,
   attestation,
   partnerMode = false,
-  signatureImage = '/brand/sig.png',
-  stampImage = '/brand/stemp.png'
+  signatureImage = '/brand/sig.webp',
+  stampImage = '/brand/stemp.webp'
 }, ref) => {
   
   // Use partner verification URL if in partner mode (mocked)
@@ -114,7 +114,7 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
            {issuerLogo ? (
                <img src={issuerLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
            ) : (
-               <img src="/brand/Final%20Logo%20(1).png" alt="" className="w-[460px] h-[460px] object-contain grayscale" />
+               <img src="/brand/Final%20Logo%20(1).webp" alt="" width="512" height="768" className="w-[460px] h-[460px] object-contain grayscale" />
            )}
         </div>
 
@@ -222,12 +222,14 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
                       <img
                          src={stampImage}
                          alt="Official stamp"
+                         width="720"
+                         height="720"
                          className="absolute right-20 bottom-0 z-20 w-[128px] h-[128px] object-contain opacity-90 mix-blend-multiply"
                       />
                    )}
                    <div className="relative z-10 text-center w-56">
                    {signatureImage ? (
-                      <img src={signatureImage} alt={`${instructorName} signature`} className="h-14 w-56 object-contain mx-auto mb-1" />
+                      <img src={signatureImage} alt={`${instructorName} signature`} width="254" height="123" className="h-14 w-56 object-contain mx-auto mb-1" />
                    ) : (
                       <div className="font-serif italic text-4xl text-slate-900 mb-2 px-8 -rotate-2" style={{ fontFamily: "'Dancing Script', cursive, serif" }}>
                          {instructorName}

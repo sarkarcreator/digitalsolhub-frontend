@@ -99,7 +99,7 @@ const Academy: React.FC = () => {
                 }`}
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img src={course.image} alt={title} loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+                  <img src={course.image} alt={title} width="800" height="450" loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center ${isSoftSkill ? 'bg-blue-600/80 backdrop-blur-[2px]' : 'bg-black/60 backdrop-blur-[2px]'}`}>
                      <Link to={`/${lang}/course/${course.id}`} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-xl ${isSoftSkill ? 'bg-white text-blue-600' : 'bg-white/20 text-white backdrop-blur-md hover:bg-gold-500 hover:text-black'}`}>
                        {isSoftSkill ? <Sparkles className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}

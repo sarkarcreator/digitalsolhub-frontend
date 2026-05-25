@@ -87,7 +87,7 @@ const Marketplace: React.FC = () => {
                 className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all group cursor-pointer"
               >
                  <div className="h-48 overflow-hidden relative">
-                    <img src={gig.image} alt={gig.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    <img src={gig.image} alt={gig.title} width="400" height="256" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                  </div>
                  <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -116,7 +116,7 @@ const Marketplace: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
            <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
               <div className="relative h-64">
-                 <img src={selectedGig.image} alt={selectedGig.title} loading="eager" className="w-full h-full object-cover" />
+                 <img src={selectedGig.image} alt={selectedGig.title} width="800" height="320" loading="eager" decoding="async" className="w-full h-full object-cover" />
                  <button onClick={() => setSelectedGig(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full hover:bg-black/80 text-white z-10 rtl:right-auto rtl:left-4">
                     <X className="w-5 h-5" />
                  </button>

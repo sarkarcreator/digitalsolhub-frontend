@@ -3,12 +3,12 @@ import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams, Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import Chatbot from './components/Chatbot';
 import { Language } from './types';
 import { Loader2 } from 'lucide-react';
 import AdminRedirect from './components/AdminRedirect';
 
 // Lazy Load Pages for Performance
+const Chatbot = lazy(() => import('./components/Chatbot'));
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const Academy = lazy(() => import('./pages/Academy'));
@@ -80,7 +80,9 @@ const MainLayout = () => {
         </Suspense>
       </main>
       <Footer lang={currentLang} />
-      <Chatbot lang={currentLang} />
+      <Suspense fallback={null}>
+        <Chatbot lang={currentLang} />
+      </Suspense>
     </div>
   );
 };

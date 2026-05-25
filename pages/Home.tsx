@@ -61,10 +61,10 @@ const Home: React.FC = () => {
       />
 
       {/* Hero Section - Super Platform */}
-      <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+      <section className="relative min-h-[680px] pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[150px] animate-pulse-slow"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-gold-600/10 rounded-full blur-[150px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
+          <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[150px] animate-pulse-slow"></div>
+          <div className="hidden md:block absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-gold-600/10 rounded-full blur-[150px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -186,7 +186,7 @@ const Home: React.FC = () => {
       <section className="bg-slate-950 border-t border-white/10 py-20">
          <div className="max-w-5xl mx-auto px-4 text-center">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden border-4 border-gold-500/30 shadow-2xl">
-               <img src="https://picsum.photos/400/400?grayscale" alt="Sarkar Azeem CEO" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+               <img src="https://picsum.photos/400/400?grayscale" alt="Sarkar Azeem CEO" width="400" height="400" className="w-full h-full object-cover" loading="lazy" decoding="async" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Sarkar Azeem</h2>
             <p className="text-gold-400 text-sm font-bold uppercase tracking-widest mb-6">CEO & Founder</p>

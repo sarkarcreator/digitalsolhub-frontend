@@ -5,7 +5,6 @@ import { COURSES } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { Clock, Users, Star, BookOpen, Check, PlayCircle, ShieldCheck, Smartphone, Award, Linkedin, Twitter, Globe, Quote, Download, User, Facebook, Copy, Sparkles, Monitor } from 'lucide-react';
-import { jsPDF } from "jspdf";
 
 const CourseDetail: React.FC = () => {
   const { lang: paramLang, id } = useParams<{ lang: string; id: string }>();
@@ -98,7 +97,8 @@ const CourseDetail: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadSyllabus = () => {
+  const handleDownloadSyllabus = async () => {
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
@@ -157,7 +157,7 @@ const CourseDetail: React.FC = () => {
       <div className={`relative ${theme.heroBg} border-b ${theme.border}`}>
         <div className="absolute inset-0 overflow-hidden">
           <div className={`absolute inset-0 ${theme.heroOverlay} z-10`}></div>
-          <img src={course.image} alt={title} loading="eager" fetchPriority="high" className="w-full h-full object-cover opacity-30 blur-sm" />
+          <img src={course.image} alt={title} width="1200" height="675" loading="eager" decoding="async" fetchPriority="high" className="w-full h-full object-cover opacity-30 blur-sm" />
         </div>
         
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
@@ -191,7 +191,7 @@ const CourseDetail: React.FC = () => {
             
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-3">
-                 <img src={course.instructor?.image} alt={instructorName} className={`w-12 h-12 rounded-full border-2 ${isSoftSkill ? 'border-blue-500' : 'border-gold-500'}`} />
+                 <img src={course.instructor?.image} alt={instructorName} width="48" height="48" loading="lazy" decoding="async" className={`w-12 h-12 rounded-full border-2 ${isSoftSkill ? 'border-blue-500' : 'border-gold-500'}`} />
                  <div>
                    <p className={`text-sm ${theme.textDim}`}>{lang === Language.ENGLISH ? 'Created by' : 'ØªØ®Ù„ÛŒÙ‚ Ú©Ø§Ø±'}</p>
                    <p className={`font-bold ${theme.textMain}`}>{instructorName}</p>
@@ -241,7 +241,7 @@ const CourseDetail: React.FC = () => {
                 <div className="flex flex-col md:flex-row gap-8 items-start">
                   <div className="relative shrink-0">
                     <div className={`absolute -inset-1 bg-gradient-to-br ${isSoftSkill ? 'from-blue-400 to-purple-400' : 'from-gold-500 to-purple-600'} rounded-full blur opacity-30 group-hover:opacity-60 transition-opacity`}></div>
-                    <img src={course.instructor?.image} alt={instructorName} loading="lazy" className={`relative w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-2 ${isSoftSkill ? 'border-white' : 'border-slate-800'}`} />
+                    <img src={course.instructor?.image} alt={instructorName} width="128" height="128" loading="lazy" decoding="async" className={`relative w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-2 ${isSoftSkill ? 'border-white' : 'border-slate-800'}`} />
                   </div>
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">

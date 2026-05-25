@@ -48,7 +48,7 @@ const About: React.FC = () => {
            <div className="absolute top-0 right-0 rtl:left-0 rtl:right-auto w-64 h-64 bg-gold-500/10 blur-[80px] rounded-full"></div>
            <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
               <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-gold-500/30 overflow-hidden shadow-2xl shrink-0">
-                 <img src="https://picsum.photos/400/400?grayscale" alt="Sarkar Azeem CEO" className="w-full h-full object-cover" />
+                 <img src="https://picsum.photos/400/400?grayscale" alt="Sarkar Azeem CEO" width="400" height="400" loading="lazy" decoding="async" className="w-full h-full object-cover" />
               </div>
               <div className="text-center md:text-left rtl:md:text-right">
                  <h2 className="text-3xl font-bold text-white mb-2">

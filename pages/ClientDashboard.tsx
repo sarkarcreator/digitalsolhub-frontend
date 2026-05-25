@@ -140,11 +140,15 @@ const ClientDashboard: React.FC = () => {
     if (!invoiceRef.current) return;
     const printWindow = window.open('', '_blank', 'width=1000,height=800');
     if (!printWindow) return;
+    const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+      .map((node) => node.outerHTML)
+      .join('\n');
     printWindow.document.write(`
       <!doctype html>
       <html>
         <head>
           <title>${selectedInvoice?.id || 'Invoice'}</title>
+          ${styles}
           <style>
             * { box-sizing: border-box; }
             body { margin: 0; background: #fff; font-family: Arial, sans-serif; }
@@ -152,7 +156,6 @@ const ClientDashboard: React.FC = () => {
             @page { size: A4; margin: 12mm; }
             @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
           </style>
-          <script src="https://cdn.tailwindcss.com"></script>
         </head>
         <body>
           ${invoiceRef.current.outerHTML}
@@ -820,7 +823,7 @@ const ClientDashboard: React.FC = () => {
                   <div ref={invoiceRef} className="mx-auto min-h-[1123px] w-[794px] bg-white p-10 text-slate-950">
                     <div className="flex items-start justify-between border-b border-slate-200 pb-8">
                       <div className="flex items-center gap-4">
-                        <img src="/brand/Final%20Logo%20(1).png" alt="Digital Solutions Hub" className="h-16 w-16 object-contain" />
+                        <img src="/brand/Final%20Logo%20(1).webp" alt="Digital Solutions Hub" width="512" height="768" className="h-16 w-16 object-contain" loading="eager" decoding="async" />
                         <div>
                           <h1 className="text-2xl font-black tracking-wide">Digital Solutions Hub</h1>
                           <p className="text-sm text-slate-500">Where Innovation Finds Direction</p>

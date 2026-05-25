@@ -11,7 +11,7 @@ interface SEOProps {
   schema?: Record<string, any>; // JSON-LD Schema
 }
 
-const SEO: React.FC<SEOProps> = ({ title, description, lang, image = 'https://digitalsolhub.com/brand/Final%20Logo%20(1).png', schema }) => {
+const SEO: React.FC<SEOProps> = ({ title, description, lang, image = 'https://digitalsolhub.com/brand/Final%20Logo%20(1).webp', schema }) => {
   const location = useLocation();
   
   // Construct absolute URL
@@ -75,7 +75,7 @@ const SEO: React.FC<SEOProps> = ({ title, description, lang, image = 'https://di
       if (type) element.setAttribute('type', type);
     };
 
-    updateLink('icon', '/brand/Final%20Logo%20(1).png', 'image/png');
+    updateLink('icon', '/brand/Final%20Logo%20(1).webp', 'image/webp');
     updateLink('apple-touch-icon', '/brand/Final%20Logo%20(1).png');
     updateLink('manifest', '/manifest.webmanifest');
 

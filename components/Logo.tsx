@@ -8,13 +8,19 @@ interface LogoProps {
 const Logo: React.FC<LogoProps> = ({ className = "w-12 h-12", withText = false }) => {
   return (
     <div className="flex items-center gap-2 select-none">
-      <img
-        src="/brand/Final%20Logo%20(1).png"
-        alt="Digital Solutions Hub"
-        className={`${className} object-contain rounded-md`}
-        loading="eager"
-        decoding="async"
-      />
+      <picture className="shrink-0">
+        <source srcSet="/brand/Final%20Logo%20(1).webp" type="image/webp" />
+        <img
+          src="/brand/Final%20Logo%20(1).png"
+          alt="Digital Solutions Hub"
+          width="512"
+          height="768"
+          className={`${className} object-contain rounded-md`}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+        />
+      </picture>
       
       {/* Text Part: Stacked layout matching the image typography */}
       {withText && (
