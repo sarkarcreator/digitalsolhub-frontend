@@ -8,6 +8,7 @@ import { TRANSLATIONS } from '../constants';
 import { CertificateData, Language } from '../types';
 import { getCertificateById } from '../utils/certificateManager';
 import { getExplorerLink } from '../utils/blockchainManager';
+import { verifyPublicCertificate } from '../utils/api';
 import { 
   CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, 
   Phone, Globe, Award, QrCode, Search, Database, Fingerprint, Lock, ExternalLink, Mail, ChevronDown
@@ -38,13 +39,27 @@ const VerifyCertificate: React.FC = () => {
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
   }, [id, currentLang]);
 
-  const handleVerify = (certId: string) => {
+  const handleVerify = async (certId: string) => {
     if (!certId.trim()) return;
     setStatus('loading');
     setCheckingBlockchain(false);
     setBlockchainVerified(false);
-    
-    setTimeout(() => {
+
+    try {
+      const liveCert = await verifyPublicCertificate(certId.trim());
+      const normalizedStatus = liveCert.status?.toLowerCase();
+      const mappedCert: CertificateData = {
+        id: liveCert.id,
+        studentName: liveCert.studentName,
+        courseName: liveCert.courseName,
+        issueDate: liveCert.issueDate || '',
+        status: normalizedStatus === 'revoked' ? 'Revoked' : 'Approved',
+      };
+
+      setData(mappedCert);
+      setStatus(normalizedStatus === 'revoked' ? 'revoked' : 'valid');
+      return;
+    } catch {
       const foundCert = getCertificateById(certId.trim());
       if (foundCert) {
         if (foundCert.status === 'Revoked') {
@@ -70,7 +85,7 @@ const VerifyCertificate: React.FC = () => {
         setStatus('invalid');
         setData(null);
       }
-    }, 800);
+    }
   };
 
   const handleManualSubmit = (e: React.FormEvent) => {
@@ -170,7 +185,7 @@ const VerifyCertificate: React.FC = () => {
                         value={inputId}
                         onChange={(e) => setInputId(e.target.value)}
                         placeholder={t.enter_cert_id[currentLang]}
-                        className="block w-full pl-11 pr-4 py-4 bg-slate-50 border border-transparent rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                        className="block w-full pl-11 pr-4 py-4 bg-slate-50 border border-transparent rounded-xl text-slate-900 selection:bg-cyan-200 selection:text-slate-950 placeholder:text-slate-500 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all font-semibold"
                      />
                   </div>
                   <button 

@@ -61,7 +61,7 @@ const Home: React.FC = () => {
       />
 
       {/* Hero Section - Super Platform */}
-      <section className="relative min-h-[680px] pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black">
+      <section className="relative min-h-[720px] sm:min-h-[760px] lg:min-h-[820px] pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black cls-stable">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
           <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[150px] animate-pulse-slow"></div>
           <div className="hidden md:block absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-gold-600/10 rounded-full blur-[150px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
@@ -93,7 +93,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Ecosystem Grid */}
-      <section className="py-24 bg-black border-t border-white/10">
+      <section className="py-24 min-h-[1180px] md:min-h-[820px] lg:min-h-[640px] bg-black border-t border-white/10 cls-stable">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
              <h2 className="text-4xl font-bold text-white mb-6">Explore the Ecosystem</h2>
@@ -126,7 +126,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 border-y border-white/5 bg-slate-900/50">
+      <section className="py-20 min-h-[360px] md:min-h-[220px] border-y border-white/5 bg-slate-900/50 cls-stable">
          <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
             {[
                { val: "50k+", label: "Students" },
@@ -143,7 +143,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* AI & Automation Highlight */}
-      <section className="py-24 relative overflow-hidden">
+      <section className="py-24 min-h-[880px] md:min-h-[720px] relative overflow-hidden cls-stable">
          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-blue-900/20 pointer-events-none"></div>
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="bg-slate-900/80 backdrop-blur-md rounded-[3rem] p-8 md:p-16 border border-white/10 flex flex-col md:flex-row items-center gap-16 shadow-2xl">
@@ -183,7 +183,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* About Preview */}
-      <section className="bg-slate-950 border-t border-white/10 py-20">
+      <section className="bg-slate-950 border-t border-white/10 py-20 min-h-[420px] cls-stable">
          <div className="max-w-5xl mx-auto px-4 text-center">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden border-4 border-gold-500/30 shadow-2xl">
                <img src="https://picsum.photos/400/400?grayscale" alt="Sarkar Azeem CEO" width="400" height="400" className="w-full h-full object-cover" loading="lazy" decoding="async" />

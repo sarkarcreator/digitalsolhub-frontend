@@ -122,6 +122,16 @@ export interface ClientPortalDashboard {
   };
 }
 
+export interface PublicCertificateVerification {
+  id: string;
+  studentName: string;
+  courseName: string;
+  issueDate?: string | null;
+  issuer?: string | null;
+  certificateUrl?: string | null;
+  status: string;
+}
+
 export interface ApplicationPayload {
   applicationType: string;
   name: string;
@@ -627,6 +637,10 @@ export async function submitApplication(payload: ApplicationPayload): Promise<{ 
 
 export async function fetchPublicModuleItems(category: string): Promise<DashboardItem[]> {
   return request<DashboardItem[]>(`/public/modules/${encodeURIComponent(category)}`);
+}
+
+export async function verifyPublicCertificate(id: string): Promise<PublicCertificateVerification> {
+  return request<PublicCertificateVerification>(`/certificates/verify/${encodeURIComponent(id)}`);
 }
 
 /* ---------------- AI ---------------- */
