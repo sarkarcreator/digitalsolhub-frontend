@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { COURSES, TRANSLATIONS, STUDENT_PLANS, SYLLABUS_CURRICULUM, SOFT_SKILLS_MODULE } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { Play, Clock, CheckCircle, Star, Sparkles, BookOpen, Brain, Rocket, ChevronDown, ChevronUp } from 'lucide-react';
+import { fetchPublicModuleItems, type DashboardItem } from '../utils/api';
 
 const Academy: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -14,6 +15,7 @@ const Academy: React.FC = () => {
   const [filter, setFilter] = useState((location.state as any)?.category || 'All');
   const [currency, setCurrency] = useState<'PKR' | 'USD'>('PKR');
   const [openLevel, setOpenLevel] = useState<string | null>('foundation');
+  const [academyItems, setAcademyItems] = useState<DashboardItem[]>([]);
   
   // Helper to get translated category
   const getCategory = (c: any) => lang === Language.URDU && c.categoryUr ? c.categoryUr : c.category;
@@ -27,9 +29,58 @@ const Academy: React.FC = () => {
     { label: lang === Language.ENGLISH ? 'Soft Skills' : 'سافٹ اسکلز', value: 'Soft Skills' }
   ];
 
+  useEffect(() => {
+    let alive = true;
+    fetchPublicModuleItems('academy-content')
+      .then((items) => {
+        if (alive) setAcademyItems(items);
+      })
+      .catch(() => {
+        if (alive) setAcademyItems([]);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const heroItem = academyItems.find((item) => String(item.payload.type || '').toLowerCase() === 'hero');
+  const topicItems = academyItems.filter((item) => String(item.payload.type || '').toLowerCase() === 'topic');
+  const fallbackTopics = [
+    "Shopify, eBay, Dropshipping", "Affiliate Marketing", "SEO & Website Traffic",
+    "Digital Marketing (Ads)", "Web Design & WordPress", "Graphic Design",
+    "AI Tools & Automation", "Freelancing & Online Earning"
+  ];
+  const learningTopics = topicItems.length
+    ? topicItems.map((item) => item.payload.title).filter(Boolean)
+    : fallbackTopics;
+
+  const dynamicCourses = useMemo(() => academyItems
+    .filter((item) => String(item.payload.type || '').toLowerCase() === 'course')
+    .map((item) => {
+      const linkedCourseId = String(item.payload.category || '').trim();
+      const linkedCourse = COURSES.find((course) => course.id === linkedCourseId);
+      return {
+        id: linkedCourse?.id || `academy-${item.id}`,
+        title: item.payload.title || 'Academy Course',
+        description: item.payload.details || 'Admin managed academy course.',
+        category: item.payload.location || linkedCourse?.category || 'Digital Marketing',
+        duration: item.payload.amount || linkedCourse?.duration || 'Self-paced',
+        image: item.payload.image || linkedCourse?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
+        rating: item.payload.rating || linkedCourse?.rating || '4.8',
+        students: item.payload.students || linkedCourse?.students || 'New',
+        detailPath: linkedCourse ? `/${lang}/course/${linkedCourse.id}` : `/${lang}/apply`,
+      };
+    }), [academyItems, lang]);
+
+  const displayedCourses = dynamicCourses.length ? dynamicCourses : COURSES.map((course) => ({
+    ...course,
+    detailPath: `/${lang}/course/${course.id}`,
+  }));
+
   const filteredCourses = filter === 'All' 
-    ? COURSES 
-    : COURSES.filter(c => (c.category === filter || c.categoryUr === filter));
+    ? displayedCourses 
+    : displayedCourses.filter((c: any) => (c.category === filter || c.categoryUr === filter));
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-slate-950">
@@ -43,19 +94,15 @@ const Academy: React.FC = () => {
         
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{TRANSLATIONS.academy[lang]}</h1>
-          <p className="text-gray-400">{TRANSLATIONS.metaDescAcademy[lang]}</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">{heroItem?.payload.title || TRANSLATIONS.academy[lang]}</h1>
+          <p className="text-gray-400">{heroItem?.payload.details || TRANSLATIONS.metaDescAcademy[lang]}</p>
         </div>
 
         {/* What You Will Learn (Summary) */}
         <section className="mb-20">
            <h2 className="text-2xl font-bold text-white mb-8 text-center">{TRANSLATIONS.what_learn[lang]}</h2>
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                 "Shopify, eBay, Dropshipping", "Affiliate Marketing", "SEO & Website Traffic",
-                 "Digital Marketing (Ads)", "Web Design & WordPress", "Graphic Design",
-                 "AI Tools & Automation", "Freelancing & Online Earning"
-              ].map((topic, i) => (
+              {learningTopics.map((topic, i) => (
                  <div key={i} className="bg-slate-900 border border-white/5 p-4 rounded-xl text-center hover:border-brand-neon/30 transition-colors">
                     <p className="text-sm text-gray-300 font-medium">{topic}</p>
                  </div>
@@ -83,10 +130,10 @@ const Academy: React.FC = () => {
         {/* Course Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-24">
           {filteredCourses.map((course) => {
-            const title = lang === Language.URDU && course.titleUr ? course.titleUr : course.title;
-            const description = lang === Language.URDU && course.descriptionUr ? course.descriptionUr : course.description;
+            const title = lang === Language.URDU && (course as any).titleUr ? (course as any).titleUr : course.title;
+            const description = lang === Language.URDU && (course as any).descriptionUr ? (course as any).descriptionUr : course.description;
             const category = getCategory(course);
-            const duration = lang === Language.URDU && course.durationUr ? course.durationUr : course.duration;
+            const duration = lang === Language.URDU && (course as any).durationUr ? (course as any).durationUr : course.duration;
             const isSoftSkill = course.category === 'Soft Skills';
 
             return (
@@ -101,7 +148,7 @@ const Academy: React.FC = () => {
                 <div className="relative h-48 overflow-hidden">
                   <img src={course.image} alt={title} width="800" height="450" loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center ${isSoftSkill ? 'bg-blue-600/80 backdrop-blur-[2px]' : 'bg-black/60 backdrop-blur-[2px]'}`}>
-                     <Link to={`/${lang}/course/${course.id}`} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-xl ${isSoftSkill ? 'bg-white text-blue-600' : 'bg-white/20 text-white backdrop-blur-md hover:bg-gold-500 hover:text-black'}`}>
+                     <Link to={(course as any).detailPath || `/${lang}/course/${course.id}`} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-xl ${isSoftSkill ? 'bg-white text-blue-600' : 'bg-white/20 text-white backdrop-blur-md hover:bg-gold-500 hover:text-black'}`}>
                        {isSoftSkill ? <Sparkles className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
                      </Link>
                   </div>
@@ -137,7 +184,7 @@ const Academy: React.FC = () => {
                     </div>
                   </div>
 
-                  <Link to={`/${lang}/course/${course.id}`} className={`block w-full text-center py-3 rounded-lg text-sm font-bold transition-all ${
+                  <Link to={(course as any).detailPath || `/${lang}/course/${course.id}`} className={`block w-full text-center py-3 rounded-lg text-sm font-bold transition-all ${
                      isSoftSkill 
                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20' 
                        : 'border border-purple-500/30 text-purple-400 hover:bg-purple-600 hover:text-white'

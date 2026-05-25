@@ -34,6 +34,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, currentVi
     { icon: Award, label: 'Certificates', id: 'certifications' },
     { icon: CreditCard, label: TRANSLATIONS.cdash_invoices[lang], id: 'payments' },
     { icon: Globe, label: 'Content & CMS', id: 'cms' },
+    { icon: BookOpen, label: 'Academy Content', id: 'academy-content' },
     { icon: Globe, label: 'Website Services', id: 'service-catalog' },
     { icon: Briefcase, label: 'Marketplace', id: 'marketplace' },
     { icon: Search, label: 'Jobs', id: 'jobs' },

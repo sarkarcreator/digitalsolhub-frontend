@@ -163,6 +163,7 @@ const AdminDashboard = () => {
     courses: 'Courses',
     payments: 'Invoices',
     cms: 'Content & CMS',
+    'academy-content': 'Academy Content',
     marketplace: 'Marketplace',
     jobs: 'Jobs',
     'service-catalog': 'Website Services',
@@ -766,7 +767,7 @@ const AdminDashboard = () => {
   const renderGenericModule = (category: string) => {
     const title = moduleLabels[category] || category;
     const items = moduleItems[category] || [];
-    const isPublicContentModule = ['marketplace', 'jobs', 'service-catalog', 'cms'].includes(category);
+    const isPublicContentModule = ['marketplace', 'jobs', 'service-catalog', 'cms', 'academy-content'].includes(category);
     const isOperationalLogModule = ['activity-logs', 'api-logs', 'login-attempts', 'analytics', 'system-events'].includes(category);
 
     return (
@@ -793,8 +794,8 @@ const AdminDashboard = () => {
 
         {category !== 'certifications' && category !== 'requests' && !isOperationalLogModule && (
         <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
-          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : category === 'jobs' ? 'Job title' : category === 'marketplace' ? 'Gig title' : category === 'service-catalog' ? 'Service title' : `${title} title`} />
-          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : category === 'jobs' ? 'Salary' : category === 'marketplace' ? 'Starting price' : category === 'service-catalog' ? 'Price / short value' : 'Value / amount'} />
+          <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : category === 'jobs' ? 'Job title' : category === 'marketplace' ? 'Gig title' : category === 'academy-content' ? 'Hero title / topic / course title' : category === 'service-catalog' ? 'Service title' : `${title} title`} />
+          <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : category === 'jobs' ? 'Salary' : category === 'marketplace' ? 'Starting price' : category === 'academy-content' ? 'Duration / short value' : category === 'service-catalog' ? 'Price / short value' : 'Value / amount'} />
           <select value={moduleForm.status} onChange={(event) => setModuleForm((prev) => ({ ...prev, status: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
             <option value="active">Active</option>
             <option value="published">Published</option>
@@ -804,9 +805,10 @@ const AdminDashboard = () => {
           <button className="rounded-xl bg-brand-neon px-5 py-3 font-bold text-black">Save</button>
           {isPublicContentModule && (
             <>
-              <input value={moduleForm.group} onChange={(event) => setModuleForm((prev) => ({ ...prev, group: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : 'Owner / group'} />
-              <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : 'Type'} />
-              <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : 'Category'} />
+              <input value={moduleForm.group} onChange={(event) => setModuleForm((prev) => ({ ...prev, group: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : category === 'academy-content' ? 'Instructor / owner optional' : 'Owner / group'} />
+              <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
+              <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
+              <input value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
               <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image URL optional" />
               <textarea value={moduleForm.details} onChange={(event) => setModuleForm((prev) => ({ ...prev, details: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Description / details shown on website" rows={3} />
             </>
@@ -842,9 +844,10 @@ const AdminDashboard = () => {
             )}
             {isPublicContentModule && (
               <>
-                <input value={editingModuleItem.payload.group || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, group: event.target.value, owner: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : 'Owner / group'} />
-                <input value={editingModuleItem.payload.type || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, type: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : 'Type'} />
-                <input value={editingModuleItem.payload.location || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, location: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : 'Category'} />
+                <input value={editingModuleItem.payload.group || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, group: event.target.value, owner: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : category === 'academy-content' ? 'Instructor / owner optional' : 'Owner / group'} />
+                <input value={editingModuleItem.payload.type || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, type: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
+                <input value={editingModuleItem.payload.location || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, location: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
+                <input value={editingModuleItem.payload.category || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, category: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
                 <input value={editingModuleItem.payload.image || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Image URL optional" />
               </>
             )}

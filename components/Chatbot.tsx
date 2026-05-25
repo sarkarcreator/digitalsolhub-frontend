@@ -241,13 +241,17 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 via-cyan-950 to-blue-700 text-white shadow-[0_0_34px_rgba(6,182,212,0.48)] flex items-center justify-center hover:scale-110 transition-transform animate-float group border border-cyan-300/40 overflow-hidden"
+        className="fixed bottom-8 right-8 z-50 h-20 w-20 rounded-[1.65rem] border border-cyan-300/40 bg-slate-950 text-white shadow-[0_0_34px_rgba(6,182,212,0.48)] transition-transform hover:scale-105 animate-float group overflow-hidden"
         aria-label="Open DSH Assistant"
       >
-        <span className="absolute inset-0 bg-[radial-gradient(circle_at_35%_20%,rgba(255,255,255,0.25),transparent_35%)]" />
-        <Sparkles className="w-5 h-5 absolute top-1.5 right-1.5 animate-pulse text-cyan-100" />
-        <Logo className="relative z-10 h-10 w-10 drop-shadow-[0_0_12px_rgba(34,211,238,0.9)] group-hover:scale-105 transition-transform" />
-        <span className="absolute -top-1 -right-1 flex h-4 w-4">
+        <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,0.32),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(8,47,73,0.92),rgba(37,99,235,0.88))]" />
+        <span className="absolute inset-[6px] rounded-[1.35rem] border border-white/10 bg-black/18" />
+        <Logo className="absolute left-1/2 top-3 h-8 w-8 -translate-x-1/2 drop-shadow-[0_0_14px_rgba(34,211,238,0.95)] transition-transform group-hover:scale-105" />
+        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-cyan-200/30 bg-cyan-400/15 px-2.5 py-0.5 text-[10px] font-black tracking-[0.18em] text-cyan-50">
+          DSH AI
+        </span>
+        <Sparkles className="absolute right-2 top-2 h-4 w-4 animate-pulse text-cyan-100" />
+        <span className="absolute -right-1 -top-1 flex h-4 w-4">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500"></span>
         </span>
@@ -261,8 +265,10 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 flex items-center justify-between border-b border-white/10">
         <div className="flex items-center gap-3">
-           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center border border-brand-neon/50 shadow-[0_0_18px_rgba(0,243,255,0.18)]">
-              <Logo className="h-8 w-8" />
+           <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-cyan-300/40 bg-slate-950 shadow-[0_0_18px_rgba(0,243,255,0.18)]">
+              <span className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-blue-500/15 to-purple-500/20" />
+              <Logo className="absolute left-1/2 top-1.5 h-7 w-7 -translate-x-1/2" />
+              <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-black tracking-[0.16em] text-cyan-100">AI</span>
            </div>
            <div>
               <h3 className="font-bold text-white text-sm">DSH Assistant</h3>
