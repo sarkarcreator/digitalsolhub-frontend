@@ -253,6 +253,10 @@ async function request<T>(
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuth();
+    }
+
     const validationMessage =
       typeof payload === 'object' &&
       payload &&
@@ -358,6 +362,8 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
 }
 
 export async function logout(): Promise<void> {
+  clearAuth();
+
   try {
     await request(
       '/auth/logout',
@@ -369,8 +375,6 @@ export async function logout(): Promise<void> {
   } catch (error) {
     console.warn('Logout request failed', error);
   }
-
-  clearAuth();
 }
 
 /* ---------------- ADMIN ---------------- */

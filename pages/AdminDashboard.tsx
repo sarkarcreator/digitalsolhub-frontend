@@ -171,6 +171,11 @@ const AdminDashboard = () => {
     reports: 'Reports',
     messages: 'Messages',
     settings: 'Settings',
+    'activity-logs': 'Activity Logs',
+    'api-logs': 'API Logs',
+    'login-attempts': 'Login Attempts',
+    analytics: 'User Analytics',
+    'system-events': 'System Events',
   };
 
   const loadModuleItems = async (category: string) => {
@@ -243,8 +248,9 @@ const AdminDashboard = () => {
   };
 
   const handleDeleteStudent = async (id: number | string) => {
+    if (!confirm('Delete this student completely? This will remove the student login, token, profile, courses, certificates, messages, and onboarding record.')) return;
     await deleteAdminStudent(id);
-    setStudents((prev) => prev.map((student) => student.id === id ? { ...student, status: 'disabled' } : student));
+    setStudents((prev) => prev.filter((student) => student.id !== id));
   };
 
   const startStudentFromApplication = (item: DashboardItem) => {
@@ -376,7 +382,7 @@ const AdminDashboard = () => {
     document.body.className = 'bg-slate-950 font-sans text-white';
     
     setCertificates(getAllCertificates());
-    setAttestations(getAllAttestations());
+    setAttestations([]);
     setLeads(getAllLeads());
     setFranchises(getAllFranchises());
     loadStudents();
@@ -549,7 +555,7 @@ const AdminDashboard = () => {
                         </td>
                         <td className="px-6 py-4 text-right space-x-3">
                           <button onClick={() => handleEditStudent(student)} className="text-cyan-300 hover:text-cyan-200">Edit</button>
-                          <button onClick={() => handleDeleteStudent(student.id)} className="text-red-300 hover:text-red-200">Disable</button>
+                          <button onClick={() => handleDeleteStudent(student.id)} className="text-red-300 hover:text-red-200">Delete</button>
                         </td>
                       </tr>
                     ))
@@ -579,7 +585,11 @@ const AdminDashboard = () => {
                       </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                      {attestations.map(att => (
+                      {attestations.length === 0 ? (
+                          <tr>
+                              <td className="p-6 text-gray-500" colSpan={6}>No official attestation requests yet.</td>
+                          </tr>
+                      ) : attestations.map(att => (
                           <tr key={att.id} className="hover:bg-white/5 transition-colors">
                               <td className="p-4 font-mono text-xs">{att.id}</td>
                               <td className="p-4 text-white font-bold">{att.studentName}</td>
@@ -757,6 +767,7 @@ const AdminDashboard = () => {
     const title = moduleLabels[category] || category;
     const items = moduleItems[category] || [];
     const isPublicContentModule = ['marketplace', 'jobs', 'service-catalog', 'cms'].includes(category);
+    const isOperationalLogModule = ['activity-logs', 'api-logs', 'login-attempts', 'analytics', 'system-events'].includes(category);
 
     return (
       <div className="space-y-6 animate-in fade-in">
@@ -766,7 +777,9 @@ const AdminDashboard = () => {
             <p className="text-sm text-gray-400">
               {category === 'settings'
                 ? 'Manage live website settings, course prices, labels, and configurable values.'
-                : category === 'certifications'
+                : isOperationalLogModule
+                  ? 'Read-only live operational records from production MySQL, including IP, status, and request details.'
+                  : category === 'certifications'
                   ? 'Review and correct issued certificate names, IDs, and statuses.'
                   : 'Create, track, search, edit, and delete live admin records for this module.'}
             </p>
@@ -778,7 +791,7 @@ const AdminDashboard = () => {
 
         {moduleError && <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">{moduleError}</div>}
 
-        {category !== 'certifications' && category !== 'requests' && (
+        {category !== 'certifications' && category !== 'requests' && !isOperationalLogModule && (
         <form onSubmit={(event) => handleCreateModuleItem(event, category)} className="glass rounded-2xl border border-white/10 p-5 grid grid-cols-1 lg:grid-cols-[1fr,180px,160px,auto] gap-3">
           <input required value={moduleForm.title} onChange={(event) => setModuleForm((prev) => ({ ...prev, title: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting key, e.g. course.web.price' : category === 'payments' ? 'Invoice details, e.g. SEO monthly fee' : category === 'jobs' ? 'Job title' : category === 'marketplace' ? 'Gig title' : category === 'service-catalog' ? 'Service title' : `${title} title`} />
           <input value={moduleForm.amount} onChange={(event) => setModuleForm((prev) => ({ ...prev, amount: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'settings' ? 'Setting value' : category === 'payments' ? 'Invoice amount' : category === 'jobs' ? 'Salary' : category === 'marketplace' ? 'Starting price' : category === 'service-catalog' ? 'Price / short value' : 'Value / amount'} />
@@ -913,13 +926,20 @@ const AdminDashboard = () => {
                             </button>
                           </div>
                         )}
+                        {isOperationalLogModule && (
+                          <div className="mt-2 space-y-1 text-xs text-gray-400">
+                            {item.payload.ipAddress && <div>IP: <span className="text-white">{item.payload.ipAddress}</span></div>}
+                            {item.payload.details && <div className="max-w-xl whitespace-pre-wrap text-gray-500">{item.payload.details}</div>}
+                            {item.payload.userAgent && <div className="max-w-xl truncate text-gray-600" title={item.payload.userAgent}>UA: {item.payload.userAgent}</div>}
+                          </div>
+                        )}
                         {(category === 'requests' || category === 'courses') && renderFileManager(item.payload.files || [])}
                       </td>
                       <td className="px-5 py-4">{item.payload.amount || '-'}</td>
                       <td className="px-5 py-4">{item.payload.owner || item.payload.group || '-'}</td>
                       <td className="px-5 py-4"><span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase">{item.status}</span></td>
                       <td className="px-5 py-4 text-right space-x-3">
-                        <button onClick={() => setEditingModuleItem(item)} className="text-cyan-300 hover:text-cyan-200">Edit</button>
+                        {!isOperationalLogModule && <button onClick={() => setEditingModuleItem(item)} className="text-cyan-300 hover:text-cyan-200">Edit</button>}
                         {category === 'requests' && (
                           <label className={`cursor-pointer text-blue-300 hover:text-blue-200 ${uploadingFile ? 'opacity-50' : ''}`}>
                             Upload File
@@ -932,7 +952,7 @@ const AdminDashboard = () => {
                             <input disabled={uploadingFile} type="file" className="hidden" onChange={(event) => handleAdminFileUpload(event, 'worksheet', item.payload.studentUserId)} />
                           </label>
                         )}
-                        <button onClick={() => handleDeleteModuleItem(category, item.id)} className="text-red-300 hover:text-red-200">Delete</button>
+                        {!isOperationalLogModule && <button onClick={() => handleDeleteModuleItem(category, item.id)} className="text-red-300 hover:text-red-200">Delete</button>}
                       </td>
                     </tr>
                   ))}

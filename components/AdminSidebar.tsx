@@ -6,7 +6,7 @@ import { logout } from '../utils/api';
 import { 
   LayoutDashboard, Users, UserCheck, Briefcase, CreditCard, 
   MessageSquare, FileText, Settings, LogOut, X, Shield, PenTool, 
-  Award, BookOpen, BarChart3, Globe, Lock, Target, GitBranch, TrendingUp, Presentation, Search
+  Award, BookOpen, BarChart3, Globe, Lock, Target, GitBranch, TrendingUp, Presentation, Search, Activity, Database
 } from 'lucide-react';
 import Logo from './Logo';
 
@@ -40,6 +40,11 @@ const AdminSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, currentVi
     { icon: PenTool, label: 'Proposals', id: 'proposals' },
     { icon: Shield, label: 'Team & Roles', id: 'team' },
     { icon: BarChart3, label: 'Reports', id: 'reports' },
+    { icon: Activity, label: 'Activity Logs', id: 'activity-logs' },
+    { icon: Database, label: 'API Logs', id: 'api-logs' },
+    { icon: Lock, label: 'Login Attempts', id: 'login-attempts' },
+    { icon: BarChart3, label: 'User Analytics', id: 'analytics' },
+    { icon: Activity, label: 'System Events', id: 'system-events' },
     { icon: MessageSquare, label: TRANSLATIONS.dash_messages[lang], id: 'messages' },
     { icon: Settings, label: TRANSLATIONS.dash_settings[lang], id: 'settings' },
   ];

@@ -6,7 +6,7 @@ import { Language } from '../types';
 import { TRANSLATIONS, COURSES, SERVICE_CATEGORIES } from '../constants';
 import LanguageSwitcher from './LanguageSwitcher';
 import Logo from './Logo';
-import { getStoredAuth, logout, type AuthUser } from '../utils/api';
+import { clearAuth, fetchCurrentUser, getStoredAuth, logout, type AuthUser } from '../utils/api';
 
 interface NavbarProps {
   lang: Language;
@@ -40,7 +40,26 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
   };
 
   useEffect(() => {
-    setAuthUser(getStoredAuth()?.user || null);
+    const stored = getStoredAuth();
+    setAuthUser(stored?.user || null);
+
+    if (!stored?.token) {
+      return;
+    }
+
+    let alive = true;
+    fetchCurrentUser()
+      .then((user) => {
+        if (alive) setAuthUser(user);
+      })
+      .catch(() => {
+        clearAuth();
+        if (alive) setAuthUser(null);
+      });
+
+    return () => {
+      alive = false;
+    };
   }, [location.pathname]);
 
   const handleLogout = async () => {
