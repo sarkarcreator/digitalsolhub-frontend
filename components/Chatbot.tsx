@@ -241,10 +241,12 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-full bg-gradient-to-r from-brand-blue to-brand-neon text-white shadow-[0_0_30px_rgba(6,182,212,0.4)] flex items-center justify-center hover:scale-110 transition-transform animate-float group"
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-900 via-cyan-950 to-blue-700 text-white shadow-[0_0_34px_rgba(6,182,212,0.48)] flex items-center justify-center hover:scale-110 transition-transform animate-float group border border-cyan-300/40 overflow-hidden"
+        aria-label="Open DSH Assistant"
       >
-        <Sparkles className="w-8 h-8 absolute animate-pulse opacity-50" />
-        <Bot className="w-8 h-8 relative z-10 group-hover:rotate-12 transition-transform" />
+        <span className="absolute inset-0 bg-[radial-gradient(circle_at_35%_20%,rgba(255,255,255,0.25),transparent_35%)]" />
+        <Sparkles className="w-5 h-5 absolute top-1.5 right-1.5 animate-pulse text-cyan-100" />
+        <Logo className="relative z-10 h-10 w-10 drop-shadow-[0_0_12px_rgba(34,211,238,0.9)] group-hover:scale-105 transition-transform" />
         <span className="absolute -top-1 -right-1 flex h-4 w-4">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500"></span>
@@ -259,8 +261,8 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 flex items-center justify-between border-b border-white/10">
         <div className="flex items-center gap-3">
-           <div className="w-10 h-10 rounded-full bg-brand-neon/20 flex items-center justify-center border border-brand-neon/50">
-              <Bot className="w-6 h-6 text-brand-neon" />
+           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center border border-brand-neon/50 shadow-[0_0_18px_rgba(0,243,255,0.18)]">
+              <Logo className="h-8 w-8" />
            </div>
            <div>
               <h3 className="font-bold text-white text-sm">DSH Assistant</h3>

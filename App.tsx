@@ -55,6 +55,7 @@ const PageLoader = () => (
 // Layout Wrapper
 const MainLayout = () => {
   const { lang } = useParams<{ lang: string }>();
+  const [showAssistant, setShowAssistant] = React.useState(false);
   // Default to English if lang is missing or invalid
   const currentLang = (Object.values(Language).includes(lang as Language)) ? (lang as Language) : Language.ENGLISH;
   
@@ -71,6 +72,22 @@ const MainLayout = () => {
     }
   }, [currentLang]);
 
+  useEffect(() => {
+    const loadAssistant = () => setShowAssistant(true);
+    const idleId =
+      'requestIdleCallback' in window
+        ? window.requestIdleCallback(loadAssistant, { timeout: 2500 })
+        : window.setTimeout(loadAssistant, 1600);
+
+    return () => {
+      if ('cancelIdleCallback' in window && typeof idleId === 'number') {
+        window.cancelIdleCallback(idleId);
+      } else {
+        window.clearTimeout(idleId as number);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar lang={currentLang} />
@@ -80,9 +97,11 @@ const MainLayout = () => {
         </Suspense>
       </main>
       <Footer lang={currentLang} />
-      <Suspense fallback={null}>
-        <Chatbot lang={currentLang} />
-      </Suspense>
+      {showAssistant && (
+        <Suspense fallback={null}>
+          <Chatbot lang={currentLang} />
+        </Suspense>
+      )}
     </div>
   );
 };

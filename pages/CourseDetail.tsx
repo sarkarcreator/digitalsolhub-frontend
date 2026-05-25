@@ -1,15 +1,20 @@
 
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { COURSES } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
-import { Clock, Users, Star, BookOpen, Check, PlayCircle, ShieldCheck, Smartphone, Award, Linkedin, Twitter, Globe, Quote, Download, User, Facebook, Copy, Sparkles, Monitor } from 'lucide-react';
+import { Clock, Users, Star, BookOpen, Check, ShieldCheck, Award, Linkedin, Twitter, Quote, Download, User, Facebook, Copy, Monitor, Loader2 } from 'lucide-react';
+import { enrollStudentCourse, getStoredAuth } from '../utils/api';
 
 const CourseDetail: React.FC = () => {
   const { lang: paramLang, id } = useParams<{ lang: string; id: string }>();
   const lang = (Object.values(Language).includes(paramLang as Language)) ? (paramLang as Language) : Language.ENGLISH;
   const [copied, setCopied] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollMessage, setEnrollMessage] = useState('');
+  const navigate = useNavigate();
+  const auth = useMemo(() => getStoredAuth(), []);
   
   const course = COURSES.find(c => c.id === id);
 
@@ -141,6 +146,33 @@ const CourseDetail: React.FC = () => {
     doc.text(`Category: ${course.category}`, 20, 85);
 
     doc.save(`${course.title.replace(/\s+/g, '_')}_Syllabus.pdf`);
+  };
+
+  const handleEnroll = async () => {
+    if (!auth) {
+      navigate(`/${lang}/signup`, { state: { course: course.id } });
+      return;
+    }
+
+    if (auth.user.role !== 'student') {
+      navigate(auth.user.role === 'admin' ? `/${lang}/admin-dashboard` : `/${lang}/client-dashboard`);
+      return;
+    }
+
+    setEnrolling(true);
+    setEnrollMessage('');
+    try {
+      await enrollStudentCourse({
+        courseId: course.id,
+        courseName: course.title,
+        totalLessons: (course.learningOutcomes?.length || 0) * 3,
+      });
+      setEnrollMessage('Enrollment request sent. Admin will review it, and the course will stay in your dashboard.');
+    } catch (error) {
+      setEnrollMessage(error instanceof Error ? error.message : 'Unable to send enrollment request.');
+    } finally {
+      setEnrolling(false);
+    }
   };
 
   return (
@@ -293,10 +325,18 @@ const CourseDetail: React.FC = () => {
                       <div className={`text-3xl font-bold mb-2 ${theme.sectionTitle}`}>{course.price || "$199"}</div>
                       
                       {/* Enhanced Enroll Button */}
-                      <Link to={`/${lang}/apply`} className={`relative block w-full py-4 ${theme.buttonPrimary} font-bold text-center text-lg rounded-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] mb-4 overflow-hidden group`}>
-                        <span className="relative z-10">{lang === Language.ENGLISH ? 'Enroll Now' : 'Ø§Ø¨Ú¾ÛŒ Ø¯Ø§Ø®Ù„Û Ù„ÛŒÚº'}</span>
+                      <button onClick={handleEnroll} disabled={enrolling} className={`relative block w-full py-4 ${theme.buttonPrimary} font-bold text-center text-lg rounded-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] mb-4 overflow-hidden group disabled:opacity-70 disabled:cursor-not-allowed`}>
+                        <span className="relative z-10 inline-flex items-center justify-center gap-2">
+                          {enrolling && <Loader2 className="w-5 h-5 animate-spin" />}
+                          {auth?.user.role === 'student' ? 'Request Enrollment' : auth ? 'Go to Dashboard' : (lang === Language.ENGLISH ? 'Enroll Now' : 'Enroll Now')}
+                        </span>
                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 ease-in-out z-0"></div>
-                      </Link>
+                      </button>
+                      {enrollMessage && (
+                        <div className="mb-4 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-xs font-medium text-cyan-100">
+                          {enrollMessage}
+                        </div>
+                      )}
 
                       {/* Enhanced Download Button */}
                       <button 

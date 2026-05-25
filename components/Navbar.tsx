@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Smartphone, User, LogIn, Search, BookOpen, Briefcase, ArrowRight, ShoppingBag, Wrench, Rocket } from 'lucide-react';
+import { Menu, X, Smartphone, User, LogIn, Search, BookOpen, Briefcase, ArrowRight, ShoppingBag, Wrench, Rocket, LayoutDashboard, LogOut } from 'lucide-react';
 import { Language } from '../types';
 import { TRANSLATIONS, COURSES, SERVICE_CATEGORIES } from '../constants';
 import LanguageSwitcher from './LanguageSwitcher';
 import Logo from './Logo';
+import { getStoredAuth, logout, type AuthUser } from '../utils/api';
 
 interface NavbarProps {
   lang: Language;
@@ -15,6 +16,7 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const [authUser, setAuthUser] = useState<AuthUser | null>(() => getStoredAuth()?.user || null);
   
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,6 +32,23 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
     { label: TRANSLATIONS.jobs[lang], path: `/${lang}/jobs` },
     { label: TRANSLATIONS.tools[lang], path: `/${lang}/tools` },
   ];
+
+  const getDashboardPath = (user: AuthUser) => {
+    if (user.role === 'admin') return `/${lang}/admin-dashboard`;
+    if (user.role === 'client') return `/${lang}/client-dashboard`;
+    return `/${lang}/dashboard`;
+  };
+
+  useEffect(() => {
+    setAuthUser(getStoredAuth()?.user || null);
+  }, [location.pathname]);
+
+  const handleLogout = async () => {
+    await logout();
+    setAuthUser(null);
+    setIsOpen(false);
+    navigate(`/${lang}/login`);
+  };
 
   const isActive = (path: string) => {
     if (path.endsWith(`/${lang}`) && location.pathname === `/${lang}`) return true;
@@ -192,20 +211,41 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
           {/* Actions */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
              <LanguageSwitcher currentLang={lang} />
-             <Link 
-               to={`/${lang}/login`}
-               className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all text-sm font-bold"
-             >
-               <LogIn className="w-4 h-4" />
-               <span>{TRANSLATIONS.login[lang]}</span>
-             </Link>
-             <Link 
-               to={`/${lang}/signup`}
-               className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:shadow-lg hover:shadow-cyan-500/30 transition-all text-sm font-bold"
-             >
-               <User className="w-4 h-4" />
-               <span>{TRANSLATIONS.signup[lang]}</span>
-             </Link>
+             {authUser ? (
+               <>
+                 <Link
+                   to={getDashboardPath(authUser)}
+                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:shadow-lg hover:shadow-cyan-500/30 transition-all text-sm font-bold"
+                 >
+                   <LayoutDashboard className="w-4 h-4" />
+                   <span>Dashboard</span>
+                 </Link>
+                 <button
+                   onClick={handleLogout}
+                   className="flex items-center gap-2 px-4 py-2 rounded-full border border-red-400/30 text-red-300 hover:bg-red-500/10 transition-all text-sm font-bold"
+                 >
+                   <LogOut className="w-4 h-4" />
+                   <span>Logout</span>
+                 </button>
+               </>
+             ) : (
+               <>
+                 <Link 
+                   to={`/${lang}/login`}
+                   className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 text-white hover:bg-white/10 transition-all text-sm font-bold"
+                 >
+                   <LogIn className="w-4 h-4" />
+                   <span>{TRANSLATIONS.login[lang]}</span>
+                 </Link>
+                 <Link 
+                   to={`/${lang}/signup`}
+                   className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:shadow-lg hover:shadow-cyan-500/30 transition-all text-sm font-bold"
+                 >
+                   <User className="w-4 h-4" />
+                   <span>{TRANSLATIONS.signup[lang]}</span>
+                 </Link>
+               </>
+             )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -289,22 +329,44 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
               </Link>
             ))}
             <div className="pt-4 flex flex-col gap-3 border-t border-white/5 mt-4">
-               <Link 
-                 to={`/${lang}/login`}
-                 onClick={() => setIsOpen(false)}
-                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-white/20 text-white bg-slate-900 font-bold"
-               >
-                 <LogIn className="w-5 h-5" />
-                 {TRANSLATIONS.login[lang]}
-               </Link>
-               <Link 
-                 to={`/${lang}/signup`}
-                 onClick={() => setIsOpen(false)}
-                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold"
-               >
-                 <User className="w-5 h-5" />
-                 {TRANSLATIONS.signup[lang]}
-               </Link>
+               {authUser ? (
+                 <>
+                   <Link
+                     to={getDashboardPath(authUser)}
+                     onClick={() => setIsOpen(false)}
+                     className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold"
+                   >
+                     <LayoutDashboard className="w-5 h-5" />
+                     Dashboard
+                   </Link>
+                   <button
+                     onClick={handleLogout}
+                     className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-red-400/30 text-red-300 bg-red-500/10 font-bold"
+                   >
+                     <LogOut className="w-5 h-5" />
+                     Logout
+                   </button>
+                 </>
+               ) : (
+                 <>
+                   <Link 
+                     to={`/${lang}/login`}
+                     onClick={() => setIsOpen(false)}
+                     className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-white/20 text-white bg-slate-900 font-bold"
+                   >
+                     <LogIn className="w-5 h-5" />
+                     {TRANSLATIONS.login[lang]}
+                   </Link>
+                   <Link 
+                     to={`/${lang}/signup`}
+                     onClick={() => setIsOpen(false)}
+                     className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold"
+                   >
+                     <User className="w-5 h-5" />
+                     {TRANSLATIONS.signup[lang]}
+                   </Link>
+                 </>
+               )}
             </div>
           </div>
         </div>
