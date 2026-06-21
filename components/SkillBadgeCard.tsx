@@ -3,7 +3,8 @@ import React, { useRef } from 'react';
 import { SkillBadge, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import Logo from './Logo';
-import { CheckCircle, ShieldCheck, Download, Share2, Award, Zap, Code, Megaphone, Coins } from 'lucide-react';
+import { CheckCircle, ShieldCheck, Share2, Award, Zap, Code, Megaphone, Coins } from 'lucide-react';
+import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 
 interface SkillBadgeCardProps {
   badge: SkillBadge;
@@ -38,7 +39,7 @@ const SkillBadgeCard: React.FC<SkillBadgeCardProps> = ({ badge, lang, showAction
   const t = TRANSLATIONS;
 
   const handleShare = () => {
-    const text = `🥇 Earned a ${badge.skillName} Badge from Digital Solutions Hub.\n\nThis badge verifies my hands-on skills in ${badge.category}.\n\n✅ Verify here: https://digitalsolhub.com/verify/badge/${badge.id}\n\n#SkillBadge #MicroCredentials #DigitalSolutionsHub #AIReady`;
+    const text = `🥇 Earned a ${badge.skillName} Badge from ${ACADEMY_BRAND_NAME}.\n\nThis badge verifies my hands-on skills in ${badge.category}.\n\n✅ Verify here: https://digitalsolhub.com/verify/badge/${badge.id}\n\n#SkillBadge #MicroCredentials #DigitalSolutionsHub #DSHTheRoyalSchoolAndCollege #AIReady`;
     const url = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };

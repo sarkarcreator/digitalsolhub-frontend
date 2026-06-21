@@ -6,6 +6,7 @@ import { Language } from '../types';
 import SEO from '../components/SEO';
 import { Clock, Users, Star, BookOpen, Check, ShieldCheck, Award, Linkedin, Twitter, Quote, Download, User, Facebook, Copy, Monitor, Loader2 } from 'lucide-react';
 import { enrollStudentCourse, getStoredAuth } from '../utils/api';
+import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 
 const CourseDetail: React.FC = () => {
   const { lang: paramLang, id } = useParams<{ lang: string; id: string }>();
@@ -75,7 +76,7 @@ const CourseDetail: React.FC = () => {
     "description": description,
     "provider": {
       "@type": "Organization",
-      "name": "Digital Solutions Hub Academy",
+      "name": ACADEMY_BRAND_NAME,
       "sameAs": "https://digitalsolhub.com"
     },
     "instructor": {
@@ -126,7 +127,7 @@ const CourseDetail: React.FC = () => {
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
-    doc.text("Digital Solutions Hub", pageWidth / 2, 28, { align: "center" });
+    doc.text(ACADEMY_BRAND_NAME, pageWidth / 2, 28, { align: "center" });
     
     // Tagline
     doc.setFontSize(10);

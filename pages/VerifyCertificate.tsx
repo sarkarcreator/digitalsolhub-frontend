@@ -9,6 +9,7 @@ import { CertificateData, Language } from '../types';
 import { getCertificateById } from '../utils/certificateManager';
 import { getExplorerLink } from '../utils/blockchainManager';
 import { verifyPublicCertificate } from '../utils/api';
+import { ACADEMY_BRAND_LOGO, ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { 
   CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, 
   Phone, Globe, Award, QrCode, Search, Database, Fingerprint, Lock, ExternalLink, Mail, ChevronDown
@@ -103,9 +104,9 @@ const VerifyCertificate: React.FC = () => {
     "name": data.courseName,
     "issuer": {
       "@type": "Organization",
-      "name": "Digital Solutions Hub",
+      "name": ACADEMY_BRAND_NAME,
       "url": "https://digitalsolhub.com",
-      "logo": "https://digitalsolhub.com/logo.png"
+      "logo": `https://digitalsolhub.com${ACADEMY_BRAND_LOGO}`
     },
     "awardedTo": {
       "@type": "Person",
@@ -118,7 +119,7 @@ const VerifyCertificate: React.FC = () => {
   return (
     <div className={`min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col ${isRtl ? 'font-urdu' : ''}`}>
       <SEO 
-        title={`${t.verify_page_title[currentLang]} | DSH Academy`}
+        title={`${t.verify_page_title[currentLang]} | ${ACADEMY_BRAND_NAME}`}
         description={t.verify_page_desc[currentLang]}
         lang={currentLang} 
         schema={credentialSchema ? credentialSchema : undefined}
@@ -254,8 +255,8 @@ const VerifyCertificate: React.FC = () => {
                                   <div>
                                      <p className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">{t.issued_by[currentLang]}</p>
                                      <div className="flex items-center gap-2">
-                                        <Logo className="w-6 h-6" />
-                                        <span className="font-bold text-slate-900">Digital Solutions Hub</span>
+                                        <img src={ACADEMY_BRAND_LOGO} alt={ACADEMY_BRAND_NAME} className="h-6 w-6 object-contain" />
+                                        <span className="font-bold text-slate-900">{ACADEMY_BRAND_NAME}</span>
                                      </div>
                                   </div>
                                   <div className="text-right">
@@ -434,7 +435,7 @@ const VerifyCertificate: React.FC = () => {
                   <Mail className="w-4 h-4" /> admin@digitalsolhub.com
                </a>
             </div>
-            <p className="mt-12 text-xs text-slate-600">&copy; {new Date().getFullYear()} DSH Academy. All Rights Reserved.</p>
+            <p className="mt-12 text-xs text-slate-600">&copy; {new Date().getFullYear()} {ACADEMY_BRAND_NAME}. All Rights Reserved.</p>
          </div>
       </footer>
     </div>

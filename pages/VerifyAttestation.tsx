@@ -8,6 +8,7 @@ import { AttestationRecord, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { getAttestationById } from '../utils/attestationManager';
 import { verifyPublicAttestation } from '../utils/api';
+import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, Calendar, FileText, User } from 'lucide-react';
 
 const VerifyAttestation: React.FC = () => {
@@ -37,7 +38,7 @@ const VerifyAttestation: React.FC = () => {
                 requestDate: liveRecord.payload?.requestDate || liveRecord.issueDate || '',
                 attestationDate: liveRecord.issueDate || '',
                 status: liveRecord.status?.toLowerCase() === 'revoked' ? 'Revoked' : 'Issued',
-                officerName: liveRecord.issuer || 'Digital Solutions Hub',
+                officerName: liveRecord.issuer || ACADEMY_BRAND_NAME,
                 feePaid: Boolean(liveRecord.payload?.feePaid),
             });
         } catch {
@@ -103,7 +104,7 @@ const VerifyAttestation: React.FC = () => {
                      <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-blue-200">
                         <ShieldCheck className="w-4 h-4" /> Officially Attested
                      </div>
-                     <span className="text-xs text-slate-400">Digital Solutions Hub Authority</span>
+                     <span className="text-xs text-slate-400">{ACADEMY_BRAND_NAME} Authority</span>
                   </div>
 
                   <h1 className="text-3xl font-bold text-slate-900 mb-2 font-serif">

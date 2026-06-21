@@ -173,13 +173,13 @@ export const TRANSLATIONS: any = {
 
   // Academy
   metaTitleAcademy: {
-    [Language.ENGLISH]: 'DSH Academy - Online Courses for SEO, Web Dev & Freelancing',
+    [Language.ENGLISH]: 'DSH The Royal School & College - Online Courses for SEO, Web Dev & Freelancing',
     [Language.URDU]: 'DSH اکیڈمی - SEO، ویب ڈیولپمنٹ اور فری لانسنگ کے آن لائن کورسز',
     [Language.ARABIC]: 'أكاديمية DSH - دورات عبر الإنترنت في SEO وتطوير الويب والعمل الحر',
     [Language.RUSSIAN]: 'Академия DSH - Онлайн курсы по SEO, веб-разработке и фрилансу'
   },
   metaDescAcademy: {
-    [Language.ENGLISH]: 'Enroll in top-rated online courses at DSH Academy. Master Shopify, Digital Marketing, Graphic Design, and AI tools with verified certificates.',
+    [Language.ENGLISH]: 'Enroll in top-rated online courses at DSH The Royal School & College. Master Shopify, Digital Marketing, Graphic Design, and AI tools with verified certificates.',
     [Language.URDU]: 'DSH اکیڈمی میں بہترین آن لائن کورسز میں داخلہ لیں۔ تصدیق شدہ سرٹیفکیٹس کے ساتھ شاپائف، ڈیجیٹل مارکیٹنگ، گرافک ڈیزائن، اور AI ٹولز میں مہارت حاصل کریں۔',
     [Language.ARABIC]: 'سجل في أفضل الدورات عبر الإنترنت في أكاديمية DSH. أتقن شوبيفاي، التسويق الرقمي، التصميم الجرافيكي، وأدوات الذكاء الاصطناعي مع شهادات معتمدة.',
     [Language.RUSSIAN]: 'Запишитесь на лучшие онлайн-курсы в Академии DSH. Освойте Shopify, цифровой маркетинг, графический дизайн и инструменты ИИ с подтвержденными сертификатами.'
@@ -362,7 +362,7 @@ export const TRANSLATIONS: any = {
 
   // Verification Page (NEW)
   verify_page_title: { [Language.ENGLISH]: 'Verify Certificate', [Language.URDU]: 'سرٹیفکیٹ کی تصدیق کریں', [Language.ARABIC]: 'تحقق من الشهادة', [Language.RUSSIAN]: 'Проверить сертификат' },
-  verify_page_desc: { [Language.ENGLISH]: 'Instantly verify the authenticity of certificates issued by DSH Academy using our Blockchain Ledger.', [Language.URDU]: 'ہمارے بلاک چین لیجر کا استعمال کرتے ہوئے DSH اکیڈمی کے جاری کردہ سرٹیفکیٹس کی صداقت کی فوری تصدیق کریں۔', [Language.ARABIC]: 'تحقق فوراً من صحة الشهادات الصادرة عن أكاديمية DSH باستخدام سجل البلوكشين الخاص بنا.', [Language.RUSSIAN]: 'Мгновенно проверяйте подлинность сертификатов, выданных Академией DSH, используя наш реестр блокчейна.' },
+  verify_page_desc: { [Language.ENGLISH]: 'Instantly verify the authenticity of certificates issued by DSH The Royal School & College using our Blockchain Ledger.', [Language.URDU]: 'ہمارے بلاک چین لیجر کا استعمال کرتے ہوئے DSH The Royal School & College کے جاری کردہ سرٹیفکیٹس کی صداقت کی فوری تصدیق کریں۔', [Language.ARABIC]: 'تحقق فوراً من صحة الشهادات الصادرة عن DSH The Royal School & College باستخدام سجل البلوكشين الخاص بنا.', [Language.RUSSIAN]: 'Мгновенно проверяйте подлинность сертификатов, выданных DSH The Royal School & College, используя наш реестр блокчейна.' },
   enter_cert_id: { [Language.ENGLISH]: 'Enter Certificate ID', [Language.URDU]: 'سرٹیفکیٹ آئی ڈی درج کریں', [Language.ARABIC]: 'أدخل معرّف الشهادة', [Language.RUSSIAN]: 'Введите ID сертификата' },
   verify_btn: { [Language.ENGLISH]: 'Verify', [Language.URDU]: 'تصدیق کریں', [Language.ARABIC]: 'تحقق', [Language.RUSSIAN]: 'Проверить' },
   authentic_msg: { [Language.ENGLISH]: 'This certificate is authentic and verified.', [Language.URDU]: 'یہ سرٹیفکیٹ اصلی اور تصدیق شدہ ہے۔', [Language.ARABIC]: 'هذه الشهادة أصلية وموثقة.', [Language.RUSSIAN]: 'Этот сертификат подлинный и проверенный.' },

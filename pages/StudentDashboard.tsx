@@ -23,6 +23,7 @@ import {
   updateStudentProfile,
   type StudentPortalDashboard,
 } from '../utils/api';
+import { ACADEMY_BRAND_LOGO, ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { 
   Bell, Search, Menu, PlayCircle, FileText, 
   Award, CheckCircle, Clock, 
@@ -97,7 +98,7 @@ const StudentDashboard: React.FC = () => {
           progress: course.progress,
           status: course.status === 'completed' ? 'Completed' : 'Active',
           image: catalogCourse?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
-          instructor: catalogCourse?.instructor || { name: 'DSH Academy' },
+          instructor: catalogCourse?.instructor || { name: ACADEMY_BRAND_NAME },
           learningOutcomes: catalogCourse?.learningOutcomes || [],
         };
       }));
@@ -503,7 +504,7 @@ const StudentDashboard: React.FC = () => {
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
                    <div>
                       <h1 className="text-3xl font-bold text-white mb-2">{TRANSLATIONS.dash_welcome[lang]} <span className="text-brand-neon">{student.name}</span></h1>
-                      <p className="text-blue-100">Welcome to DSH Academy. Your journey to mastery begins here.</p>
+                      <p className="text-blue-100">Welcome to {ACADEMY_BRAND_NAME}. Your journey to mastery begins here.</p>
                    </div>
                    <button onClick={() => setCurrentView('courses')} className="px-6 py-3 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-cyan-500/20 transition-all flex items-center gap-2">
                       <PlayCircle className="w-5 h-5" /> {TRANSLATIONS.dash_start_lesson[lang]}
@@ -603,7 +604,8 @@ const StudentDashboard: React.FC = () => {
                     certificateId={viewCertificate.id}
                     attestation={viewCertificate.attestation} // Pass attestation data
                     lang={lang}
-                    issuerLogo="/brand/Final%20Logo%20(1).png"
+                    issuerName={ACADEMY_BRAND_NAME}
+                    issuerLogo={ACADEMY_BRAND_LOGO}
                     stampImage="/brand/stemp.png"
                     signatureImage="/brand/sig.png"
                  />

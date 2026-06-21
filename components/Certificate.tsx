@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Language, AttestationRecord } from '../types';
 import Badge from './Badge';
 import AttestationSeal from './AttestationSeal';
+import { ACADEMY_BRAND_LOGO, ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 
 interface CertificateProps {
   studentName: string;
@@ -31,8 +32,8 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
   certificateId,
   instructorName = "Sarkar Azeem",
   lang = Language.ENGLISH,
-  issuerName = "DSH Academy",
-  issuerLogo,
+  issuerName = ACADEMY_BRAND_NAME,
+  issuerLogo = ACADEMY_BRAND_LOGO,
   issuerTagline,
   themeColor = "#CA8A04", // Default Gold-600
   isAccredited = false,
@@ -114,7 +115,7 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
            {issuerLogo ? (
                <img src={issuerLogo} alt="Watermark" className="w-[500px] h-[500px] object-contain grayscale" />
            ) : (
-               <img src="/brand/Final%20Logo%20(1).webp" alt="" width="512" height="768" className="w-[460px] h-[460px] object-contain grayscale" />
+               <img src={ACADEMY_BRAND_LOGO} alt="" width="512" height="512" className="w-[460px] h-[460px] object-contain grayscale" />
            )}
         </div>
 

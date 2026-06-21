@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Linkedin, Download, Copy, Check, Share2, ExternalLink } from 'lucide-react';
 import { Language } from '../types';
-import Logo from './Logo';
+import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 
 interface LinkedInShareModalProps {
   isOpen: boolean;
@@ -33,10 +33,10 @@ const LinkedInShareModal: React.FC<LinkedInShareModalProps> = ({
   // --- 1. Dynamic Post Generation ---
   useEffect(() => {
     const templates = {
-      [Language.ENGLISH]: `🎉 Proud to announce that I have successfully completed the ${courseName} from Digital Solutions Hub (DSH Academy).\n\nThis program enhanced my skills in ${skillTags} using AI-driven and industry-standard practices.\n\n✅ Certificate Verified: ${verifyLink}\n\nThank you Digital Solutions Hub for empowering my digital journey.\n\n#DigitalSolutionsHub #DSHAcademy #OnlineLearning #DigitalSkills #AICertification #${courseName.replace(/\s/g, '')} #OpenToWork`,
-      [Language.URDU]: `🎉 مجھے یہ اعلان کرتے ہوئے فخر ہے کہ میں نے ${courseName} Digital Solutions Hub (DSH Academy) سے کامیابی کے ساتھ مکمل کر لیا ہے۔\n\nاس پروگرام نے میری مہارتوں میں اضافہ کیا: ${skillTags}.\n\n✅ سرٹیفیکیٹ کی تصدیق: ${verifyLink}\n\nشکریہ Digital Solutions Hub۔\n\n#DigitalSolutionsHub #DSHAcademy #OnlineLearning #DigitalSkills`,
-      [Language.ARABIC]: `🎉 فخورون بالإعلان أنني أكملت ${courseName} من مركز الحلول الرقمية (DSH Academy).\n\nهذا البرنامج عزز مهاراتي في ${skillTags}.\n\n✅ تم التحقق من الشهادة: ${verifyLink}\n\nشكرًا Digital Solutions Hub.\n\n#DigitalSolutionsHub #DSHAcademy`,
-      [Language.RUSSIAN]: `🎉 С гордостью сообщаю, что я успешно завершил курс ${courseName} в Digital Solutions Hub (DSH Academy).\n\nЭта программа улучшила мои навыки в ${skillTags}.\n\n✅ Сертификат подтверждён: ${verifyLink}\n\nСпасибо Digital Solutions Hub.\n\n#DigitalSolutionsHub #DSHAcademy`
+      [Language.ENGLISH]: `🎉 Proud to announce that I have successfully completed the ${courseName} from ${ACADEMY_BRAND_NAME}.\n\nThis program enhanced my skills in ${skillTags} using AI-driven and industry-standard practices.\n\n✅ Certificate Verified: ${verifyLink}\n\nThank you ${ACADEMY_BRAND_NAME} for empowering my digital journey.\n\n#DigitalSolutionsHub #DSHTheRoyalSchoolAndCollege #OnlineLearning #DigitalSkills #AICertification #${courseName.replace(/\s/g, '')} #OpenToWork`,
+      [Language.URDU]: `🎉 مجھے یہ اعلان کرتے ہوئے فخر ہے کہ میں نے ${courseName} ${ACADEMY_BRAND_NAME} سے کامیابی کے ساتھ مکمل کر لیا ہے۔\n\nاس پروگرام نے میری مہارتوں میں اضافہ کیا: ${skillTags}.\n\n✅ سرٹیفیکیٹ کی تصدیق: ${verifyLink}\n\nشکریہ ${ACADEMY_BRAND_NAME}۔\n\n#DigitalSolutionsHub #DSHTheRoyalSchoolAndCollege #OnlineLearning #DigitalSkills`,
+      [Language.ARABIC]: `🎉 فخورون بالإعلان أنني أكملت ${courseName} من ${ACADEMY_BRAND_NAME}.\n\nهذا البرنامج عزز مهاراتي في ${skillTags}.\n\n✅ تم التحقق من الشهادة: ${verifyLink}\n\nشكرًا ${ACADEMY_BRAND_NAME}.\n\n#DigitalSolutionsHub #DSHTheRoyalSchoolAndCollege`,
+      [Language.RUSSIAN]: `🎉 С гордостью сообщаю, что я успешно завершил курс ${courseName} в ${ACADEMY_BRAND_NAME}.\n\nЭта программа улучшила мои навыки в ${skillTags}.\n\n✅ Сертификат подтверждён: ${verifyLink}\n\nСпасибо ${ACADEMY_BRAND_NAME}.\n\n#DigitalSolutionsHub #DSHTheRoyalSchoolAndCollege`
     };
 
     setPostText(templates[lang] || templates[Language.ENGLISH]);
@@ -99,7 +99,7 @@ const LinkedInShareModal: React.FC<LinkedInShareModalProps> = ({
       // Footer - DSH Branding
       ctx.fillStyle = '#e2e8f0';
       ctx.font = 'bold 30px Poppins, sans-serif';
-      ctx.fillText('DIGITAL SOLUTIONS HUB', 600, 500);
+      ctx.fillText(ACADEMY_BRAND_NAME.toUpperCase(), 600, 500);
       
       // Verification Link
       ctx.fillStyle = '#38bdf8'; // Sky 400

@@ -25,7 +25,7 @@ const AccreditationAgreement: React.FC = () => {
               <Logo className="w-16 h-16 text-slate-900" />
            </div>
            <h1 className="text-3xl font-bold uppercase tracking-wide mb-2">International Accreditation Agreement</h1>
-           <p className="text-slate-600 font-sans text-sm">Digital Solutions Hub – DSH Academy</p>
+           <p className="text-slate-600 font-sans text-sm">Digital Solutions Hub – DSH The Royal School & College</p>
         </div>
 
         {/* Content */}

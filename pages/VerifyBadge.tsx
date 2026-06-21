@@ -8,6 +8,7 @@ import { SkillBadge, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { getBadgeById } from '../utils/badgeManager';
 import { verifyPublicBadge } from '../utils/api';
+import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, Calendar, User, BookOpen, Layers } from 'lucide-react';
 
 const VerifyBadge: React.FC = () => {
@@ -102,7 +103,7 @@ const VerifyBadge: React.FC = () => {
                      <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                         <CheckCircle className="w-4 h-4" /> Verified Authentic
                      </div>
-                     <span className="text-xs text-slate-400">Issued by DSH Academy</span>
+                     <span className="text-xs text-slate-400">Issued by {ACADEMY_BRAND_NAME}</span>
                   </div>
 
                   <h1 className="text-3xl font-bold text-slate-900 mb-2">

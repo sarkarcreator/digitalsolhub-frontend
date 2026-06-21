@@ -5,6 +5,7 @@ import SEO from '../components/SEO';
 import Logo from '../components/Logo';
 import { Language } from '../types';
 import { ArrowLeft, BookOpen, Code } from 'lucide-react';
+import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 
 const ApiDocs: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -42,7 +43,7 @@ const ApiDocs: React.FC = () => {
             <section id="intro" className="mb-16">
                <h1 className="text-4xl font-bold mb-6">Introduction</h1>
                <p className="text-lg text-slate-600 leading-relaxed mb-4">
-                  The Digital Solutions Hub Validation API allows employers and recruitment platforms to programmatically verify the authenticity of certificates issued by DSH Academy.
+                  The Digital Solutions Hub Validation API allows employers and recruitment platforms to programmatically verify the authenticity of certificates issued by {ACADEMY_BRAND_NAME}.
                </p>
                <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg text-blue-800 text-sm">
                   <strong>Base URL:</strong> <code>https://api.digitalsolhub.com/api</code>
@@ -75,7 +76,7 @@ const ApiDocs: React.FC = () => {
   "studentName": "Ali A****",
   "courseName": "Digital Marketing",
   "issueDate": "2026-06-21",
-  "issuer": "Digital Solutions Hub",
+  "issuer": "${ACADEMY_BRAND_NAME}",
   "status": "Approved"
 }`}
                   </pre>
