@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /en/admin-dashboard
+Disallow: /en/client-dashboard
+Disallow: /en/dashboard
+Disallow: /en/employer-dashboard
+Disallow: /p/
 
-Sitemap: https://www.digitalsolhub.com/sitemap.xml
+Sitemap: https://digitalsolhub.com/sitemap.xml

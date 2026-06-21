@@ -132,6 +132,11 @@ export interface PublicCertificateVerification {
   status: string;
 }
 
+export interface PublicCredentialVerification extends PublicCertificateVerification {
+  type?: 'badge' | 'attestation';
+  payload?: Record<string, any>;
+}
+
 export interface ApplicationPayload {
   applicationType: string;
   name: string;
@@ -645,6 +650,21 @@ export async function fetchPublicModuleItems(category: string): Promise<Dashboar
 
 export async function verifyPublicCertificate(id: string): Promise<PublicCertificateVerification> {
   return request<PublicCertificateVerification>(`/certificates/verify/${encodeURIComponent(id)}`);
+}
+
+export async function verifyPublicBadge(id: string): Promise<PublicCredentialVerification> {
+  return request<PublicCredentialVerification>(`/badges/verify/${encodeURIComponent(id)}`);
+}
+
+export async function verifyPublicAttestation(id: string): Promise<PublicCredentialVerification> {
+  return request<PublicCredentialVerification>(`/attestations/verify/${encodeURIComponent(id)}`);
+}
+
+export async function subscribeNewsletter(email: string): Promise<{ id: number | string; message: string }> {
+  return request<{ id: number | string; message: string }>('/newsletter/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
 }
 
 /* ---------------- AI ---------------- */

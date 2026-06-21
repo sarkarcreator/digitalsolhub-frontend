@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://www.digitalsolhub.com/</loc>
-  </url>
-  <url>
-    <loc>https://www.digitalsolhub.com/en/login</loc>
-  </url>
-  <url>
-    <loc>https://www.digitalsolhub.com/en/signup</loc>
-  </url>
-  <url>
-    <loc>https://www.digitalsolhub.com/en/services</loc>
-  </url>
-  <url>
-    <loc>https://www.digitalsolhub.com/en/academy</loc>
-  </url>
-  <url>
-    <loc>https://www.digitalsolhub.com/en/admin-dashboard</loc>
-  </url>
+  <url><loc>https://digitalsolhub.com/en</loc></url>
+  <url><loc>https://digitalsolhub.com/en/about</loc></url>
+  <url><loc>https://digitalsolhub.com/en/academy</loc></url>
+  <url><loc>https://digitalsolhub.com/en/services</loc></url>
+  <url><loc>https://digitalsolhub.com/en/marketplace</loc></url>
+  <url><loc>https://digitalsolhub.com/en/jobs</loc></url>
+  <url><loc>https://digitalsolhub.com/en/tools</loc></url>
+  <url><loc>https://digitalsolhub.com/en/apply</loc></url>
+  <url><loc>https://digitalsolhub.com/en/contact</loc></url>
+  <url><loc>https://digitalsolhub.com/en/employer-portal</loc></url>
+  <url><loc>https://digitalsolhub.com/en/api-docs</loc></url>
+  <url><loc>https://digitalsolhub.com/en/franchise-apply</loc></url>
+  <url><loc>https://digitalsolhub.com/en/accreditation-apply</loc></url>
+  <url><loc>https://digitalsolhub.com/en/terms</loc></url>
+  <url><loc>https://digitalsolhub.com/en/privacy</loc></url>
 </urlset>

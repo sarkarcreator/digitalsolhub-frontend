@@ -5,7 +5,7 @@ import { Language } from '../types';
 import SEO from '../components/SEO';
 import { TRANSLATIONS } from '../constants';
 import { Search, Star, Filter, Briefcase, Code, PenTool, Globe, DollarSign, X, CheckCircle, ArrowRight } from 'lucide-react';
-import { fetchPublicModuleItems } from '../utils/api';
+import { fetchPublicModuleItems, submitApplication } from '../utils/api';
 
 const Marketplace: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -13,6 +13,8 @@ const Marketplace: React.FC = () => {
   const [selectedGig, setSelectedGig] = useState<any>(null);
   const [query, setQuery] = useState('');
   const [adminGigs, setAdminGigs] = useState<any[]>([]);
+  const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', phone: '', details: '' });
+  const [inquiryState, setInquiryState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const categories = [
     { name: 'Development', icon: Code, count: 120 },
@@ -48,6 +50,36 @@ const Marketplace: React.FC = () => {
     if (!needle) return source;
     return source.filter((gig) => `${gig.title} ${gig.author} ${gig.desc}`.toLowerCase().includes(needle));
   }, [adminGigs, query]);
+
+  const submitInquiry = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedGig || inquiryState === 'loading') return;
+
+    setInquiryState('loading');
+    try {
+      await submitApplication({
+        applicationType: 'marketplace',
+        name: inquiryForm.name,
+        email: inquiryForm.email,
+        phone: inquiryForm.phone,
+        category: selectedGig.title,
+        budget: selectedGig.price,
+        details: [
+          `Marketplace gig: ${selectedGig.title}`,
+          `Seller: ${selectedGig.author}`,
+          inquiryForm.details ? `Buyer note: ${inquiryForm.details}` : '',
+        ].filter(Boolean).join('\n'),
+      });
+      setInquiryState('success');
+      setInquiryForm({ name: '', email: '', phone: '', details: '' });
+      setTimeout(() => {
+        setSelectedGig(null);
+        setInquiryState('idle');
+      }, 1800);
+    } catch {
+      setInquiryState('error');
+    }
+  };
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-slate-950 font-sans text-white">
@@ -134,14 +166,25 @@ const Marketplace: React.FC = () => {
                     {selectedGig.desc}
                  </p>
 
-                 <div className="flex gap-4">
-                    <Link to={`/${lang}/contact`} className="flex-1 bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
-                       {TRANSLATIONS.btn_hire_now[lang]} <ArrowRight className="w-5 h-5 rtl:rotate-180" />
-                    </Link>
-                    <button className="px-4 py-3 border border-white/10 rounded-xl hover:bg-white/5 text-white">
-                       {TRANSLATIONS.btn_message[lang]}
-                    </button>
-                 </div>
+                 {inquiryState === 'success' ? (
+                    <div className="rounded-xl border border-green-400/30 bg-green-500/10 p-4 text-green-300 flex items-center gap-3">
+                       <CheckCircle className="w-5 h-5" />
+                       Inquiry sent. Our team will contact you shortly.
+                    </div>
+                 ) : (
+                    <form onSubmit={submitInquiry} className="space-y-4">
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <input required value={inquiryForm.name} onChange={(e) => setInquiryForm((prev) => ({ ...prev, name: e.target.value }))} placeholder="Full name" className="bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500" />
+                          <input required type="tel" value={inquiryForm.phone} onChange={(e) => setInquiryForm((prev) => ({ ...prev, phone: e.target.value }))} placeholder="Phone / WhatsApp" className="bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500" />
+                       </div>
+                       <input required type="email" value={inquiryForm.email} onChange={(e) => setInquiryForm((prev) => ({ ...prev, email: e.target.value }))} placeholder="Email address" className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500" />
+                       <textarea value={inquiryForm.details} onChange={(e) => setInquiryForm((prev) => ({ ...prev, details: e.target.value }))} placeholder="Project details, timeline, or questions..." className="w-full h-24 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500 resize-none" />
+                       {inquiryState === 'error' && <p className="text-sm text-red-300">Inquiry could not be submitted. Please try again.</p>}
+                       <button disabled={inquiryState === 'loading'} type="submit" className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-60">
+                          {inquiryState === 'loading' ? 'Sending...' : 'Request This Service'} <ArrowRight className="w-5 h-5 rtl:rotate-180" />
+                       </button>
+                    </form>
+                 )}
               </div>
            </div>
         </div>

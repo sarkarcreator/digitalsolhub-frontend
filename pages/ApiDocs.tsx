@@ -21,7 +21,7 @@ const ApiDocs: React.FC = () => {
                <span className="font-bold">Developer Docs</span>
             </Link>
             <div className="flex gap-4">
-               <Link to={`/${lang}/employer-dashboard`} className="text-sm font-bold text-blue-600 hover:underline">Dashboard</Link>
+               <Link to={`/${lang}/employer-dashboard`} className="text-sm font-bold text-blue-600 hover:underline">Request Access</Link>
             </div>
          </div>
       </div>
@@ -45,7 +45,7 @@ const ApiDocs: React.FC = () => {
                   The Digital Solutions Hub Validation API allows employers and recruitment platforms to programmatically verify the authenticity of certificates issued by DSH Academy.
                </p>
                <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg text-blue-800 text-sm">
-                  <strong>Base URL:</strong> <code>https://digitalsolhub.com/api/v1</code>
+                  <strong>Base URL:</strong> <code>https://api.digitalsolhub.com/api</code>
                </div>
             </section>
 
@@ -65,21 +65,18 @@ const ApiDocs: React.FC = () => {
                <div className="mb-12">
                   <div className="flex items-center gap-3 mb-4">
                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded font-bold text-xs">GET</span>
-                     <h3 className="font-mono font-bold">/verify/certificate/{'{id}'}</h3>
+                     <h3 className="font-mono font-bold">/certificates/verify/{'{id}'}</h3>
                   </div>
                   <p className="text-slate-600 mb-4">Retrieve details for a single certificate.</p>
                   <h4 className="font-bold text-sm mb-2">Response Example</h4>
                   <pre className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-200 overflow-x-auto">
 {`{
-  "status": "verified",
-  "student_name": "Ali A****",
-  "course_name": "Digital Marketing",
-  "issue_date": "15/09/2024",
-  "verification_url": "https://...",
-  "blockchain": {
-    "network": "Polygon",
-    "tx_hash": "0x..."
-  }
+  "id": "DSH-FREELANCE-2024-001",
+  "studentName": "Ali A****",
+  "courseName": "Digital Marketing",
+  "issueDate": "2026-06-21",
+  "issuer": "Digital Solutions Hub",
+  "status": "Approved"
 }`}
                   </pre>
                </div>
@@ -87,13 +84,17 @@ const ApiDocs: React.FC = () => {
                <div className="mb-12">
                   <div className="flex items-center gap-3 mb-4">
                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded font-bold text-xs">POST</span>
-                     <h3 className="font-mono font-bold">/verify/bulk</h3>
+                     <h3 className="font-mono font-bold">/badges/verify/{'{id}'} and /attestations/verify/{'{id}'}</h3>
                   </div>
-                  <p className="text-slate-600 mb-4">Verify up to 100 certificates in a single request.</p>
-                  <h4 className="font-bold text-sm mb-2">Request Body</h4>
+                  <p className="text-slate-600 mb-4">Verify DSH badge and attestation records by public credential ID.</p>
+                  <h4 className="font-bold text-sm mb-2">Response Shape</h4>
                   <pre className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-200 overflow-x-auto mb-4">
 {`{
-  "ids": ["CERT-001", "CERT-002"]
+  "id": "SB-SEO-001",
+  "type": "badge",
+  "studentName": "Ali A****",
+  "courseName": "SEO Keyword Research",
+  "status": "verified"
 }`}
                   </pre>
                </div>

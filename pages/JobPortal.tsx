@@ -5,7 +5,7 @@ import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import { Briefcase, MapPin, Clock, Search, X, Upload, CheckCircle } from 'lucide-react';
-import { fetchPublicModuleItems } from '../utils/api';
+import { fetchPublicModuleItems, submitApplication } from '../utils/api';
 
 const JobPortal: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -15,6 +15,14 @@ const JobPortal: React.FC = () => {
   const [applied, setApplied] = useState(false);
   const [query, setQuery] = useState('');
   const [adminJobs, setAdminJobs] = useState<any[]>([]);
+  const [applicationForm, setApplicationForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    details: '',
+  });
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'error'>('idle');
 
   const fallbackJobs = [
     { id: 1, title: 'Senior React Developer', company: 'TechFlow', location: 'Remote', type: 'Full-time', salary: '$3000 - $5000', desc: 'We are looking for an experienced React developer to lead our frontend team.' },
@@ -44,12 +52,37 @@ const JobPortal: React.FC = () => {
     return source.filter((job) => `${job.title} ${job.company} ${job.location} ${job.type} ${job.salary} ${job.desc}`.toLowerCase().includes(needle));
   }, [adminJobs, query]);
 
-  const handleApply = () => {
+  const handleApply = async (event: React.FormEvent) => {
+      event.preventDefault();
+      if (!selectedJob || submitState === 'loading') return;
+
+      setSubmitState('loading');
+      try {
+        await submitApplication({
+          applicationType: 'job',
+          name: applicationForm.name,
+          email: applicationForm.email,
+          phone: applicationForm.phone,
+          category: selectedJob.title,
+          details: [
+            `Job: ${selectedJob.title}`,
+            `Company: ${selectedJob.company}`,
+            applicationForm.details ? `Candidate note: ${applicationForm.details}` : '',
+          ].filter(Boolean).join('\n'),
+          document: cvFile,
+        });
+
       setApplied(true);
+      setApplicationForm({ name: '', email: '', phone: '', details: '' });
+      setCvFile(null);
       setTimeout(() => {
           setApplied(false);
           setSelectedJob(null);
+          setSubmitState('idle');
       }, 2000);
+      } catch {
+        setSubmitState('error');
+      }
   };
 
   return (
@@ -119,18 +152,38 @@ const JobPortal: React.FC = () => {
                               {selectedJob.desc}
                           </div>
 
-                          <div className="space-y-4">
-                              <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{TRANSLATIONS.lbl_upload_cv[lang]}</label>
-                                  <div className="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-blue-500 cursor-pointer transition-colors">
-                                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                      <p className="text-sm text-gray-300">Click to upload PDF</p>
+                          <form onSubmit={handleApply} className="space-y-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Full Name</label>
+                                      <input required value={applicationForm.name} onChange={(e) => setApplicationForm((prev) => ({ ...prev, name: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500" />
+                                  </div>
+                                  <div>
+                                      <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Phone</label>
+                                      <input required type="tel" value={applicationForm.phone} onChange={(e) => setApplicationForm((prev) => ({ ...prev, phone: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500" />
                                   </div>
                               </div>
-                              <button onClick={handleApply} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all">
-                                  {TRANSLATIONS.btn_submit_app[lang]}
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email</label>
+                                  <input required type="email" value={applicationForm.email} onChange={(e) => setApplicationForm((prev) => ({ ...prev, email: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500" />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Short Note</label>
+                                  <textarea value={applicationForm.details} onChange={(e) => setApplicationForm((prev) => ({ ...prev, details: e.target.value }))} placeholder="Share experience, portfolio, or availability..." className="w-full h-24 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 resize-none" />
+                              </div>
+                              <div>
+                                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{TRANSLATIONS.lbl_upload_cv[lang]}</label>
+                                  <label className="block border-2 border-dashed border-slate-700 rounded-xl p-6 text-center hover:border-blue-500 cursor-pointer transition-colors">
+                                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                      <p className="text-sm text-gray-300">{cvFile ? cvFile.name : 'Click to upload PDF'}</p>
+                                      <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" className="sr-only" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
+                                  </label>
+                              </div>
+                              {submitState === 'error' && <p className="text-sm text-red-300">Application could not be submitted. Please try again or contact support.</p>}
+                              <button type="submit" disabled={submitState === 'loading'} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all disabled:opacity-60">
+                                  {submitState === 'loading' ? 'Submitting...' : TRANSLATIONS.btn_submit_app[lang]}
                               </button>
-                          </div>
+                          </form>
                       </>
                   )}
               </div>

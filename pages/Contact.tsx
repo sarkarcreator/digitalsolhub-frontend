@@ -1,15 +1,39 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import { ADMIN_WHATSAPP } from '../utils/notifications';
 import { Phone, User, Globe, Mail, MapPin } from 'lucide-react';
+import { submitApplication } from '../utils/api';
 
 const Contact: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
   const lang = paramLang === Language.URDU ? Language.URDU : Language.ENGLISH;
+  const [form, setForm] = useState({ name: '', email: '', phone: '', category: 'Consultation', details: '' });
+  const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (submitState === 'loading') return;
+
+    setSubmitState('loading');
+    try {
+      await submitApplication({
+        applicationType: 'consult',
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        category: form.category,
+        details: form.details,
+      });
+      setSubmitState('success');
+      setForm({ name: '', email: '', phone: '', category: 'Consultation', details: '' });
+    } catch {
+      setSubmitState('error');
+    }
+  };
 
   return (
     <div className="pt-24 pb-20 min-h-screen bg-slate-950">
@@ -102,6 +126,55 @@ const Contact: React.FC = () => {
               </div>
            </div>
 
+        </div>
+
+        <div className="mt-10 bg-slate-900/70 p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <h2 className="text-2xl font-bold text-white mb-2">Send a Project or Consultation Request</h2>
+          <p className="text-gray-400 text-sm mb-6">Use this form for services, admissions, partnerships, or support. It goes directly into the DSH inquiry queue.</p>
+
+          {submitState === 'success' ? (
+            <div className="rounded-2xl border border-green-400/30 bg-green-500/10 p-5 text-green-300">
+              Request received. Our team will contact you shortly.
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Full Name</label>
+                  <input required value={form.name} onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Phone / WhatsApp</label>
+                  <input required type="tel" value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email</label>
+                  <input required type="email" value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Inquiry Type</label>
+                  <select value={form.category} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))} className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500">
+                    <option>Consultation</option>
+                    <option>Website Development</option>
+                    <option>SEO / Marketing</option>
+                    <option>Academy Admission</option>
+                    <option>Franchise / Partnership</option>
+                    <option>Support</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Message</label>
+                <textarea required value={form.details} onChange={(e) => setForm((prev) => ({ ...prev, details: e.target.value }))} className="w-full h-32 bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 resize-none" />
+              </div>
+              {submitState === 'error' && <p className="text-sm text-red-300">Request could not be submitted. Please try again or use WhatsApp.</p>}
+              <button type="submit" disabled={submitState === 'loading'} className="w-full md:w-auto px-8 py-3 rounded-xl bg-cyan-500 text-slate-950 font-bold hover:bg-cyan-400 disabled:opacity-60 transition-colors">
+                {submitState === 'loading' ? 'Sending...' : 'Send Request'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

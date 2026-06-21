@@ -5,6 +5,7 @@ import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { Linkedin, Facebook, Twitter, Instagram, Mail, MapPin, Phone, ShieldCheck, Lock, Award, Check } from 'lucide-react';
 import Logo from './Logo';
+import { subscribeNewsletter } from '../utils/api';
 
 interface FooterProps {
   lang: Language;
@@ -12,17 +13,21 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ lang }) => {
   const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  const [subscribeState, setSubscribeState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      // Simulate API call
-      setTimeout(() => {
-        setSubscribed(true);
-        setEmail('');
-        setTimeout(() => setSubscribed(false), 3000);
-      }, 500);
+    if (!email || subscribeState === 'loading') return;
+
+    setSubscribeState('loading');
+    try {
+      await subscribeNewsletter(email);
+      setSubscribeState('success');
+      setEmail('');
+      setTimeout(() => setSubscribeState('idle'), 3000);
+    } catch {
+      setSubscribeState('error');
+      setTimeout(() => setSubscribeState('idle'), 4000);
     }
   };
 
@@ -46,21 +51,19 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
             </p>
             <div className="flex gap-4">
               {[
-                { Icon: Facebook, label: 'Facebook', href: 'https://facebook.com' },
-                { Icon: Twitter, label: 'Twitter', href: 'https://twitter.com' },
-                { Icon: Linkedin, label: 'LinkedIn', href: 'https://linkedin.com' },
-                { Icon: Instagram, label: 'Instagram', href: 'https://instagram.com' }
-              ].map(({ Icon, label, href }, i) => (
-                <a 
+                { Icon: Facebook, label: 'Facebook' },
+                { Icon: Twitter, label: 'Twitter' },
+                { Icon: Linkedin, label: 'LinkedIn' },
+                { Icon: Instagram, label: 'Instagram' }
+              ].map(({ Icon, label }, i) => (
+                <span
                   key={i} 
-                  href={href} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  aria-label={label}
-                  className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-gray-400 hover:bg-gold-500 hover:text-black hover:border-gold-500 transition-all duration-300"
+                  aria-label={`${label} profile coming soon`}
+                  title={`${label} profile coming soon`}
+                  className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-gray-500 cursor-not-allowed"
                 >
                   <Icon className="w-5 h-5" />
-                </a>
+                </span>
               ))}
             </div>
             {/* Trusted Partner Badge */}
@@ -134,15 +137,18 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
               />
               <button 
                 type="submit"
-                disabled={subscribed}
+                disabled={subscribeState === 'loading' || subscribeState === 'success'}
                 className={`w-full font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${
-                  subscribed 
+                  subscribeState === 'success'
                     ? 'bg-green-600 text-white' 
                     : 'bg-gradient-to-r from-gold-500 to-gold-600 text-black hover:shadow-lg hover:shadow-gold-500/20 hover:-translate-y-0.5'
                 }`}
               >
-                {subscribed ? <><Check className="w-4 h-4" /> Subscribed</> : TRANSLATIONS.subscribeBtn[lang]}
+                {subscribeState === 'success' ? <><Check className="w-4 h-4" /> Subscribed</> : subscribeState === 'loading' ? 'Subscribing...' : TRANSLATIONS.subscribeBtn[lang]}
               </button>
+              {subscribeState === 'error' && (
+                <p className="text-xs text-red-300">Subscription could not be saved. Please try again.</p>
+              )}
             </form>
             
             {/* Security Badge */}

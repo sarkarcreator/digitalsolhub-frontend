@@ -241,13 +241,13 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-50 h-20 w-20 rounded-[1.65rem] border border-cyan-300/40 bg-slate-950 text-white shadow-[0_0_34px_rgba(6,182,212,0.48)] transition-transform hover:scale-105 animate-float group overflow-hidden"
+        className="fixed bottom-4 right-4 z-50 h-16 w-16 rounded-[1.25rem] border border-cyan-300/40 bg-slate-950 text-white shadow-[0_0_34px_rgba(6,182,212,0.48)] transition-transform hover:scale-105 animate-float group overflow-hidden sm:bottom-8 sm:right-8 sm:h-20 sm:w-20 sm:rounded-[1.65rem]"
         aria-label="Open DSH Assistant"
       >
         <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,0.32),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(8,47,73,0.92),rgba(37,99,235,0.88))]" />
         <span className="absolute inset-[6px] rounded-[1.35rem] border border-white/10 bg-black/18" />
-        <Logo className="absolute left-1/2 top-3 h-8 w-8 -translate-x-1/2 drop-shadow-[0_0_14px_rgba(34,211,238,0.95)] transition-transform group-hover:scale-105" />
-        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border border-cyan-200/30 bg-cyan-400/15 px-2.5 py-0.5 text-[10px] font-black tracking-[0.18em] text-cyan-50">
+        <Logo className="absolute left-1/2 top-2 h-7 w-7 -translate-x-1/2 drop-shadow-[0_0_14px_rgba(34,211,238,0.95)] transition-transform group-hover:scale-105 sm:top-3 sm:h-8 sm:w-8" />
+        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-cyan-200/30 bg-cyan-400/15 px-2 py-0.5 text-[9px] font-black tracking-[0.12em] text-cyan-50 sm:bottom-3 sm:px-2.5 sm:text-[10px] sm:tracking-[0.18em]">
           DSH AI
         </span>
         <Sparkles className="absolute right-2 top-2 h-4 w-4 animate-pulse text-cyan-100" />
@@ -260,7 +260,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ lang }) => {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-50 w-full max-w-[350px] md:max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 flex flex-col max-h-[600px]">
+    <div className="fixed bottom-3 right-3 left-3 z-50 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 flex flex-col max-h-[calc(100vh-1.5rem)] sm:left-auto sm:bottom-8 sm:right-8 sm:w-full sm:max-w-[350px] md:max-w-md md:max-h-[600px]">
       
       {/* Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 flex items-center justify-between border-b border-white/10">

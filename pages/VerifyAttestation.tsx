@@ -7,6 +7,7 @@ import AttestationSeal from '../components/AttestationSeal';
 import { AttestationRecord, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { getAttestationById } from '../utils/attestationManager';
+import { verifyPublicAttestation } from '../utils/api';
 import { CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, Calendar, FileText, User } from 'lucide-react';
 
 const VerifyAttestation: React.FC = () => {
@@ -16,14 +17,41 @@ const VerifyAttestation: React.FC = () => {
   const [currentLang, setCurrentLang] = useState<Language>(Language.ENGLISH);
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
-    setTimeout(() => {
-        if (id) {
-            const found = getAttestationById(id);
-            setRecord(found || null);
+    const loadAttestation = async () => {
+        if (!id) {
+            if (active) setLoading(false);
+            return;
         }
-        setLoading(false);
-    }, 1000);
+
+        try {
+            const liveRecord = await verifyPublicAttestation(id);
+            if (!active) return;
+            setRecord({
+                id: liveRecord.id,
+                certificateId: liveRecord.payload?.certificateId || liveRecord.id,
+                studentName: liveRecord.studentName,
+                courseName: liveRecord.courseName,
+                type: liveRecord.payload?.type || 'Academy',
+                requestDate: liveRecord.payload?.requestDate || liveRecord.issueDate || '',
+                attestationDate: liveRecord.issueDate || '',
+                status: liveRecord.status?.toLowerCase() === 'revoked' ? 'Revoked' : 'Issued',
+                officerName: liveRecord.issuer || 'Digital Solutions Hub',
+                feePaid: Boolean(liveRecord.payload?.feePaid),
+            });
+        } catch {
+            const found = getAttestationById(id);
+            if (active) setRecord(found || null);
+        } finally {
+            if (active) setLoading(false);
+        }
+    };
+
+    loadAttestation();
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   return (

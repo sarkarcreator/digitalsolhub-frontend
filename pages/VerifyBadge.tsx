@@ -7,6 +7,7 @@ import SkillBadgeCard from '../components/SkillBadgeCard';
 import { SkillBadge, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import { getBadgeById } from '../utils/badgeManager';
+import { verifyPublicBadge } from '../utils/api';
 import { CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, Calendar, User, BookOpen, Layers } from 'lucide-react';
 
 const VerifyBadge: React.FC = () => {
@@ -16,14 +17,39 @@ const VerifyBadge: React.FC = () => {
   const [currentLang, setCurrentLang] = useState<Language>(Language.ENGLISH);
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
-    setTimeout(() => {
-        if (id) {
-            const found = getBadgeById(id);
-            setBadge(found || null);
+    const loadBadge = async () => {
+        if (!id) {
+            if (active) setLoading(false);
+            return;
         }
-        setLoading(false);
-    }, 800);
+
+        try {
+            const liveBadge = await verifyPublicBadge(id);
+            if (!active) return;
+            setBadge({
+                id: liveBadge.id,
+                skillName: liveBadge.courseName,
+                studentName: liveBadge.studentName,
+                category: liveBadge.payload?.category || 'Digital Skill',
+                level: liveBadge.payload?.level || 'Verified',
+                issueDate: liveBadge.issueDate || '',
+                courseId: liveBadge.payload?.courseId || 'dsh-credential',
+                status: liveBadge.status?.toLowerCase() === 'revoked' ? 'Revoked' : 'Verified',
+            });
+        } catch {
+            const found = getBadgeById(id);
+            if (active) setBadge(found || null);
+        } finally {
+            if (active) setLoading(false);
+        }
+    };
+
+    loadBadge();
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const t = TRANSLATIONS;

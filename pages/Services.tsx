@@ -101,7 +101,7 @@ const Services: React.FC = () => {
   };
 
   return (
-    <div className="pt-24 pb-20 min-h-screen bg-slate-950">
+    <div className="pt-24 pb-20 min-h-screen bg-slate-950 overflow-x-hidden">
       <SEO 
         title={`${TRANSLATIONS.services[lang]} | Digital Solutions Hub`} 
         description={TRANSLATIONS.svc_hero_sub[lang]} 
