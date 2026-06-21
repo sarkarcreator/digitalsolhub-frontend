@@ -30,19 +30,11 @@ const Login: React.FC = () => {
   setLoading(true);
 
   try {
-    console.log('LOGIN PAYLOAD =>', {
-      email,
-      password,
-      role: userType,
-    });
-
     const response = await login({
       email: email.trim(),
       password,
       role: userType as 'student' | 'client' | 'admin',
     });
-
-    console.log('LOGIN RESPONSE =>', response);
 
     if (response.user.role === 'admin') {
       navigate(`/${lang}/admin-dashboard`, {
@@ -58,8 +50,6 @@ const Login: React.FC = () => {
       });
     }
   } catch (err: any) {
-    console.error('LOGIN ERROR =>', err);
-
     if (err?.payload?.errors) {
       const errors = err.payload.errors;
       const firstError = Object.values(errors).flat()[0] as string;
@@ -162,7 +152,7 @@ const Login: React.FC = () => {
                 <div className="relative group">
                   <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-500 group-focus-within:text-brand-blue transition-colors rtl:right-3 rtl:left-auto" />
                   <input 
-                    type="text" 
+                    type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-slate-900/50 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-brand-blue/50 focus:bg-slate-900/80 transition-all"
