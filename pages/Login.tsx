@@ -36,7 +36,9 @@ const Login: React.FC = () => {
       role: userType,
     });
 
-    if (response.user.role === 'partner') {\n      navigate(`/${lang}/partner-dashboard`, { replace: true });\n    } else if (response.user.role === 'admin') {
+    if (response.user.role === 'partner') {
+      navigate('/partner-dashboard', { replace: true });
+    } else if (response.user.role === 'admin') {
       navigate(`/${lang}/admin-dashboard`, {
         replace: true,
       });
