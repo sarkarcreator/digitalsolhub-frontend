@@ -43,6 +43,9 @@ const EmployerDashboard = lazy(() => import('./pages/EmployerDashboard'));
 const ApiDocs = lazy(() => import('./pages/ApiDocs'));
 const PartnerOnboarding = lazy(() => import('./pages/PartnerOnboarding'));
 const PartnerDashboard = lazy(() => import('./pages/PartnerDashboard'));
+const PartnerPortal = lazy(() => import('./pages/PartnerPortal'));
+const PartnerPublicProfile = lazy(() => import('./pages/PartnerPublicProfile'));
+const PartnerApply = lazy(() => import('./pages/PartnerApply'));
 const PartnerVerification = lazy(() => import('./pages/PartnerVerification'));
 
 // Full Screen Loader
@@ -116,6 +119,9 @@ const App: React.FC = () => {
           {/* Standalone Partner/Dashboard Routes */}
           <Route path="/partner-setup" element={<PartnerOnboarding />} />
           <Route path="/p/:slug/dashboard" element={<PartnerDashboard />} />
+          <Route path="/p/:slug" element={<PartnerPublicProfile />} />
+          <Route path="/partner-dashboard" element={<PartnerPortal />} />
+          <Route path="/partner-apply" element={<PartnerApply />} />
           <Route path="/:lang/dashboard" element={<StudentDashboard />} />
           <Route path="/:lang/client-dashboard" element={<ClientDashboard />} />
           <Route path="/:lang/admin-dashboard" element={<AdminDashboard />} />

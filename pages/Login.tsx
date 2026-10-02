@@ -11,7 +11,7 @@ const Login: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
   const lang = paramLang === Language.URDU ? Language.URDU : Language.ENGLISH;
   const navigate = useNavigate();
-  const [userType, setUserType] = useState<'student' | 'client' | 'admin'>('student');
+  const [userType, setUserType] = useState<'student' | 'client' | 'admin' | 'partner'>('student');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -33,10 +33,12 @@ const Login: React.FC = () => {
     const response = await login({
       email: email.trim(),
       password,
-      role: userType as 'student' | 'client' | 'admin',
+      role: userType,
     });
 
-    if (response.user.role === 'admin') {
+    if (response.user.role === 'partner') {
+      navigate('/partner-dashboard', { replace: true });
+    } else if (response.user.role === 'admin') {
       navigate(`/${lang}/admin-dashboard`, {
         replace: true,
       });
@@ -106,6 +108,20 @@ const Login: React.FC = () => {
            </div>
 
            <div 
+             onClick={() => setUserType('partner')}
+             className={`cursor-pointer group relative p-6 rounded-2xl border transition-all duration-300 ${userType === 'partner' ? 'bg-amber-500/10 border-amber-400/50 shadow-[0_0_30px_rgba(245,158,11,0.15)]' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+           >
+             <div className="flex items-center justify-between mb-2">
+                <div className={`p-3 rounded-lg ${userType === 'partner' ? 'bg-amber-500 text-black' : 'bg-slate-800 text-gray-400'}`}>
+                   <Briefcase className="w-6 h-6" />
+                </div>
+                {userType === 'partner' && <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center"><Check className="w-4 h-4 text-black" /></div>}
+             </div>
+             <h3 className="text-xl font-bold text-white mb-1">DSH Partner</h3>
+             <p className="text-sm text-gray-400">Manage your profile, services, projects and commissions.</p>
+           </div>
+
+           <div 
              onClick={() => setUserType('client')}
              className={`cursor-pointer group relative p-6 rounded-2xl border transition-all duration-300 ${
                userType === 'client' 
@@ -135,7 +151,7 @@ const Login: React.FC = () => {
 
           <div className="mt-6">
             <h2 className="text-2xl font-bold text-white mb-2 text-center flex items-center justify-center gap-2">
-              {userType === 'student' ? TRANSLATIONS.login_student[lang] : userType === 'client' ? TRANSLATIONS.login_client[lang] : TRANSLATIONS.login_admin[lang]}
+              {userType === 'student' ? TRANSLATIONS.login_student[lang] : userType === 'client' ? TRANSLATIONS.login_client[lang] : userType === 'partner' ? 'DSH Partner' : TRANSLATIONS.login_admin[lang]}
             </h2>
             <p className="text-center text-xs text-gray-500 mb-6">{TRANSLATIONS.login_security_msg[lang]}</p>
 

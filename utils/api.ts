@@ -1,6 +1,6 @@
 import { Language } from '../types';
 
-export type UserRole = 'student' | 'client' | 'admin';
+export type UserRole = 'student' | 'client' | 'admin' | 'partner';
 
 export interface AuthUser {
   id: number | string;
@@ -718,4 +718,31 @@ export async function deleteDashboardItem(id: number | string): Promise<void> {
   await request(`/dashboard-items/${id}`, {
     method: 'DELETE',
   }, true);
+}
+
+
+export interface PartnerDashboardData {
+  partner: any;
+  stats: { activeServices:number; activeOrders:number; completedOrders:number; totalEarned:number; pendingCommission:number; availableBalance:number };
+  recentOrders: any[];
+}
+
+export async function fetchPartnerDashboard(): Promise<PartnerDashboardData> {
+  return request<PartnerDashboardData>('/partner/dashboard', {}, true);
+}
+export async function fetchPartnerProfile(): Promise<any> { return request('/partner/profile', {}, true); }
+export async function updatePartnerProfile(payload:any): Promise<any> {
+  return request('/partner/profile',{method:'PUT',body:JSON.stringify(payload)},true);
+}
+export async function fetchPartnerServices(): Promise<any[]> { return request('/partner/services',{},true); }
+export async function createPartnerService(payload:any): Promise<any> { return request('/partner/services',{method:'POST',body:JSON.stringify(payload)},true); }
+export async function fetchPartnerPortfolio(): Promise<any[]> { return request('/partner/portfolio',{},true); }
+export async function createPartnerPortfolio(payload:any): Promise<any> { return request('/partner/portfolio',{method:'POST',body:JSON.stringify(payload)},true); }
+export async function fetchPartnerOrders(): Promise<any> { return request('/partner/orders',{},true); }
+export async function fetchPartnerCommissions(): Promise<any> { return request('/partner/commissions',{},true); }
+export async function fetchPartnerWallet(): Promise<any> { return request('/partner/wallet',{},true); }
+export async function fetchPublicPartner(slug:string): Promise<any> { return request('/partners/'+encodeURIComponent(slug)); }
+
+export async function submitPartnerApplication(payload:any): Promise<any> {
+  return request('/partner-applications',{method:'POST',body:JSON.stringify(payload)});
 }
