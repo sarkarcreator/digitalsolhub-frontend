@@ -207,9 +207,11 @@ const Login: React.FC = () => {
                 className={`w-full py-3.5 rounded-xl font-bold text-lg shadow-lg transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2 ${
                   userType === 'student'
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-blue-600/30'
-                    : userType === 'client'
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-cyan-500/30'
-                      : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:shadow-red-500/30'
+                    : userType === 'partner'
+                      ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 hover:shadow-amber-500/30'
+                      : userType === 'client'
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:shadow-cyan-500/30'
+                        : 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:shadow-red-500/30'
                 } ${loading ? 'opacity-70 cursor-wait' : ''}`}
               >
                 <Lock className="w-5 h-5" />
