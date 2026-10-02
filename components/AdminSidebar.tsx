@@ -37,6 +37,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, currentVi
     { icon: BookOpen, label: 'Academy Content', id: 'academy-content' },
     { icon: Globe, label: 'Website Services', id: 'service-catalog' },
     { icon: Briefcase, label: 'Marketplace', id: 'marketplace' },
+    { icon: UserCheck, label: 'Partner Management', id: 'partner-management' },
     { icon: Search, label: 'Jobs', id: 'jobs' },
     { icon: PenTool, label: 'Proposals', id: 'proposals' },
     { icon: Shield, label: 'Team & Roles', id: 'team' },
@@ -56,6 +57,11 @@ const AdminSidebar: React.FC<SidebarProps> = ({ lang, isOpen, onClose, currentVi
   };
 
   const handleNav = (id: string) => {
+    if (id === 'partner-management') {
+      navigate('/admin-partners');
+      if (window.innerWidth < 1024) onClose();
+      return;
+    }
     onNavigate(id);
     if (window.innerWidth < 1024) {
       onClose();
