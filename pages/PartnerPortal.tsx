@@ -11,8 +11,7 @@ import {
   fetchPartnerPortfolio, createPartnerPortfolio, updatePartnerProfile, logout,
   fetchPartnerResources, fetchPartnerSocialAccounts, savePartnerSocialAccount,
   deletePartnerSocialAccount, fetchPartnerBusinessEmail, fetchPartnerLeads,
-  fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout,
-  fetchAvailableServices, createPartnerService, deletePartnerService, deletePartnerPortfolio, requestPartnerBusinessEmail, requestPartnerChange, requestPartnerDeletion
+  fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout, fetchAvailableServices, createPartnerService, deletePartnerService, deletePartnerPortfolio, requestPartnerBusinessEmail, requestPartnerChange, requestPartnerDeletion
 } from '../utils/api';
 
 const PartnerPortal: React.FC = () => {
@@ -44,7 +43,7 @@ const PartnerPortal: React.FC = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const [d,s,c,w,p,r,so,e,l,pa,sc,o] = await Promise.all([
+      const [d,s,c,w,p,r,so,e,l,pa,sc] = await Promise.all([
         fetchPartnerDashboard(),
         fetchPartnerServices().catch(() => []),
         fetchPartnerCommissions().catch(() => ({data:[]})),
@@ -55,8 +54,7 @@ const PartnerPortal: React.FC = () => {
         fetchPartnerBusinessEmail().catch(() => null),
         fetchPartnerLeads().catch(() => ({data:[]})),
         fetchPartnerPayoutAccounts().catch(() => []),
-        fetchAvailableServices().catch(() => []),
-        fetchPartnerOnboarding().catch(() => ({}))
+        fetchAvailableServices().catch(() => [])
       ]);
       setData(d); setServices(s); setCommissions(c); setWallet(w); setPortfolio(p);
       setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc);
