@@ -47,6 +47,7 @@ const PartnerPortal = lazy(() => import('./pages/PartnerPortal'));
 const PartnerPublicProfile = lazy(() => import('./pages/PartnerPublicProfile'));
 const PartnerApply = lazy(() => import('./pages/PartnerApply'));
 const PartnerVerification = lazy(() => import('./pages/PartnerVerification'));
+const AdminPartnerManagement = lazy(() => import('./pages/AdminPartnerManagement'));
 
 // Full Screen Loader
 const PageLoader = () => (
@@ -109,6 +110,7 @@ const App: React.FC = () => {
           <Route path="/" element={<Navigate to={`/${Language.ENGLISH}`} replace />} />
           <Route path="/admin" element={<AdminRedirect />} />
           <Route path="/admin/*" element={<AdminRedirect />} />
+          <Route path="/admin-partners" element={<AdminPartnerManagement />} />
           
           {/* Public Verification Routes (No Navbar/Footer usually, or custom) */}
           <Route path="/verify/:id" element={<VerifyCertificate />} />
