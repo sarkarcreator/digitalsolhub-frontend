@@ -5,7 +5,7 @@ import {
   fetchAdminPartnerApplications, updateAdminPartnerApplication, approveAdminPartnerApplication,
   fetchAdminPartners, fetchAdminCommissions, updateAdminPartnerOnboarding,
   provisionAdminPartnerBusinessEmail, deleteAdminPartner, fetchAdminPartnerChangeRequests,
-  reviewAdminPartnerChangeRequest
+  reviewAdminPartnerChangeRequest, fetchAdminPartnerDeletionRequests, reviewAdminPartnerDeletionRequest
 } from '../utils/api';
 
 const items = [
@@ -14,11 +14,12 @@ const items = [
 ];
 
 const AdminPartnerManagement: React.FC = () => {
-  const [tab,setTab]=useState<'applications'|'partners'|'changes'|'commissions'>('applications');
+  const [tab,setTab]=useState<'applications'|'partners'|'changes'|'deletions'|'commissions'>('applications');
   const [applications,setApplications]=useState<any>({data:[]});
   const [partners,setPartners]=useState<any>({data:[]});
   const [commissions,setCommissions]=useState<any>({data:[]});
   const [changes,setChanges]=useState<any>({data:[]});
+  const [deletions,setDeletions]=useState<any>({data:[]});
   const [loading,setLoading]=useState(true);
   const [busy,setBusy]=useState<string|number|null>(null);
   const [message,setMessage]=useState('');
@@ -29,9 +30,9 @@ const AdminPartnerManagement: React.FC = () => {
     setLoading(true); setMessage('');
     try{
       const [a,p,c,ch]=await Promise.all([
-        fetchAdminPartnerApplications(),fetchAdminPartners(),fetchAdminCommissions(),fetchAdminPartnerChangeRequests()
+        fetchAdminPartnerApplications(),fetchAdminPartners(),fetchAdminCommissions(),fetchAdminPartnerChangeRequests(),fetchAdminPartnerDeletionRequests()
       ]);
-      setApplications(a);setPartners(p);setCommissions(c);setChanges(ch);
+      setApplications(a);setPartners(p);setCommissions(c);setChanges(ch);setDeletions(d);
     }catch(e:any){setMessage(e?.message||'Unable to load partner management.')}
     finally{setLoading(false)}
   };
@@ -74,6 +75,12 @@ const AdminPartnerManagement: React.FC = () => {
     catch(e:any){setMessage(e?.message||'Unable to delete partner.')} finally{setBusy(null)}
   };
 
+  const reviewDeletion=async(id:any,status:'approved'|'rejected')=>{
+    setBusy('deletion-'+id);setMessage('');
+    try{await reviewAdminPartnerDeletionRequest(id,{status});setMessage('Deletion request reviewed.');await load();}
+    catch(e:any){setMessage(e?.message||'Unable to review deletion request.')} finally{setBusy(null)}
+  };
+
   const reviewChange=async(id:any,status:'approved'|'rejected')=>{
     setBusy('change-'+id);setMessage('');
     try{await reviewAdminPartnerChangeRequest(id,{status});setMessage('Change request reviewed.');await load();}
@@ -95,6 +102,7 @@ const AdminPartnerManagement: React.FC = () => {
         <button onClick={()=>setTab('applications')} className={'rounded-xl px-4 py-3 font-bold '+(tab==='applications'?'bg-slate-950 text-white':'hover:bg-slate-100')}>Applications ({applications.total||0})</button>
         <button onClick={()=>setTab('partners')} className={'rounded-xl px-4 py-3 font-bold '+(tab==='partners'?'bg-slate-950 text-white':'hover:bg-slate-100')}>Partners ({partners.total||0})</button>
         <button onClick={()=>setTab('changes')} className={'rounded-xl px-4 py-3 font-bold '+(tab==='changes'?'bg-slate-950 text-white':'hover:bg-slate-100')}>Change Requests ({changes.total||0})</button>
+        <button onClick={()=>setTab('deletions')} className={'rounded-xl px-4 py-3 font-bold '+(tab==='deletions'?'bg-slate-950 text-white':'hover:bg-slate-100')}>Deletion Requests ({deletions.total||0})</button>
         <button onClick={()=>setTab('commissions')} className={'rounded-xl px-4 py-3 font-bold '+(tab==='commissions'?'bg-slate-950 text-white':'hover:bg-slate-100')}>Commissions ({commissions.total||0})</button>
       </div>
 
@@ -153,6 +161,20 @@ const AdminPartnerManagement: React.FC = () => {
         (changes.data||[]).map((c:any)=><div key={c.id} className="bg-white rounded-2xl border p-5">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4"><div><div className="font-black text-lg">{c.display_name} <span className="text-xs text-slate-500">({c.partner_code})</span></div><div className="text-xs text-amber-700 font-bold uppercase mt-1">{c.item_type.replace('_',' ')}</div><p className="mt-3 text-sm">{c.message}</p><p className="text-xs text-slate-500 mt-2">{c.email}</p></div>
           <div className="flex gap-2"><button onClick={()=>reviewChange(c.id,'approved')} className="rounded-xl bg-green-600 text-white px-4 py-2 font-bold">Approve Request</button><button onClick={()=>reviewChange(c.id,'rejected')} className="rounded-xl border border-red-200 text-red-600 px-4 py-2 font-bold">Reject</button></div></div>
+        </div>)}
+      </div>}
+
+      {tab==='deletions'&&<div className="space-y-4">
+        {(deletions.data||[]).length===0?<div className="bg-white rounded-2xl border p-10 text-center text-slate-500">No partner deletion requests.</div>:
+        (deletions.data||[]).map((d:any)=><div key={d.id} className="bg-white rounded-2xl border p-5">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div><div className="font-black text-lg">{d.display_name} <span className="text-xs text-slate-500">({d.partner_code})</span></div>
+              <div className="text-xs uppercase text-red-600 font-black mt-1">{String(d.target_type).replace('_',' ')}</div>
+              <p className="text-sm mt-3">{d.reason}</p><p className="text-xs text-slate-500 mt-2">{d.email} · {d.created_at}</p>
+              <span className="inline-block mt-2 text-xs font-bold px-2 py-1 rounded-full bg-amber-50 text-amber-700">{d.status}</span>
+            </div>
+            {d.status==='pending'&&<div className="flex gap-2"><button disabled={busy==='deletion-'+d.id} onClick={()=>reviewDeletion(d.id,'approved')} className="rounded-xl bg-green-600 text-white px-4 py-2 font-bold">{busy==='deletion-'+d.id?'Saving...':'Approve'}</button><button disabled={busy==='deletion-'+d.id} onClick={()=>reviewDeletion(d.id,'rejected')} className="rounded-xl border border-red-200 text-red-600 px-4 py-2 font-bold">Reject</button></div>}
+          </div>
         </div>)}
       </div>}
 
