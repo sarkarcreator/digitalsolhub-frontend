@@ -1,26 +1,225 @@
-import React,{useEffect,useState} from 'react';
-import {Link,useNavigate} from 'react-router-dom';
-import {LayoutDashboard,UserRound,BriefcaseBusiness,FolderKanban,Wallet,Percent,LogOut,Loader2,Save,Plus,ExternalLink} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard, UserRound, BriefcaseBusiness, FolderKanban, Wallet, Percent,
+  LogOut, Loader2, Save, Plus, ExternalLink, BookOpen, Share2, Mail, Users,
+  ShieldCheck, CheckCircle2, Trash2
+} from 'lucide-react';
 import SEO from '../components/SEO';
-import {fetchPartnerDashboard,fetchPartnerServices,fetchPartnerCommissions,fetchPartnerWallet,logout,updatePartnerProfile,createPartnerService} from '../utils/api';
+import {
+  fetchPartnerDashboard, fetchPartnerServices, fetchPartnerCommissions, fetchPartnerWallet,
+  fetchPartnerPortfolio, createPartnerPortfolio, updatePartnerProfile, logout,
+  fetchPartnerResources, fetchPartnerSocialAccounts, savePartnerSocialAccount,
+  deletePartnerSocialAccount, fetchPartnerBusinessEmail, fetchPartnerLeads,
+  fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout,
+  fetchAvailableServices, createPartnerService
+} from '../utils/api';
 
-const PartnerPortal:React.FC=()=>{
- const navigate=useNavigate(); const [data,setData]=useState<any>(); const [services,setServices]=useState<any[]>([]); const [commissions,setCommissions]=useState<any>(); const [wallet,setWallet]=useState<any>(); const [view,setView]=useState('overview'); const [loading,setLoading]=useState(true); const [profile,setProfile]=useState<any>({}); const [saving,setSaving]=useState(false);
- const load=async()=>{setLoading(true);try{const r=await Promise.all([fetchPartnerDashboard(),fetchPartnerServices(),fetchPartnerCommissions(),fetchPartnerWallet()]);setData(r[0]);setServices(r[1]);setCommissions(r[2]);setWallet(r[3]);setProfile(r[0].partner||{});}catch(e){console.error(e)}finally{setLoading(false)}};
- useEffect(()=>{load()},[]);
- if(loading)return <div className='min-h-screen bg-slate-950 text-white flex items-center justify-center'><Loader2 className='animate-spin mr-2'/>Loading partner portal...</div>;
- if(!data?.partner)return <div className='min-h-screen bg-slate-950 text-white flex items-center justify-center'>Partner profile not found.</div>;
- const p=data.partner;
- const nav:any[]=[['overview','Overview',LayoutDashboard],['profile','Profile',UserRound],['services','Services',BriefcaseBusiness],['orders','Projects & Orders',FolderKanban],['commissions','Commissions',Percent],['wallet','Wallet & Payouts',Wallet]];
- const save=async()=>{setSaving(true);try{const x=await updatePartnerProfile(profile);setProfile(x);setData({...data,partner:x})}finally{setSaving(false)}};
- return <div className='min-h-screen bg-slate-100 text-slate-900 flex'><SEO title='DSH Partner Portal' description='Manage your DSH partner profile, services and commissions.'/><aside className='w-72 bg-slate-950 text-white fixed inset-y-0 left-0 z-20 hidden lg:flex flex-col'><div className='p-6 border-b border-white/10'><div className='text-xl font-black'>DSH <span className='text-amber-400'>PARTNER</span></div><p className='text-xs text-slate-400 mt-1'>{p.partner_code}</p></div><nav className='p-4 space-y-1 flex-1'>{nav.map(([k,l,I])=><button key={k} onClick={()=>setView(k)} className={'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm '+(view===k?'bg-amber-400 text-slate-950 font-bold':'text-slate-300 hover:bg-white/5')}><I className='w-5 h-5'/>{l}</button>)}</nav><div className='p-4 border-t border-white/10'><Link to={'/p/'+p.slug} target='_blank' className='flex items-center gap-2 text-sm text-slate-300 mb-4'><ExternalLink className='w-4 h-4'/>Public profile</Link><button onClick={async()=>{await logout();navigate('/en/login')}} className='flex items-center gap-2 text-sm text-red-300'><LogOut className='w-4 h-4'/>Sign out</button></div></aside>
- <main className='flex-1 lg:ml-72 p-5 md:p-8'><header className='mb-8'><p className='text-sm text-slate-500'>Digital Solutions Hub</p><h1 className='text-3xl font-black mt-1'>{view==='overview'?'Partner Dashboard':(nav.find(x=>x[0]===view)?.[1]||'Partner')}</h1></header>
- {view==='overview'&&<div className='space-y-6'><div className='grid sm:grid-cols-2 xl:grid-cols-4 gap-4'>{[['Active Services',data.stats.activeServices],['Active Orders',data.stats.activeOrders],['Total Earned','$'+Number(data.stats.totalEarned).toFixed(2)],['Available Balance','$'+Number(data.stats.availableBalance).toFixed(2)]].map(x=><div key={String(x[0])} className='bg-white rounded-2xl border p-5'><p className='text-xs uppercase text-slate-500'>{x[0]}</p><p className='text-2xl font-black mt-2'>{x[1]}</p></div>)}</div><div className='bg-white rounded-2xl border p-6'><h2 className='font-bold mb-4'>Recent Orders</h2><div className='space-y-3'>{data.recentOrders.map((o:any)=><div key={o.id} className='border rounded-xl p-4 flex flex-wrap justify-between gap-2'><b>{o.order_number}</b><span>{o.currency} {o.total}</span><span>{o.payment_status}</span><span>{o.status}</span></div>)}</div></div></div>}
- {view==='profile'&&<div className='bg-white rounded-2xl border p-6 max-w-4xl space-y-5'><div className='grid md:grid-cols-2 gap-5'>{[['display_name','Display name'],['professional_title','Professional title'],['country','Country'],['city','City'],['timezone','Timezone']].map(x=><label key={x[0]} className='text-sm font-semibold'>{x[1]}<input value={profile[x[0]]||''} onChange={e=>setProfile({...profile,[x[0]]:e.target.value})} className='mt-2 w-full rounded-xl border px-4 py-3'/></label>)}<label className='md:col-span-2 text-sm font-semibold'>Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className='mt-2 w-full rounded-xl border px-4 py-3 h-32'/></label></div><button onClick={save} disabled={saving} className='px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2'><Save className='w-4 h-4'/>{saving?'Saving...':'Save profile'}</button></div>}
- {view==='services'&&<div className='bg-white rounded-2xl border p-6'><h2 className='font-bold text-lg'>Your services</h2><p className='text-sm text-slate-500 mt-2'>Services are managed from this partner workspace. DSH controls client billing and per-order commission.</p><div className='mt-5 space-y-3'>{services.map((s:any)=><div key={s.id} className='border rounded-xl p-4'><b>{s.title}</b><p className='text-sm text-slate-500'>{s.description||'No description'}</p><p className='text-sm mt-2'>{s.pricing_type} {s.starting_price?'• '+s.currency+' '+s.starting_price:''}</p></div>)}</div></div>}
- {view==='orders'&&<div className='bg-white rounded-2xl border p-6'><h2 className='font-bold'>Projects & Orders</h2><p className='text-sm text-slate-500 mt-2'>Client payments are received by DSH first. Internal commission splits are not shown to clients.</p><div className='mt-5 space-y-3'>{data.recentOrders.map((o:any)=><div key={o.id} className='border rounded-xl p-4'><b>{o.order_number}</b><div className='text-sm text-slate-500'>{o.title}</div><div className='mt-2 font-semibold'>{o.currency} {o.total}</div></div>)}</div></div>}
- {view==='commissions'&&<div className='bg-white rounded-2xl border p-6'><h2 className='font-bold'>Commission ledger</h2><p className='text-sm text-slate-500 mt-2 mb-5'>Each order has an admin-approved, locked commission.</p><div className='space-y-3'>{(commissions?.data||[]).map((c:any)=><div key={c.id} className='border rounded-xl p-4 grid sm:grid-cols-4 gap-2'><span>Order #{c.order_id}</span><span>Gross {c.currency} {c.gross_amount}</span><span>Partner {c.currency} {c.partner_amount}</span><span>Status {c.status}</span></div>)}</div></div>}
- {view==='wallet'&&<div className='space-y-5'><div className='grid md:grid-cols-3 gap-4'>{[['Pending',wallet?.wallet?.pending_balance],['Available',wallet?.wallet?.available_balance],['Paid',wallet?.wallet?.paid_balance]].map(x=><div key={String(x[0])} className='bg-white rounded-2xl border p-5'><p className='text-xs text-slate-500'>{x[0]}</p><p className='text-2xl font-black mt-2'>$'+Number(x[1]||0).toFixed(2)+'</p></div>)}</div></div>}
- </main></div>;
+const PartnerPortal: React.FC = () => {
+  const navigate = useNavigate();
+  const [data, setData] = useState<any>();
+  const [services, setServices] = useState<any[]>([]);
+  const [serviceCatalog, setServiceCatalog] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [commissions, setCommissions] = useState<any>();
+  const [wallet, setWallet] = useState<any>();
+  const [resources, setResources] = useState<any[]>([]);
+  const [socials, setSocials] = useState<any[]>([]);
+  const [businessEmail, setBusinessEmail] = useState<any>();
+  const [leads, setLeads] = useState<any>();
+  const [payoutAccounts, setPayoutAccounts] = useState<any[]>([]);
+  const [view, setView] = useState('overview');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState<any>({});
+  const [portfolioForm, setPortfolioForm] = useState({title:'',description:'',project_url:'',category:''});
+  const [serviceForm, setServiceForm] = useState({service_id:'',title:'',description:'',pricing_type:'quote',starting_price:'',currency:'USD',delivery_days:''});
+  const [socialForm, setSocialForm] = useState({platform:'LinkedIn',username:'',display_name:'',profile_url:''});
+  const [payoutForm, setPayoutForm] = useState({method:'Bank Transfer',account_name:'',account_details:'',is_default:true});
+  const [payoutAmount, setPayoutAmount] = useState('');
+  const [message, setMessage] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [d,s,c,w,p,r,so,e,l,pa,sc] = await Promise.all([
+        fetchPartnerDashboard(), fetchPartnerServices(), fetchPartnerCommissions(), fetchPartnerWallet(),
+        fetchPartnerPortfolio(), fetchPartnerResources(), fetchPartnerSocialAccounts(),
+        fetchPartnerBusinessEmail(), fetchPartnerLeads(), fetchPartnerPayoutAccounts(), fetchAvailableServices()
+      ]);
+      setData(d); setServices(s); setCommissions(c); setWallet(w); setPortfolio(p);
+      setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc);
+      setProfile(d.partner || {});
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const checklist = useMemo(() => [
+    ['Profile', Boolean(profile.display_name && profile.bio)],
+    ['Portfolio', portfolio.length > 0],
+    ['Services', services.length > 0],
+    ['Social profile', socials.length > 0],
+    ['DSH business email', businessEmail?.status === 'active'],
+    ['Payout account', payoutAccounts.length > 0],
+  ], [profile, portfolio, services, socials, businessEmail, payoutAccounts]);
+
+  if (loading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><Loader2 className="animate-spin mr-2"/>Loading your DSH partner workspace...</div>;
+  if (!data?.partner) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Partner profile not found.</div>;
+
+  const p = data.partner;
+  const nav: any[] = [
+    ['overview','Overview',LayoutDashboard],
+    ['profile','Profile & Portfolio',UserRound],
+    ['services','Services',BriefcaseBusiness],
+    ['leads','Leads & Projects',Users],
+    ['commissions','Commissions',Percent],
+    ['wallet','Wallet & Payouts',Wallet],
+    ['resources','DSH Resources',BookOpen],
+    ['social','Social Profiles',Share2],
+    ['business-email','Business Email',Mail],
+  ];
+
+  const saveProfile = async () => {
+    setSaving(true); setMessage('');
+    try { const x = await updatePartnerProfile(profile); setProfile(x); setData({...data,partner:x}); setMessage('Profile saved successfully.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to save profile.'); }
+    finally { setSaving(false); }
+  };
+
+  const addPortfolio = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setMessage('');
+    try { await createPartnerPortfolio(portfolioForm); setPortfolio(await fetchPartnerPortfolio()); setPortfolioForm({title:'',description:'',project_url:'',category:''}); setMessage('Portfolio project added.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to add portfolio project.'); }
+    finally { setSaving(false); }
+  };
+
+  const addService = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setMessage('');
+    try {
+      await createPartnerService({...serviceForm, service_id:Number(serviceForm.service_id), starting_price:serviceForm.starting_price ? Number(serviceForm.starting_price) : null, delivery_days:serviceForm.delivery_days ? Number(serviceForm.delivery_days) : null});
+      setServices(await fetchPartnerServices());
+      setServiceForm({service_id:'',title:'',description:'',pricing_type:'quote',starting_price:'',currency:'USD',delivery_days:''});
+      setMessage('Service added to your profile.');
+    } catch (e:any) { setMessage(e?.message || 'Unable to add service.'); }
+    finally { setSaving(false); }
+  };
+
+  const addSocial = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setMessage('');
+    try { await savePartnerSocialAccount(socialForm); setSocials(await fetchPartnerSocialAccounts()); setSocialForm({platform:'LinkedIn',username:'',display_name:'',profile_url:''}); setMessage('Social profile connected.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to connect social profile.'); }
+    finally { setSaving(false); }
+  };
+
+  const addPayoutAccount = async (e: React.FormEvent) => {
+    e.preventDefault(); setSaving(true); setMessage('');
+    try { await createPartnerPayoutAccount(payoutForm); setPayoutAccounts(await fetchPartnerPayoutAccounts()); setPayoutForm({method:'Bank Transfer',account_name:'',account_details:'',is_default:true}); setMessage('Payout account submitted for verification.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to add payout account.'); }
+    finally { setSaving(false); }
+  };
+
+  const submitPayout = async () => {
+    if (!payoutAccounts[0] || !payoutAmount) return;
+    setSaving(true); setMessage('');
+    try { await requestPartnerPayout({payout_account_id:payoutAccounts[0].id,amount:Number(payoutAmount)}); setPayoutAmount(''); setMessage('Payout request submitted to DSH.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to request payout.'); }
+    finally { setSaving(false); }
+  };
+
+  return <div className="min-h-screen bg-slate-100 text-slate-900 flex">
+    <SEO title="DSH Partner Portal" description="Your complete Digital Solutions Hub partner workspace."/>
+    <aside className="w-72 bg-slate-950 text-white fixed inset-y-0 left-0 z-20 hidden lg:flex flex-col">
+      <div className="p-6 border-b border-white/10">
+        <div className="text-xl font-black">DSH <span className="text-amber-400">PARTNER</span></div>
+        <p className="text-xs text-slate-400 mt-1">{p.partner_code} · <span className="text-green-400">Verified</span></p>
+      </div>
+      <nav className="p-4 space-y-1 flex-1 overflow-y-auto">{nav.map(([k,l,I]) =>
+        <button key={k} onClick={()=>{setView(k);setMessage('')}} className={'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm '+(view===k?'bg-amber-400 text-slate-950 font-bold':'text-slate-300 hover:bg-white/5')}>
+          <I className="w-5 h-5"/>{l}
+        </button>)}</nav>
+      <div className="p-4 border-t border-white/10">
+        <Link to={'/p/'+p.slug} target="_blank" className="flex items-center gap-2 text-sm text-slate-300 mb-4"><ExternalLink className="w-4 h-4"/>Public profile</Link>
+        <button onClick={async()=>{await logout();navigate('/en/login')}} className="flex items-center gap-2 text-sm text-red-300"><LogOut className="w-4 h-4"/>Sign out</button>
+      </div>
+    </aside>
+
+    <main className="flex-1 lg:ml-72 p-5 md:p-8">
+      <header className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div><p className="text-sm text-slate-500">Digital Solutions Hub · Partner Ecosystem</p><h1 className="text-3xl font-black mt-1">{nav.find(x=>x[0]===view)?.[1]}</h1></div>
+        <div className="text-sm text-slate-500">Welcome, <b className="text-slate-900">{p.display_name}</b></div>
+      </header>
+
+      {message && <div className="mb-5 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">{message}</div>}
+
+      {view==='overview' && <div className="space-y-6">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[['Active Services',data.stats.activeServices],['Active Orders',data.stats.activeOrders],['Total Earned','$'+Number(data.stats.totalEarned).toFixed(2)],['Available Balance','$'+Number(data.stats.availableBalance).toFixed(2)]].map(x=><div key={String(x[0])} className="bg-white rounded-2xl border p-5"><p className="text-xs uppercase text-slate-500">{x[0]}</p><p className="text-2xl font-black mt-2">{x[1]}</p></div>)}
+        </div>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl border p-6">
+            <h2 className="font-bold text-lg">Your DSH onboarding checklist</h2>
+            <p className="text-sm text-slate-500 mt-1">Complete these items to present a professional partner profile.</p>
+            <div className="mt-5 space-y-3">{checklist.map(([label,done])=><div key={String(label)} className="flex items-center justify-between border rounded-xl px-4 py-3"><span>{label}</span>{done?<CheckCircle2 className="w-5 h-5 text-green-500"/>:<span className="text-xs font-bold text-amber-600">Pending</span>}</div>)}</div>
+          </div>
+          <div className="bg-slate-950 text-white rounded-2xl p-6">
+            <ShieldCheck className="w-8 h-8 text-amber-400"/>
+            <h2 className="font-bold text-lg mt-3">What DSH provides</h2>
+            <p className="text-slate-400 text-sm mt-2">Leads, client billing, commission tracking, professional profile, resources, business identity and payout support — all in one workspace.</p>
+            <button onClick={()=>setView('resources')} className="mt-5 px-4 py-2 rounded-xl bg-amber-400 text-slate-950 font-bold">Explore resources</button>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold mb-4">Recent orders</h2><div className="space-y-3">{(data.recentOrders||[]).map((o:any)=><div key={o.id} className="border rounded-xl p-4 flex flex-wrap justify-between gap-2"><b>{o.order_number}</b><span>{o.currency} {o.total}</span><span>{o.status}</span></div>)}</div></div>
+      </div>}
+
+      {view==='profile' && <div className="space-y-6">
+        <div className="bg-white rounded-2xl border p-6">
+          <h2 className="font-bold text-lg">Professional profile</h2>
+          <div className="grid md:grid-cols-2 gap-5 mt-5">{[['display_name','Display name'],['professional_title','Professional title'],['country','Country'],['city','City'],['timezone','Timezone']].map(x=><label key={x[0]} className="text-sm font-semibold">{x[1]}<input value={profile[x[0]]||''} onChange={e=>setProfile({...profile,[x[0]]:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3"/></label>)}<label className="md:col-span-2 text-sm font-semibold">Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3 h-32"/></label></div>
+          <button onClick={saveProfile} disabled={saving} className="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2"><Save className="w-4 h-4"/>{saving?'Saving...':'Save profile'}</button>
+        </div>
+        <div className="bg-white rounded-2xl border p-6"><div className="flex justify-between items-center"><div><h2 className="font-bold text-lg">Portfolio</h2><p className="text-sm text-slate-500">Show clients what you can deliver.</p></div></div>
+          <form onSubmit={addPortfolio} className="grid md:grid-cols-2 gap-3 mt-5"><input required placeholder="Project title" value={portfolioForm.title} onChange={e=>setPortfolioForm({...portfolioForm,title:e.target.value})} className="border rounded-xl px-4 py-3"/><input placeholder="Category" value={portfolioForm.category} onChange={e=>setPortfolioForm({...portfolioForm,category:e.target.value})} className="border rounded-xl px-4 py-3"/><input placeholder="Project URL" value={portfolioForm.project_url} onChange={e=>setPortfolioForm({...portfolioForm,project_url:e.target.value})} className="border rounded-xl px-4 py-3"/><textarea required placeholder="Short project description" value={portfolioForm.description} onChange={e=>setPortfolioForm({...portfolioForm,description:e.target.value})} className="border rounded-xl px-4 py-3"/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-amber-400 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add project</button></form>
+          <div className="grid md:grid-cols-3 gap-4 mt-6">{portfolio.map((x:any)=><div key={x.id} className="border rounded-xl p-4"><div className="text-xs text-amber-600">{x.category||'Project'}</div><b>{x.title}</b><p className="text-sm text-slate-500 mt-2">{x.description}</p></div>)}</div>
+        </div>
+      </div>}
+
+      {view==='services' && <div className="bg-white rounded-2xl border p-6">
+        <h2 className="font-bold text-lg">Your services</h2><p className="text-sm text-slate-500 mt-1">Publish the services you want DSH clients to see.</p>
+        <form onSubmit={addService} className="grid md:grid-cols-2 gap-3 mt-5">
+          <select required value={serviceForm.service_id} onChange={e=>setServiceForm({...serviceForm,service_id:e.target.value})} className="border rounded-xl px-4 py-3"><option value="">Select DSH service</option>{serviceCatalog.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
+          <input required placeholder="Your service title" value={serviceForm.title} onChange={e=>setServiceForm({...serviceForm,title:e.target.value})} className="border rounded-xl px-4 py-3"/>
+          <textarea placeholder="Description" value={serviceForm.description} onChange={e=>setServiceForm({...serviceForm,description:e.target.value})} className="border rounded-xl px-4 py-3 md:col-span-2"/>
+          <select value={serviceForm.pricing_type} onChange={e=>setServiceForm({...serviceForm,pricing_type:e.target.value})} className="border rounded-xl px-4 py-3"><option value="quote">Quote</option><option value="fixed">Fixed price</option><option value="starting_at">Starting at</option></select>
+          <input type="number" min="0" placeholder="Starting price" value={serviceForm.starting_price} onChange={e=>setServiceForm({...serviceForm,starting_price:e.target.value})} className="border rounded-xl px-4 py-3"/>
+          <input type="number" min="1" placeholder="Delivery days" value={serviceForm.delivery_days} onChange={e=>setServiceForm({...serviceForm,delivery_days:e.target.value})} className="border rounded-xl px-4 py-3"/>
+          <button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add service</button>
+        </form>
+        <div className="mt-6 space-y-3">{services.map((s:any)=><div key={s.id} className="border rounded-xl p-4 flex justify-between gap-4"><div><b>{s.title}</b><p className="text-sm text-slate-500">{s.description}</p></div><span className="text-sm font-bold">{s.starting_price ? s.currency+' '+s.starting_price : 'Quote'}</span></div>)}</div>
+      </div>}
+
+      {view==='leads' && <div className="space-y-6"><div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Assigned leads</h2><p className="text-sm text-slate-500 mt-1">DSH can route qualified client opportunities to you.</p><div className="mt-5 space-y-3">{(leads?.data||[]).length ? leads.data.map((l:any)=><div key={l.id} className="border rounded-xl p-4"><div className="flex justify-between gap-3"><b>{l.name}</b><span className="text-xs bg-slate-100 px-2 py-1 rounded-full">{l.status}</span></div><p className="text-sm text-slate-500 mt-1">{l.email} {l.phone&&'· '+l.phone}</p><p className="mt-2 text-sm">{l.message||'No message provided.'}</p></div>) : <div className="text-sm text-slate-500 py-8 text-center">No leads assigned yet. Keep your services and profile complete.</div>}</div></div></div>}
+
+      {view==='commissions' && <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Commission ledger</h2><p className="text-sm text-slate-500 mt-1 mb-5">Each order has an admin-approved commission snapshot.</p><div className="space-y-3">{(commissions?.data||[]).map((c:any)=><div key={c.id} className="border rounded-xl p-4 grid sm:grid-cols-4 gap-2 text-sm"><span>Order #{c.order_id}</span><span>Gross {c.currency} {c.gross_amount}</span><span>Partner {c.currency} {c.partner_amount}</span><b>{c.status}</b></div>)}</div></div>}
+
+      {view==='wallet' && <div className="space-y-6"><div className="grid md:grid-cols-3 gap-4">{[['Pending',wallet?.wallet?.pending_balance],['Available',wallet?.wallet?.available_balance],['Paid',wallet?.wallet?.paid_balance]].map(x=><div key={String(x[0])} className="bg-white rounded-2xl border p-5"><p className="text-xs text-slate-500">{x[0]}</p><p className="text-2xl font-black mt-2">$ {Number(x[1]||0).toFixed(2)}</p></div>)}</div>
+        <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold">Payout setup</h2><form onSubmit={addPayoutAccount} className="grid md:grid-cols-2 gap-3 mt-5"><select value={payoutForm.method} onChange={e=>setPayoutForm({...payoutForm,method:e.target.value})} className="border rounded-xl px-4 py-3"><option>Bank Transfer</option><option>Payoneer</option><option>Wise</option><option>PayPal</option></select><input required placeholder="Account name" value={payoutForm.account_name} onChange={e=>setPayoutForm({...payoutForm,account_name:e.target.value})} className="border rounded-xl px-4 py-3"/><textarea required placeholder="Account details" value={payoutForm.account_details} onChange={e=>setPayoutForm({...payoutForm,account_details:e.target.value})} className="border rounded-xl px-4 py-3 md:col-span-2"/><button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Add payout account</button></form>
+          <div className="mt-5 space-y-2">{payoutAccounts.map((a:any)=><div key={a.id} className="border rounded-xl p-4 flex justify-between"><span>{a.method} · {a.account_name}</span><span className={a.is_verified?'text-green-600':'text-amber-600'}>{a.is_verified?'Verified':'Pending verification'}</span></div>)}</div>
+          <div className="mt-6 border-t pt-5 flex flex-col md:flex-row gap-3"><input type="number" min="1" placeholder="Amount to request" value={payoutAmount} onChange={e=>setPayoutAmount(e.target.value)} className="border rounded-xl px-4 py-3"/><button onClick={submitPayout} disabled={saving||!payoutAccounts.length} className="px-5 py-3 rounded-xl bg-amber-400 font-bold">Request payout</button></div>
+        </div>
+      </div>}
+
+      {view==='resources' && <div className="grid md:grid-cols-2 gap-5">{resources.map((r:any)=><div key={r.id} className="bg-white rounded-2xl border p-6"><div className="text-xs uppercase tracking-wider text-amber-600 font-bold">{r.type}</div><h2 className="text-lg font-bold mt-2">{r.title}</h2><p className="text-sm text-slate-500 mt-2">{r.description}</p><button className="mt-5 text-sm font-bold text-slate-900 hover:text-amber-600">{r.action} →</button></div>)}</div>}
+
+      {view==='social' && <div className="space-y-5"><div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Social profiles</h2><p className="text-sm text-slate-500 mt-1">Connect public profiles so clients can verify your professional presence.</p><form onSubmit={addSocial} className="grid md:grid-cols-2 gap-3 mt-5"><select value={socialForm.platform} onChange={e=>setSocialForm({...socialForm,platform:e.target.value})} className="border rounded-xl px-4 py-3"><option>LinkedIn</option><option>Facebook</option><option>Instagram</option><option>YouTube</option><option>TikTok</option><option>GitHub</option></select><input placeholder="Username" value={socialForm.username} onChange={e=>setSocialForm({...socialForm,username:e.target.value})} className="border rounded-xl px-4 py-3"/><input placeholder="Display name" value={socialForm.display_name} onChange={e=>setSocialForm({...socialForm,display_name:e.target.value})} className="border rounded-xl px-4 py-3"/><input required placeholder="Profile URL" value={socialForm.profile_url} onChange={e=>setSocialForm({...socialForm,profile_url:e.target.value})} className="border rounded-xl px-4 py-3"/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Connect profile</button></form></div><div className="space-y-2">{socials.map((s:any)=><div key={s.id} className="bg-white rounded-xl border p-4 flex justify-between items-center"><a href={s.profile_url} target="_blank" rel="noreferrer" className="font-semibold text-cyan-700">{s.platform} · {s.username||s.display_name||s.profile_url}</a><button onClick={async()=>{await deletePartnerSocialAccount(s.id);setSocials(await fetchPartnerSocialAccounts())}} className="text-red-500"><Trash2 className="w-4 h-4"/></button></div>)}</div></div>}
+
+      {view==='business-email' && <div className="bg-white rounded-2xl border p-6 max-w-3xl"><Mail className="w-10 h-10 text-amber-500"/><h2 className="font-bold text-xl mt-3">DSH Business Email</h2><p className="text-sm text-slate-500 mt-2">Your professional DSH mailbox is managed by DSH. Once provisioned, use it for client communication and professional identity.</p><div className="mt-6 rounded-2xl bg-slate-950 text-white p-6"><div className="text-xs uppercase text-slate-400">Mailbox status</div><div className="text-2xl font-black mt-2">{businessEmail?.email_address||'Not provisioned yet'}</div><div className="text-sm text-slate-400 mt-2">{businessEmail?.status||'Pending DSH setup'}</div>{businessEmail?.mailbox_provider&&<div className="text-xs text-slate-500 mt-1">Provider: {businessEmail.mailbox_provider}</div>}</div><p className="text-xs text-slate-500 mt-4">Need an email created or changed? Contact DSH Admin; mailbox credentials are never shown inside this portal.</p></div>}
+    </main>
+  </div>;
 };
+
 export default PartnerPortal;
