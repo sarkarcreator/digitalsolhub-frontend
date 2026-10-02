@@ -172,6 +172,15 @@ const Signup: React.FC = () => {
             </button>
           </div>
 
+          <div className="px-8 pt-5 text-center">
+            <p className="text-gray-400 text-sm">
+              Looking to work with DSH as a digital partner?
+              <button type="button" onClick={() => navigate('/partner-apply')} className="ml-2 font-bold text-brand-cyan hover:text-white transition-colors">
+                Become a DSH Partner →
+              </button>
+            </p>
+          </div>
+
           <div className="p-8 md:p-10">
             <h2 className="text-2xl font-bold text-white mb-2 text-center">
                {activeTab === 'student' ? 'Start Your Learning Journey' : 'Scale Your Business'}
