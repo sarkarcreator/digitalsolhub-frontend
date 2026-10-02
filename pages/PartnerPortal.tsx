@@ -12,7 +12,7 @@ import {
   fetchPartnerResources, fetchPartnerSocialAccounts, savePartnerSocialAccount,
   deletePartnerSocialAccount, fetchPartnerBusinessEmail, fetchPartnerLeads,
   fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout,
-  fetchAvailableServices, createPartnerService
+  fetchAvailableServices, createPartnerService, fetchPartnerOnboarding, requestPartnerBusinessEmail, requestPartnerChange
 } from '../utils/api';
 
 const PartnerPortal: React.FC = () => {
@@ -39,11 +39,12 @@ const PartnerPortal: React.FC = () => {
   const [payoutAmount, setPayoutAmount] = useState('');
   const [message, setMessage] = useState('');
   const [resourceModal, setResourceModal] = useState<any>(null);
+  const [onboarding, setOnboarding] = useState<any>({});
 
   const load = async () => {
     setLoading(true);
     try {
-      const [d,s,c,w,p,r,so,e,l,pa,sc] = await Promise.all([
+      const [d,s,c,w,p,r,so,e,l,pa,sc,o] = await Promise.all([
         fetchPartnerDashboard(),
         fetchPartnerServices().catch(() => []),
         fetchPartnerCommissions().catch(() => ({data:[]})),
@@ -54,10 +55,11 @@ const PartnerPortal: React.FC = () => {
         fetchPartnerBusinessEmail().catch(() => null),
         fetchPartnerLeads().catch(() => ({data:[]})),
         fetchPartnerPayoutAccounts().catch(() => []),
-        fetchAvailableServices().catch(() => [])
+        fetchAvailableServices().catch(() => []),
+        fetchPartnerOnboarding().catch(() => ({}))
       ]);
       setData(d); setServices(s); setCommissions(c); setWallet(w); setPortfolio(p);
-      setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc);
+      setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc); setOnboarding(o);
       setProfile(d.partner || {});
     } catch (e) {
       console.error(e);
@@ -69,13 +71,13 @@ const PartnerPortal: React.FC = () => {
   useEffect(() => { load(); }, []);
 
   const checklist = useMemo(() => [
-    ['Profile', Boolean(profile.display_name && profile.bio)],
-    ['Portfolio', portfolio.length > 0],
-    ['Services', services.length > 0],
-    ['Social profile', socials.length > 0],
-    ['DSH business email', businessEmail?.status === 'active'],
-    ['Payout account', payoutAccounts.length > 0],
-  ], [profile, portfolio, services, socials, businessEmail, payoutAccounts]);
+    ['Profile', onboarding.profile?.status || 'pending'],
+    ['Portfolio', onboarding.portfolio?.status || 'pending'],
+    ['Services', onboarding.services?.status || 'pending'],
+    ['Social profile', onboarding.social?.status || 'pending'],
+    ['DSH business email', onboarding.business_email?.status || 'pending'],
+    ['Payout account', onboarding.payout_account?.status || 'pending'],
+  ], [onboarding]);
 
   if (loading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><Loader2 className="animate-spin mr-2"/>Loading your DSH partner workspace...</div>;
   if (!data?.partner) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Partner profile not found.</div>;
@@ -127,6 +129,22 @@ const PartnerPortal: React.FC = () => {
     e.preventDefault(); setSaving(true); setMessage('');
     try { await savePartnerSocialAccount(socialForm); setSocials(await fetchPartnerSocialAccounts()); setSocialForm({platform:'LinkedIn',username:'',display_name:'',profile_url:''}); setMessage('Social profile connected.'); }
     catch (e:any) { setMessage(e?.message || 'Unable to connect social profile.'); }
+    finally { setSaving(false); }
+  };
+
+  const requestEmail = async () => {
+    setSaving(true); setMessage('');
+    try { const e = await requestPartnerBusinessEmail(); setBusinessEmail(e); setMessage('Business email request submitted to DSH admin.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to request business email.'); }
+    finally { setSaving(false); }
+  };
+
+  const requestChangeFor = async (item: string) => {
+    const text = window.prompt('Describe the change or support you need from DSH:');
+    if (!text) return;
+    setSaving(true); setMessage('');
+    try { await requestPartnerChange(item, text); setMessage('Your request has been sent to DSH admin.'); await load(); }
+    catch (e:any) { setMessage(e?.message || 'Unable to submit request.'); }
     finally { setSaving(false); }
   };
 
@@ -187,7 +205,7 @@ const PartnerPortal: React.FC = () => {
           <div className="bg-white rounded-2xl border p-6">
             <h2 className="font-bold text-lg">Your DSH onboarding checklist</h2>
             <p className="text-sm text-slate-500 mt-1">Complete these items to present a professional partner profile.</p>
-            <div className="mt-5 space-y-3">{checklist.map(([label,done])=><div key={String(label)} className="flex items-center justify-between border rounded-xl px-4 py-3"><span>{label}</span>{done?<CheckCircle2 className="w-5 h-5 text-green-500"/>:<span className="text-xs font-bold text-amber-600">Pending</span>}</div>)}</div>
+            <div className="mt-5 space-y-3">{checklist.map(([label,status])=>{ const s=String(status); return <div key={String(label)} className="flex items-center justify-between border rounded-xl px-4 py-3"><span>{label}</span><span className={"text-xs font-bold capitalize "+(s==="approved"?"text-green-600":s==="revision_required"?"text-red-600":"text-amber-600")}>{s==="approved"?"Approved":s==="revision_required"?"Changes requested":s.replace("_"," ")}</span></div>})}</div>
           </div>
           <div className="bg-slate-950 text-white rounded-2xl p-6">
             <ShieldCheck className="w-8 h-8 text-amber-400"/>
@@ -268,7 +286,7 @@ const PartnerPortal: React.FC = () => {
         </div>
       </div>}
 
-      {view==='business-email' && <div className="bg-white rounded-2xl border p-6 max-w-3xl"><Mail className="w-10 h-10 text-amber-500"/><h2 className="font-bold text-xl mt-3">DSH Business Email</h2><p className="text-sm text-slate-500 mt-2">Your professional DSH mailbox is managed by DSH. Once provisioned, use it for client communication and professional identity.</p><div className="mt-6 rounded-2xl bg-slate-950 text-white p-6"><div className="text-xs uppercase text-slate-400">Mailbox status</div><div className="text-2xl font-black mt-2">{businessEmail?.email_address||'Not provisioned yet'}</div><div className="text-sm text-slate-400 mt-2">{businessEmail?.status||'Pending DSH setup'}</div>{businessEmail?.mailbox_provider&&<div className="text-xs text-slate-500 mt-1">Provider: {businessEmail.mailbox_provider}</div>}</div><p className="text-xs text-slate-500 mt-4">Need an email created or changed? Contact DSH Admin; mailbox credentials are never shown inside this portal.</p></div>}
+      {view==='business-email' && <div className="bg-white rounded-2xl border p-6 max-w-3xl"><Mail className="w-10 h-10 text-amber-500"/><h2 className="font-bold text-xl mt-3">DSH Business Email</h2><p className="text-sm text-slate-500 mt-2">Your professional DSH mailbox is managed by DSH. Once provisioned, use it for client communication and professional identity.</p><div className="mt-6 rounded-2xl bg-slate-950 text-white p-6"><div className="text-xs uppercase text-slate-400">Mailbox status</div><div className="text-2xl font-black mt-2">{businessEmail?.email_address||'Not provisioned yet'}</div><div className="text-sm text-slate-400 mt-2">{businessEmail?.status||'Pending DSH setup'}</div>{businessEmail?.mailbox_provider&&<div className="text-xs text-slate-500 mt-1">Provider: {businessEmail.mailbox_provider}</div>}</div><div className="flex gap-3 mt-4"><button onClick={requestEmail} disabled={saving} className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-slate-950">Request Business Email</button><button onClick={()=>requestChangeFor('business_email')} className="rounded-xl border px-4 py-2 font-bold">Request Change</button></div><p className="text-xs text-slate-500 mt-4">Mailbox credentials are never shown inside this portal.</p></div>}
     </main>
   </div>;
 };
