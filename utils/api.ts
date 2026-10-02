@@ -789,6 +789,14 @@ export async function requestPartnerChange(item_type: string, message: string): 
   return request<any>('/partner/change-requests', { method: 'POST', body: JSON.stringify({ item_type, message }) }, true);
 }
 
+export async function requestPartnerDeletion(target_type: string, reason: string, target_id?: number|string): Promise<any> {
+  return request<any>('/partner/deletion-requests', {
+    method: 'POST',
+    body: JSON.stringify({ target_type, target_id, reason }),
+  }, true);
+}
+
+
 export async function fetchPartnerLeads(): Promise<any> {
   return request<any>('/partner/leads', {}, true);
 }
@@ -863,6 +871,15 @@ export async function deleteAdminPartner(partnerId: number|string): Promise<void
 export async function fetchAdminPartnerChangeRequests(): Promise<any> {
   return request<any>('/admin/partner-change-requests', {}, true);
 }
+
+export async function fetchAdminPartnerDeletionRequests(): Promise<any> {
+  return request<any>('/admin/partner-deletion-requests', {}, true);
+}
+
+export async function reviewAdminPartnerDeletionRequest(id: number|string, payload: {status:'approved'|'rejected'; admin_response?:string}): Promise<any> {
+  return request<any>(`/admin/partner-deletion-requests/${id}`, { method:'PUT', body:JSON.stringify(payload) }, true);
+}
+
 
 export async function reviewAdminPartnerChangeRequest(id: number|string, payload: {status:'approved'|'rejected'; admin_response?:string}): Promise<any> {
   return request<any>(`/admin/partner-change-requests/${id}`, { method:'PUT', body:JSON.stringify(payload) }, true);
