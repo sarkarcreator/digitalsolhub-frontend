@@ -38,14 +38,23 @@ const PartnerPortal: React.FC = () => {
   const [payoutForm, setPayoutForm] = useState({method:'Bank Transfer',account_name:'',account_details:'',is_default:true});
   const [payoutAmount, setPayoutAmount] = useState('');
   const [message, setMessage] = useState('');
+  const [resourceModal, setResourceModal] = useState<any>(null);
 
   const load = async () => {
     setLoading(true);
     try {
       const [d,s,c,w,p,r,so,e,l,pa,sc] = await Promise.all([
-        fetchPartnerDashboard(), fetchPartnerServices(), fetchPartnerCommissions(), fetchPartnerWallet(),
-        fetchPartnerPortfolio(), fetchPartnerResources(), fetchPartnerSocialAccounts(),
-        fetchPartnerBusinessEmail(), fetchPartnerLeads(), fetchPartnerPayoutAccounts(), fetchAvailableServices()
+        fetchPartnerDashboard(),
+        fetchPartnerServices().catch(() => []),
+        fetchPartnerCommissions().catch(() => ({data:[]})),
+        fetchPartnerWallet().catch(() => ({wallet:null,transactions:{data:[]}})),
+        fetchPartnerPortfolio().catch(() => []),
+        fetchPartnerResources().catch(() => []),
+        fetchPartnerSocialAccounts().catch(() => []),
+        fetchPartnerBusinessEmail().catch(() => null),
+        fetchPartnerLeads().catch(() => ({data:[]})),
+        fetchPartnerPayoutAccounts().catch(() => []),
+        fetchAvailableServices().catch(() => [])
       ]);
       setData(d); setServices(s); setCommissions(c); setWallet(w); setPortfolio(p);
       setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc);
@@ -83,6 +92,11 @@ const PartnerPortal: React.FC = () => {
     ['social','Social Profiles',Share2],
     ['business-email','Business Email',Mail],
   ];
+
+  const inputClass = 'w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-4 py-3 outline-none placeholder:text-slate-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-200';
+  const selectClass = 'w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-4 py-3 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200';
+  const resourceUrl = (r:any) => r.action_url || (r.id === 'ai-tools' ? '/en/tools' : '/en/contact');
+  const openResource = (r:any) => { if (r.id === 'delivery-checklist') { setResourceModal(r); return; } const url = resourceUrl(r); if (url.startsWith('mailto:')) window.location.href = url; else window.open(url, '_blank', 'noopener,noreferrer'); };
 
   const saveProfile = async () => {
     setSaving(true); setMessage('');
@@ -148,7 +162,16 @@ const PartnerPortal: React.FC = () => {
       </div>
     </aside>
 
-    <main className="flex-1 lg:ml-72 p-5 md:p-8">
+    <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-slate-950 border-b border-white/10 px-3 py-3 shadow-lg">
+      <div className="flex items-center gap-2">
+        <div className="font-black text-white whitespace-nowrap">DSH <span className="text-amber-400">PARTNER</span></div>
+        <select aria-label="Partner section" value={view} onChange={e=>{setView(e.target.value);setMessage('')}} className="min-w-0 flex-1 rounded-lg border border-white/20 bg-slate-900 text-white px-3 py-2 text-sm">
+          {nav.map(([k,l])=><option key={k} value={k}>{l}</option>)}
+        </select>
+      </div>
+    </div>
+
+    <main className="flex-1 lg:ml-72 p-5 pt-20 md:p-8 lg:pt-8">
       <header className="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div><p className="text-sm text-slate-500">Digital Solutions Hub · Partner Ecosystem</p><h1 className="text-3xl font-black mt-1">{nav.find(x=>x[0]===view)?.[1]}</h1></div>
         <div className="text-sm text-slate-500">Welcome, <b className="text-slate-900">{p.display_name}</b></div>
@@ -179,11 +202,11 @@ const PartnerPortal: React.FC = () => {
       {view==='profile' && <div className="space-y-6">
         <div className="bg-white rounded-2xl border p-6">
           <h2 className="font-bold text-lg">Professional profile</h2>
-          <div className="grid md:grid-cols-2 gap-5 mt-5">{[['display_name','Display name'],['professional_title','Professional title'],['country','Country'],['city','City'],['timezone','Timezone']].map(x=><label key={x[0]} className="text-sm font-semibold">{x[1]}<input value={profile[x[0]]||''} onChange={e=>setProfile({...profile,[x[0]]:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3"/></label>)}<label className="md:col-span-2 text-sm font-semibold">Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3 h-32"/></label></div>
+          <div className="grid md:grid-cols-2 gap-5 mt-5">{[['display_name','Display name'],['professional_title','Professional title'],['country','Country'],['city','City'],['timezone','Timezone']].map(x=><label key={x[0]} className="text-sm font-semibold">{x[1]}<input value={profile[x[0]]||''} onChange={e=>setProfile({...profile,[x[0]]:e.target.value})} className={inputClass}/></label>)}<label className="md:col-span-2 text-sm font-semibold">Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3 h-32"/></label></div>
           <button onClick={saveProfile} disabled={saving} className="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2"><Save className="w-4 h-4"/>{saving?'Saving...':'Save profile'}</button>
         </div>
         <div className="bg-white rounded-2xl border p-6"><div className="flex justify-between items-center"><div><h2 className="font-bold text-lg">Portfolio</h2><p className="text-sm text-slate-500">Show clients what you can deliver.</p></div></div>
-          <form onSubmit={addPortfolio} className="grid md:grid-cols-2 gap-3 mt-5"><input required placeholder="Project title" value={portfolioForm.title} onChange={e=>setPortfolioForm({...portfolioForm,title:e.target.value})} className="border rounded-xl px-4 py-3"/><input placeholder="Category" value={portfolioForm.category} onChange={e=>setPortfolioForm({...portfolioForm,category:e.target.value})} className="border rounded-xl px-4 py-3"/><input placeholder="Project URL" value={portfolioForm.project_url} onChange={e=>setPortfolioForm({...portfolioForm,project_url:e.target.value})} className="border rounded-xl px-4 py-3"/><textarea required placeholder="Short project description" value={portfolioForm.description} onChange={e=>setPortfolioForm({...portfolioForm,description:e.target.value})} className="border rounded-xl px-4 py-3"/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-amber-400 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add project</button></form>
+          <form onSubmit={addPortfolio} className="grid md:grid-cols-2 gap-3 mt-5"><input required placeholder="Project title" value={portfolioForm.title} onChange={e=>setPortfolioForm({...portfolioForm,title:e.target.value})} className={inputClass}/><input placeholder="Category" value={portfolioForm.category} onChange={e=>setPortfolioForm({...portfolioForm,category:e.target.value})} className={inputClass}/><input placeholder="Project URL" value={portfolioForm.project_url} onChange={e=>setPortfolioForm({...portfolioForm,project_url:e.target.value})} className={inputClass}/><textarea required placeholder="Short project description" value={portfolioForm.description} onChange={e=>setPortfolioForm({...portfolioForm,description:e.target.value})} className={inputClass}/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-amber-400 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add project</button></form>
           <div className="grid md:grid-cols-3 gap-4 mt-6">{portfolio.map((x:any)=><div key={x.id} className="border rounded-xl p-4"><div className="text-xs text-amber-600">{x.category||'Project'}</div><b>{x.title}</b><p className="text-sm text-slate-500 mt-2">{x.description}</p></div>)}</div>
         </div>
       </div>}
@@ -191,12 +214,12 @@ const PartnerPortal: React.FC = () => {
       {view==='services' && <div className="bg-white rounded-2xl border p-6">
         <h2 className="font-bold text-lg">Your services</h2><p className="text-sm text-slate-500 mt-1">Publish the services you want DSH clients to see.</p>
         <form onSubmit={addService} className="grid md:grid-cols-2 gap-3 mt-5">
-          <select required value={serviceForm.service_id} onChange={e=>setServiceForm({...serviceForm,service_id:e.target.value})} className="border rounded-xl px-4 py-3"><option value="">Select DSH service</option>{serviceCatalog.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
-          <input required placeholder="Your service title" value={serviceForm.title} onChange={e=>setServiceForm({...serviceForm,title:e.target.value})} className="border rounded-xl px-4 py-3"/>
-          <textarea placeholder="Description" value={serviceForm.description} onChange={e=>setServiceForm({...serviceForm,description:e.target.value})} className="border rounded-xl px-4 py-3 md:col-span-2"/>
-          <select value={serviceForm.pricing_type} onChange={e=>setServiceForm({...serviceForm,pricing_type:e.target.value})} className="border rounded-xl px-4 py-3"><option value="quote">Quote</option><option value="fixed">Fixed price</option><option value="starting_at">Starting at</option></select>
-          <input type="number" min="0" placeholder="Starting price" value={serviceForm.starting_price} onChange={e=>setServiceForm({...serviceForm,starting_price:e.target.value})} className="border rounded-xl px-4 py-3"/>
-          <input type="number" min="1" placeholder="Delivery days" value={serviceForm.delivery_days} onChange={e=>setServiceForm({...serviceForm,delivery_days:e.target.value})} className="border rounded-xl px-4 py-3"/>
+          <select required value={serviceForm.service_id} onChange={e=>setServiceForm({...serviceForm,service_id:e.target.value})} className={inputClass}><option value="">Select DSH service</option>{serviceCatalog.map((s:any)=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
+          <input required placeholder="Your service title" value={serviceForm.title} onChange={e=>setServiceForm({...serviceForm,title:e.target.value})} className={inputClass}/>
+          <textarea placeholder="Description" value={serviceForm.description} onChange={e=>setServiceForm({...serviceForm,description:e.target.value})} className={inputClass+' md:col-span-2'}/>
+          <select value={serviceForm.pricing_type} onChange={e=>setServiceForm({...serviceForm,pricing_type:e.target.value})} className={inputClass}><option value="quote">Quote</option><option value="fixed">Fixed price</option><option value="starting_at">Starting at</option></select>
+          <input type="number" min="0" placeholder="Starting price" value={serviceForm.starting_price} onChange={e=>setServiceForm({...serviceForm,starting_price:e.target.value})} className={inputClass}/>
+          <input type="number" min="1" placeholder="Delivery days" value={serviceForm.delivery_days} onChange={e=>setServiceForm({...serviceForm,delivery_days:e.target.value})} className={inputClass}/>
           <button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add service</button>
         </form>
         <div className="mt-6 space-y-3">{services.map((s:any)=><div key={s.id} className="border rounded-xl p-4 flex justify-between gap-4"><div><b>{s.title}</b><p className="text-sm text-slate-500">{s.description}</p></div><span className="text-sm font-bold">{s.starting_price ? s.currency+' '+s.starting_price : 'Quote'}</span></div>)}</div>
@@ -207,15 +230,43 @@ const PartnerPortal: React.FC = () => {
       {view==='commissions' && <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Commission ledger</h2><p className="text-sm text-slate-500 mt-1 mb-5">Each order has an admin-approved commission snapshot.</p><div className="space-y-3">{(commissions?.data||[]).map((c:any)=><div key={c.id} className="border rounded-xl p-4 grid sm:grid-cols-4 gap-2 text-sm"><span>Order #{c.order_id}</span><span>Gross {c.currency} {c.gross_amount}</span><span>Partner {c.currency} {c.partner_amount}</span><b>{c.status}</b></div>)}</div></div>}
 
       {view==='wallet' && <div className="space-y-6"><div className="grid md:grid-cols-3 gap-4">{[['Pending',wallet?.wallet?.pending_balance],['Available',wallet?.wallet?.available_balance],['Paid',wallet?.wallet?.paid_balance]].map(x=><div key={String(x[0])} className="bg-white rounded-2xl border p-5"><p className="text-xs text-slate-500">{x[0]}</p><p className="text-2xl font-black mt-2">$ {Number(x[1]||0).toFixed(2)}</p></div>)}</div>
-        <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold">Payout setup</h2><form onSubmit={addPayoutAccount} className="grid md:grid-cols-2 gap-3 mt-5"><select value={payoutForm.method} onChange={e=>setPayoutForm({...payoutForm,method:e.target.value})} className="border rounded-xl px-4 py-3"><option>Bank Transfer</option><option>Payoneer</option><option>Wise</option><option>PayPal</option></select><input required placeholder="Account name" value={payoutForm.account_name} onChange={e=>setPayoutForm({...payoutForm,account_name:e.target.value})} className="border rounded-xl px-4 py-3"/><textarea required placeholder="Account details" value={payoutForm.account_details} onChange={e=>setPayoutForm({...payoutForm,account_details:e.target.value})} className="border rounded-xl px-4 py-3 md:col-span-2"/><button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Add payout account</button></form>
+        <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold">Payout setup</h2><form onSubmit={addPayoutAccount} className="grid md:grid-cols-2 gap-3 mt-5"><select value={payoutForm.method} onChange={e=>setPayoutForm({...payoutForm,method:e.target.value})} className={inputClass}><option>Bank Transfer</option><option>Payoneer</option><option>Wise</option><option>PayPal</option></select><input required placeholder="Account name" value={payoutForm.account_name} onChange={e=>setPayoutForm({...payoutForm,account_name:e.target.value})} className={inputClass}/><textarea required placeholder="Account details" value={payoutForm.account_details} onChange={e=>setPayoutForm({...payoutForm,account_details:e.target.value})} className={inputClass+' md:col-span-2'}/><button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Add payout account</button></form>
           <div className="mt-5 space-y-2">{payoutAccounts.map((a:any)=><div key={a.id} className="border rounded-xl p-4 flex justify-between"><span>{a.method} · {a.account_name}</span><span className={a.is_verified?'text-green-600':'text-amber-600'}>{a.is_verified?'Verified':'Pending verification'}</span></div>)}</div>
-          <div className="mt-6 border-t pt-5 flex flex-col md:flex-row gap-3"><input type="number" min="1" placeholder="Amount to request" value={payoutAmount} onChange={e=>setPayoutAmount(e.target.value)} className="border rounded-xl px-4 py-3"/><button onClick={submitPayout} disabled={saving||!payoutAccounts.length} className="px-5 py-3 rounded-xl bg-amber-400 font-bold">Request payout</button></div>
+          <div className="mt-6 border-t pt-5 flex flex-col md:flex-row gap-3"><input type="number" min="1" placeholder="Amount to request" value={payoutAmount} onChange={e=>setPayoutAmount(e.target.value)} className={inputClass}/><button onClick={submitPayout} disabled={saving||!payoutAccounts.length} className="px-5 py-3 rounded-xl bg-amber-400 font-bold">Request payout</button></div>
         </div>
       </div>}
 
-      {view==='resources' && <div className="grid md:grid-cols-2 gap-5">{resources.map((r:any)=><div key={r.id} className="bg-white rounded-2xl border p-6"><div className="text-xs uppercase tracking-wider text-amber-600 font-bold">{r.type}</div><h2 className="text-lg font-bold mt-2">{r.title}</h2><p className="text-sm text-slate-500 mt-2">{r.description}</p><button className="mt-5 text-sm font-bold text-slate-900 hover:text-amber-600">{r.action} →</button></div>)}</div>}
+      {view==='resources' && <div>
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <h2 className="font-black text-lg text-slate-900">DSH Partner Resources</h2>
+          <p className="text-sm text-slate-700 mt-1">Practical tools, sales material, delivery guidance and support for your DSH partner work.</p>
+        </div>
+        {resources.length ? <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">{resources.map((r:any)=>
+          <div key={r.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col min-h-[210px]">
+            <div className="text-xs uppercase tracking-wider text-amber-700 font-bold">{r.type}</div>
+            <h2 className="text-lg font-bold text-slate-900 mt-2">{r.title}</h2>
+            <p className="text-sm text-slate-600 mt-2 flex-1">{r.description}</p>
+            <button type="button" onClick={()=>openResource(r)} className="mt-5 w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400">{r.action || 'Open resource'} <span aria-hidden="true">→</span></button>
+          </div>
+        )}</div> : <div className="bg-white rounded-2xl border p-8 text-center text-slate-600">No resources are available right now. Please try again later.</div>}
+      </div>}
 
-      {view==='social' && <div className="space-y-5"><div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Social profiles</h2><p className="text-sm text-slate-500 mt-1">Connect public profiles so clients can verify your professional presence.</p><form onSubmit={addSocial} className="grid md:grid-cols-2 gap-3 mt-5"><select value={socialForm.platform} onChange={e=>setSocialForm({...socialForm,platform:e.target.value})} className="border rounded-xl px-4 py-3"><option>LinkedIn</option><option>Facebook</option><option>Instagram</option><option>YouTube</option><option>TikTok</option><option>GitHub</option></select><input placeholder="Username" value={socialForm.username} onChange={e=>setSocialForm({...socialForm,username:e.target.value})} className="border rounded-xl px-4 py-3"/><input placeholder="Display name" value={socialForm.display_name} onChange={e=>setSocialForm({...socialForm,display_name:e.target.value})} className="border rounded-xl px-4 py-3"/><input required placeholder="Profile URL" value={socialForm.profile_url} onChange={e=>setSocialForm({...socialForm,profile_url:e.target.value})} className="border rounded-xl px-4 py-3"/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Connect profile</button></form></div><div className="space-y-2">{socials.map((s:any)=><div key={s.id} className="bg-white rounded-xl border p-4 flex justify-between items-center"><a href={s.profile_url} target="_blank" rel="noreferrer" className="font-semibold text-cyan-700">{s.platform} · {s.username||s.display_name||s.profile_url}</a><button onClick={async()=>{await deletePartnerSocialAccount(s.id);setSocials(await fetchPartnerSocialAccounts())}} className="text-red-500"><Trash2 className="w-4 h-4"/></button></div>)}</div></div>}
+      {view==='social' && <div className="space-y-5"><div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Social profiles</h2><p className="text-sm text-slate-500 mt-1">Connect public profiles so clients can verify your professional presence.</p><form onSubmit={addSocial} className="grid md:grid-cols-2 gap-3 mt-5"><select value={socialForm.platform} onChange={e=>setSocialForm({...socialForm,platform:e.target.value})} className={inputClass}><option>LinkedIn</option><option>Facebook</option><option>Instagram</option><option>YouTube</option><option>TikTok</option><option>GitHub</option></select><input placeholder="Username" value={socialForm.username} onChange={e=>setSocialForm({...socialForm,username:e.target.value})} className={inputClass}/><input placeholder="Display name" value={socialForm.display_name} onChange={e=>setSocialForm({...socialForm,display_name:e.target.value})} className={inputClass}/><input required placeholder="Profile URL" value={socialForm.profile_url} onChange={e=>setSocialForm({...socialForm,profile_url:e.target.value})} className={inputClass}/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Connect profile</button></form></div><div className="space-y-2">{socials.map((s:any)=><div key={s.id} className="bg-white rounded-xl border p-4 flex justify-between items-center"><a href={s.profile_url} target="_blank" rel="noreferrer" className="font-semibold text-cyan-700">{s.platform} · {s.username||s.display_name||s.profile_url}</a><button onClick={async()=>{await deletePartnerSocialAccount(s.id);setSocials(await fetchPartnerSocialAccounts())}} className="text-red-500"><Trash2 className="w-4 h-4"/></button></div>)}</div></div>}
+
+      {resourceModal && <div className="fixed inset-0 z-50 bg-slate-950/70 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+        <div className="w-full max-w-lg rounded-2xl bg-white text-slate-900 shadow-2xl">
+          <div className="p-6 border-b border-slate-200 flex items-center justify-between"><div><div className="text-xs uppercase font-bold text-amber-700">{resourceModal.type}</div><h2 className="text-xl font-black mt-1">{resourceModal.title}</h2></div><button type="button" onClick={()=>setResourceModal(null)} className="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-100" aria-label="Close">✕</button></div>
+          <div className="p-6"><p className="text-sm text-slate-600">{resourceModal.description}</p>
+            <div className="mt-5 space-y-3 text-sm text-slate-700">
+              <div className="rounded-xl border p-4"><b>1. Discovery</b><p className="mt-1">Confirm scope, goals, deliverables and client requirements before starting.</p></div>
+              <div className="rounded-xl border p-4"><b>2. Delivery</b><p className="mt-1">Share progress, keep files organized and follow the agreed delivery timeline.</p></div>
+              <div className="rounded-xl border p-4"><b>3. Revisions</b><p className="mt-1">Track requested changes clearly and confirm approval before final handover.</p></div>
+              <div className="rounded-xl border p-4"><b>4. Handover</b><p className="mt-1">Deliver final files, credentials or documentation securely and close the project.</p></div>
+            </div>
+            <button type="button" onClick={()=>window.print()} className="mt-5 rounded-xl bg-slate-950 px-5 py-3 font-bold text-white">Print checklist</button>
+          </div>
+        </div>
+      </div>}
 
       {view==='business-email' && <div className="bg-white rounded-2xl border p-6 max-w-3xl"><Mail className="w-10 h-10 text-amber-500"/><h2 className="font-bold text-xl mt-3">DSH Business Email</h2><p className="text-sm text-slate-500 mt-2">Your professional DSH mailbox is managed by DSH. Once provisioned, use it for client communication and professional identity.</p><div className="mt-6 rounded-2xl bg-slate-950 text-white p-6"><div className="text-xs uppercase text-slate-400">Mailbox status</div><div className="text-2xl font-black mt-2">{businessEmail?.email_address||'Not provisioned yet'}</div><div className="text-sm text-slate-400 mt-2">{businessEmail?.status||'Pending DSH setup'}</div>{businessEmail?.mailbox_provider&&<div className="text-xs text-slate-500 mt-1">Provider: {businessEmail.mailbox_provider}</div>}</div><p className="text-xs text-slate-500 mt-4">Need an email created or changed? Contact DSH Admin; mailbox credentials are never shown inside this portal.</p></div>}
     </main>
