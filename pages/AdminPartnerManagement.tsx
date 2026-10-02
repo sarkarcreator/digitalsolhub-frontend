@@ -130,9 +130,9 @@ const AdminPartnerManagement: React.FC = () => {
               {item.admin_notes&&<div className="mt-3 text-xs bg-white rounded-xl p-3 border">{item.admin_notes}</div>}
               <textarea value={notes[busyKey]||''} onChange={e=>setNotes({...notes,[busyKey]:e.target.value})} placeholder="Admin note (optional)" className="mt-3 w-full rounded-xl border bg-white p-2 text-sm" rows={2}/>
               <div className="grid grid-cols-3 gap-2 mt-2">
-                <button onClick={()=>reviewOnboarding(p.id,key,'approved')} className="rounded-lg bg-green-600 text-white py-2 text-xs font-bold">Approve</button>
-                <button onClick={()=>reviewOnboarding(p.id,key,'revision_required')} className="rounded-lg bg-amber-500 text-white py-2 text-xs font-bold">Changes</button>
-                <button onClick={()=>reviewOnboarding(p.id,key,'rejected')} className="rounded-lg bg-red-600 text-white py-2 text-xs font-bold">Reject</button>
+                <button type="button" disabled={busy===busyKey} onClick={(e)=>{e.preventDefault();e.stopPropagation();reviewOnboarding(p.id,key,'approved')}} className="rounded-lg bg-green-600 text-white py-2 text-xs font-bold disabled:opacity-50">{busy===busyKey?'Saving...':'Approve'}</button>
+                <button type="button" disabled={busy===busyKey} onClick={(e)=>{e.preventDefault();e.stopPropagation();reviewOnboarding(p.id,key,'revision_required')}} className="rounded-lg bg-amber-500 text-white py-2 text-xs font-bold disabled:opacity-50">Changes</button>
+                <button type="button" disabled={busy===busyKey} onClick={(e)=>{e.preventDefault();e.stopPropagation();reviewOnboarding(p.id,key,'rejected')}} className="rounded-lg bg-red-600 text-white py-2 text-xs font-bold disabled:opacity-50">Reject</button>
               </div>
             </div>})}
           </div>
