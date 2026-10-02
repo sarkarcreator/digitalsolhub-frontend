@@ -12,7 +12,7 @@ import {
   fetchPartnerResources, fetchPartnerSocialAccounts, savePartnerSocialAccount,
   deletePartnerSocialAccount, fetchPartnerBusinessEmail, fetchPartnerLeads,
   fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout,
-  fetchAvailableServices, createPartnerService, fetchPartnerOnboarding, requestPartnerBusinessEmail, requestPartnerChange
+  fetchAvailableServices, createPartnerService, updatePartnerService, deletePartnerService, updatePartnerPortfolio, deletePartnerPortfolio, fetchPartnerBusinessEmail, requestPartnerBusinessEmail, requestPartnerChange, requestPartnerDeletion
 } from '../utils/api';
 
 const PartnerPortal: React.FC = () => {
@@ -39,7 +39,6 @@ const PartnerPortal: React.FC = () => {
   const [payoutAmount, setPayoutAmount] = useState('');
   const [message, setMessage] = useState('');
   const [resourceModal, setResourceModal] = useState<any>(null);
-  const [onboarding, setOnboarding] = useState<any>({});
   const [profilePhotoFile, setProfilePhotoFile] = useState<File|null>(null);
 
   const load = async () => {
@@ -71,15 +70,6 @@ const PartnerPortal: React.FC = () => {
 
   useEffect(() => { load(); }, []);
 
-  const checklist = useMemo(() => [
-    ['Profile', onboarding.profile?.status || 'pending'],
-    ['Portfolio', onboarding.portfolio?.status || 'pending'],
-    ['Services', onboarding.services?.status || 'pending'],
-    ['Social profile', onboarding.social?.status || 'pending'],
-    ['DSH business email', onboarding.business_email?.status || 'pending'],
-    ['Payout account', onboarding.payout_account?.status || 'pending'],
-  ], [onboarding]);
-
   if (loading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><Loader2 className="animate-spin mr-2"/>Loading your DSH partner workspace...</div>;
   if (!data?.partner) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Partner profile not found.</div>;
 
@@ -100,6 +90,14 @@ const PartnerPortal: React.FC = () => {
   const selectClass = 'w-full rounded-xl border border-slate-300 bg-white text-slate-900 px-4 py-3 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200';
   const resourceUrl = (r:any) => r.action_url || (r.id === 'ai-tools' ? '/en/tools' : '/en/contact');
   const openResource = (r:any) => { if (r.id === 'delivery-checklist') { setResourceModal(r); return; } const url = resourceUrl(r); if (url.startsWith('mailto:')) window.location.href = url; else window.open(url, '_blank', 'noopener,noreferrer'); };
+
+  const requestDeletion = async (target:string,targetId?:any) => {
+    const reason=window.prompt('Why do you want to remove this? This action requires DSH admin approval:');
+    if(!reason) return;
+    setSaving(true); setMessage('');
+    try { await requestPartnerDeletion(target,reason,targetId); setMessage('Deletion request submitted. DSH admin approval is required.'); }
+    catch(e:any){setMessage(e?.message||'Unable to submit deletion request.')} finally{setSaving(false)}
+  };
 
   const saveProfile = async () => {
     setSaving(true); setMessage('');
@@ -213,9 +211,9 @@ const PartnerPortal: React.FC = () => {
         </div>
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl border p-6">
-            <h2 className="font-bold text-lg">Your DSH onboarding checklist</h2>
-            <p className="text-sm text-slate-500 mt-1">Complete these items to present a professional partner profile.</p>
-            <div className="mt-5 space-y-3">{checklist.map(([label,status])=>{ const s=String(status); return <div key={String(label)} className="flex items-center justify-between border rounded-xl px-4 py-3"><span>{label}</span><span className={"text-xs font-bold capitalize "+(s==="approved"?"text-green-600":s==="revision_required"?"text-red-600":"text-amber-600")}>{s==="approved"?"Approved":s==="revision_required"?"Changes requested":s.replace("_"," ")}</span></div>})}</div>
+            <div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-widest text-amber-600 font-black">Partner Profile</p><h2 className="font-black text-2xl mt-1">Complete your profile</h2><p className="text-sm text-slate-500 mt-2">Add your verified identity details and professional information so clients can see a complete DSH partner profile.</p></div><div className="text-2xl font-black text-amber-600">{Math.round(([p.legal_name,p.cnic,p.date_of_birth,p.father_name,p.real_phone,p.whatsapp_number,p.profile_photo].filter(Boolean).length/7)*100)}%</div></div>
+            <div className="mt-5 h-2.5 rounded-full bg-slate-200 overflow-hidden"><div className="h-full bg-amber-400 transition-all" style={{width:(Math.round(([p.legal_name,p.cnic,p.date_of_birth,p.father_name,p.real_phone,p.whatsapp_number,p.profile_photo].filter(Boolean).length/7)*100))+'%'}}/></div>
+            <button type="button" onClick={()=>setView('profile')} className="mt-5 rounded-xl bg-slate-950 text-white px-5 py-3 font-bold">{Math.round(([p.legal_name,p.cnic,p.date_of_birth,p.father_name,p.real_phone,p.whatsapp_number,p.profile_photo].filter(Boolean).length/7)*100)===100?'Review profile':'Complete your profile'} →</button>
           </div>
           <div className="bg-slate-950 text-white rounded-2xl p-6">
             <ShieldCheck className="w-8 h-8 text-amber-400"/>
@@ -258,7 +256,7 @@ const PartnerPortal: React.FC = () => {
         </div>
         <div className="bg-white rounded-2xl border p-6"><div className="flex justify-between items-center"><div><h2 className="font-bold text-lg">Portfolio</h2><p className="text-sm text-slate-500">Show clients what you can deliver.</p></div></div>
           <form onSubmit={addPortfolio} className="grid md:grid-cols-2 gap-3 mt-5"><input required placeholder="Project title" value={portfolioForm.title} onChange={e=>setPortfolioForm({...portfolioForm,title:e.target.value})} className={inputClass}/><input placeholder="Category" value={portfolioForm.category} onChange={e=>setPortfolioForm({...portfolioForm,category:e.target.value})} className={inputClass}/><input placeholder="Project URL" value={portfolioForm.project_url} onChange={e=>setPortfolioForm({...portfolioForm,project_url:e.target.value})} className={inputClass}/><textarea required placeholder="Short project description" value={portfolioForm.description} onChange={e=>setPortfolioForm({...portfolioForm,description:e.target.value})} className={inputClass}/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-amber-400 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add project</button></form>
-          <div className="grid md:grid-cols-3 gap-4 mt-6">{portfolio.map((x:any)=><div key={x.id} className="border rounded-xl p-4"><div className="text-xs text-amber-600">{x.category||'Project'}</div><b>{x.title}</b><p className="text-sm text-slate-500 mt-2">{x.description}</p></div>)}</div>
+          <div className="grid md:grid-cols-3 gap-4 mt-6">{portfolio.map((x:any)=><div key={x.id} className="border rounded-xl p-4"><div className="flex justify-between gap-2"><div className="text-xs text-amber-600">{x.category||'Project'}</div><button type="button" onClick={async()=>{if(!window.confirm('Delete this portfolio item?'))return;try{await deletePartnerPortfolio(x.id);setPortfolio(await fetchPartnerPortfolio());setMessage('Portfolio item deleted.')}catch(e:any){setMessage(e?.message||'Unable to delete portfolio item.')}} className="text-red-500" title="Request deletion"><Trash2 className="w-4 h-4"/></button></div><b>{x.title}</b><p className="text-sm text-slate-500 mt-2">{x.description}</p></div>)}</div>
         </div>
       </div>}
 
@@ -273,7 +271,7 @@ const PartnerPortal: React.FC = () => {
           <input type="number" min="1" placeholder="Delivery days" value={serviceForm.delivery_days} onChange={e=>setServiceForm({...serviceForm,delivery_days:e.target.value})} className={inputClass}/>
           <button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add service</button>
         </form>
-        <div className="mt-6 space-y-3">{services.map((s:any)=><div key={s.id} className="border rounded-xl p-4 flex justify-between gap-4"><div><b>{s.title}</b><p className="text-sm text-slate-500">{s.description}</p></div><span className="text-sm font-bold">{s.starting_price ? s.currency+' '+s.starting_price : 'Quote'}</span></div>)}</div>
+        <div className="mt-6 space-y-3">{services.map((s:any)=><div key={s.id} className="border rounded-xl p-4 flex justify-between gap-4"><div><b>{s.title}</b><p className="text-sm text-slate-500">{s.description}</p></div><div className="flex items-center gap-3"><span className="text-sm font-bold">{s.starting_price ? s.currency+' '+s.starting_price : 'Quote'}</span><button type="button" onClick={async()=>{if(!window.confirm('Delete this service?'))return;try{await deletePartnerService(s.id);setServices(await fetchPartnerServices());setMessage('Service deleted.')}catch(e:any){setMessage(e?.message||'Unable to delete service.')}}} className="text-red-500" title="Delete service"><Trash2 className="w-4 h-4"/></button></div></div>)}</div>
       </div>}
 
       {view==='leads' && <div className="space-y-6"><div className="bg-white rounded-2xl border p-6"><h2 className="font-bold text-lg">Assigned leads</h2><p className="text-sm text-slate-500 mt-1">DSH can route qualified client opportunities to you.</p><div className="mt-5 space-y-3">{(leads?.data||[]).length ? leads.data.map((l:any)=><div key={l.id} className="border rounded-xl p-4"><div className="flex justify-between gap-3"><b>{l.name}</b><span className="text-xs bg-slate-100 px-2 py-1 rounded-full">{l.status}</span></div><p className="text-sm text-slate-500 mt-1">{l.email} {l.phone&&'· '+l.phone}</p><p className="mt-2 text-sm">{l.message||'No message provided.'}</p></div>) : <div className="text-sm text-slate-500 py-8 text-center">No leads assigned yet. Keep your services and profile complete.</div>}</div></div></div>}
@@ -282,7 +280,7 @@ const PartnerPortal: React.FC = () => {
 
       {view==='wallet' && <div className="space-y-6"><div className="grid md:grid-cols-3 gap-4">{[['Pending',wallet?.wallet?.pending_balance],['Available',wallet?.wallet?.available_balance],['Paid',wallet?.wallet?.paid_balance]].map(x=><div key={String(x[0])} className="bg-white rounded-2xl border p-5"><p className="text-xs text-slate-500">{x[0]}</p><p className="text-2xl font-black mt-2">$ {Number(x[1]||0).toFixed(2)}</p></div>)}</div>
         <div className="bg-white rounded-2xl border p-6"><h2 className="font-bold">Payout setup</h2><form onSubmit={addPayoutAccount} className="grid md:grid-cols-2 gap-3 mt-5"><select value={payoutForm.method} onChange={e=>setPayoutForm({...payoutForm,method:e.target.value})} className={inputClass}><option>Bank Transfer</option><option>Payoneer</option><option>Wise</option><option>PayPal</option></select><input required placeholder="Account name" value={payoutForm.account_name} onChange={e=>setPayoutForm({...payoutForm,account_name:e.target.value})} className={inputClass}/><textarea required placeholder="Account details" value={payoutForm.account_details} onChange={e=>setPayoutForm({...payoutForm,account_details:e.target.value})} className={inputClass+' md:col-span-2'}/><button className="px-5 py-3 rounded-xl bg-slate-950 text-white font-bold">Add payout account</button></form>
-          <div className="mt-5 space-y-2">{payoutAccounts.map((a:any)=><div key={a.id} className="border rounded-xl p-4 flex justify-between"><span>{a.method} · {a.account_name}</span><span className={a.is_verified?'text-green-600':'text-amber-600'}>{a.is_verified?'Verified':'Pending verification'}</span></div>)}</div>
+          <div className="mt-5 space-y-2">{payoutAccounts.map((a:any)=><div key={a.id} className="border rounded-xl p-4 flex justify-between items-center"><span>{a.method} · {a.account_name}</span><div className="flex items-center gap-3"><span className={a.is_verified?'text-green-600':'text-amber-600'}>{a.is_verified?'Verified':'Pending verification'}</span><button type="button" onClick={()=>requestDeletion('payout_account',a.id)} className="text-red-500" title="Request payout account deletion"><Trash2 className="w-4 h-4"/></button></div></div>)}</div>
           <div className="mt-6 border-t pt-5 flex flex-col md:flex-row gap-3"><input type="number" min="1" placeholder="Amount to request" value={payoutAmount} onChange={e=>setPayoutAmount(e.target.value)} className={inputClass}/><button onClick={submitPayout} disabled={saving||!payoutAccounts.length} className="px-5 py-3 rounded-xl bg-amber-400 font-bold">Request payout</button></div>
         </div>
       </div>}
@@ -319,7 +317,7 @@ const PartnerPortal: React.FC = () => {
         </div>
       </div>}
 
-      {view==='business-email' && <div className="bg-white rounded-2xl border p-6 max-w-3xl"><Mail className="w-10 h-10 text-amber-500"/><h2 className="font-bold text-xl mt-3">DSH Business Email</h2><p className="text-sm text-slate-500 mt-2">Your professional DSH mailbox is managed by DSH. Once provisioned, use it for client communication and professional identity.</p><div className="mt-6 rounded-2xl bg-slate-950 text-white p-6"><div className="text-xs uppercase text-slate-400">Mailbox status</div><div className="text-2xl font-black mt-2">{businessEmail?.email_address||'Not provisioned yet'}</div><div className="text-sm text-slate-400 mt-2">{businessEmail?.status||'Pending DSH setup'}</div>{businessEmail?.mailbox_provider&&<div className="text-xs text-slate-500 mt-1">Provider: {businessEmail.mailbox_provider}</div>}</div><div className="flex gap-3 mt-4"><button onClick={requestEmail} disabled={saving} className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-slate-950">Request Business Email</button><button onClick={()=>requestChangeFor('business_email')} className="rounded-xl border px-4 py-2 font-bold">Request Change</button></div><p className="text-xs text-slate-500 mt-4">Mailbox credentials are never shown inside this portal.</p></div>}
+      {view==='business-email' && <div className="bg-white rounded-2xl border p-6 max-w-3xl"><Mail className="w-10 h-10 text-amber-500"/><h2 className="font-bold text-xl mt-3">DSH Business Email</h2><p className="text-sm text-slate-500 mt-2">Your professional DSH mailbox is managed by DSH. Once provisioned, use it for client communication and professional identity.</p><div className="mt-6 rounded-2xl bg-slate-950 text-white p-6"><div className="text-xs uppercase text-slate-400">Mailbox status</div><div className="text-2xl font-black mt-2">{businessEmail?.email_address||'Not provisioned yet'}</div><div className="text-sm text-slate-400 mt-2">{businessEmail?.status||'Pending DSH setup'}</div>{businessEmail?.mailbox_provider&&<div className="text-xs text-slate-500 mt-1">Provider: {businessEmail.mailbox_provider}</div>}</div><div className="flex gap-3 mt-4"><button onClick={requestEmail} disabled={saving} className="rounded-xl bg-amber-400 px-4 py-2 font-bold text-slate-950">Request Business Email</button>{businessEmail&&<button type="button" onClick={()=>requestDeletion('business_email')} className="rounded-xl border border-red-200 text-red-600 px-4 py-2 font-bold flex items-center gap-2"><Trash2 className="w-4 h-4"/>Request deletion</button>}<button onClick={()=>requestChangeFor('business_email')} className="rounded-xl border px-4 py-2 font-bold">Request Change</button></div><p className="text-xs text-slate-500 mt-4">Mailbox credentials are never shown inside this portal.</p></div>}
     </main>
   </div>;
 };
