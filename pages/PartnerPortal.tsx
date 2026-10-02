@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, UserRound, BriefcaseBusiness, FolderKanban, Wallet, Percent,
@@ -12,7 +12,7 @@ import {
   fetchPartnerResources, fetchPartnerSocialAccounts, savePartnerSocialAccount,
   deletePartnerSocialAccount, fetchPartnerBusinessEmail, fetchPartnerLeads,
   fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout,
-  fetchAvailableServices, createPartnerService, updatePartnerService, deletePartnerService, updatePartnerPortfolio, deletePartnerPortfolio, fetchPartnerBusinessEmail, requestPartnerBusinessEmail, requestPartnerChange, requestPartnerDeletion
+  fetchAvailableServices, createPartnerService, deletePartnerService, deletePartnerPortfolio, fetchPartnerBusinessEmail, requestPartnerBusinessEmail, requestPartnerChange, requestPartnerDeletion
 } from '../utils/api';
 
 const PartnerPortal: React.FC = () => {
@@ -252,7 +252,7 @@ const PartnerPortal: React.FC = () => {
             <label className="text-sm font-semibold">Timezone<input value={profile.timezone||''} onChange={e=>setProfile({...profile,timezone:e.target.value})} className={inputClass}/></label>
             <label className="md:col-span-2 text-sm font-semibold">Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3 h-32"/></label>
           </div>
-          <button type="button" onClick={saveProfile} disabled={saving} className="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2"><Save className="w-4 h-4"/>{saving?'Saving...':'Save profile'}</button>
+          <button type="button" onClick={saveProfile} disabled={saving} className="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2"><Save className="w-4 h-4"/>{saving?'Saving...':'Save profile'}</button><button type="button" onClick={()=>requestDeletion('profile')} disabled={saving} className="mt-3 md:ml-3 px-5 py-3 rounded-xl border border-red-200 text-red-600 font-bold inline-flex items-center gap-2"><Trash2 className="w-4 h-4"/>Request profile deletion</button>
         </div>
         <div className="bg-white rounded-2xl border p-6"><div className="flex justify-between items-center"><div><h2 className="font-bold text-lg">Portfolio</h2><p className="text-sm text-slate-500">Show clients what you can deliver.</p></div></div>
           <form onSubmit={addPortfolio} className="grid md:grid-cols-2 gap-3 mt-5"><input required placeholder="Project title" value={portfolioForm.title} onChange={e=>setPortfolioForm({...portfolioForm,title:e.target.value})} className={inputClass}/><input placeholder="Category" value={portfolioForm.category} onChange={e=>setPortfolioForm({...portfolioForm,category:e.target.value})} className={inputClass}/><input placeholder="Project URL" value={portfolioForm.project_url} onChange={e=>setPortfolioForm({...portfolioForm,project_url:e.target.value})} className={inputClass}/><textarea required placeholder="Short project description" value={portfolioForm.description} onChange={e=>setPortfolioForm({...portfolioForm,description:e.target.value})} className={inputClass}/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-amber-400 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add project</button></form>
