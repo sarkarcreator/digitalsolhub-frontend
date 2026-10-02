@@ -805,11 +805,13 @@ export async function requestPartnerPayout(payload: {
     body: JSON.stringify(payload),
   }, true);
 }
-\n
+
+
 export async function fetchAvailableServices(): Promise<any[]> {
   return request<any[]>('/services');
 }
-\n
+
+
 /* ---------------- ADMIN PARTNER MANAGEMENT ---------------- */
 
 export async function fetchAdminPartnerApplications(): Promise<any> {
@@ -836,4 +838,4 @@ export async function fetchAdminPartners(): Promise<any> {
 export async function fetchAdminCommissions(): Promise<any> {
   return request<any>('/admin/commissions', {}, true);
 }
-\n
+
