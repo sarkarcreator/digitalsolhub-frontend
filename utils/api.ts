@@ -746,3 +746,63 @@ export async function fetchPublicPartner(slug:string): Promise<any> { return req
 export async function submitPartnerApplication(payload:any): Promise<any> {
   return request('/partner-applications',{method:'POST',body:JSON.stringify(payload)});
 }
+/* ---------------- PARTNER ECOSYSTEM ---------------- */
+
+export async function fetchPartnerResources(): Promise<any[]> {
+  return request<any[]>('/partner/resources', {}, true);
+}
+
+export async function fetchPartnerSocialAccounts(): Promise<any[]> {
+  return request<any[]>('/partner/social-accounts', {}, true);
+}
+
+export async function savePartnerSocialAccount(payload: {
+  platform: string;
+  username?: string;
+  display_name?: string;
+  profile_url: string;
+}): Promise<any> {
+  return request<any>('/partner/social-accounts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function deletePartnerSocialAccount(id: number | string): Promise<void> {
+  await request('/partner/social-accounts/' + id, { method: 'DELETE' }, true);
+}
+
+export async function fetchPartnerBusinessEmail(): Promise<any> {
+  return request<any>('/partner/business-email', {}, true);
+}
+
+export async function fetchPartnerLeads(): Promise<any> {
+  return request<any>('/partner/leads', {}, true);
+}
+
+export async function fetchPartnerPayoutAccounts(): Promise<any[]> {
+  return request<any[]>('/partner/payout-accounts', {}, true);
+}
+
+export async function createPartnerPayoutAccount(payload: {
+  method: string;
+  account_name: string;
+  account_details: string;
+  is_default?: boolean;
+}): Promise<any> {
+  return request<any>('/partner/payout-accounts', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function requestPartnerPayout(payload: {
+  payout_account_id: number | string;
+  amount: number;
+}): Promise<any> {
+  return request<any>('/partner/payout-requests', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, true);
+}
+\n
