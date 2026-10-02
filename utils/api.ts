@@ -776,6 +776,18 @@ export async function fetchPartnerBusinessEmail(): Promise<any> {
   return request<any>('/partner/business-email', {}, true);
 }
 
+export async function requestPartnerBusinessEmail(): Promise<any> {
+  return request<any>('/partner/business-email/request', { method: 'POST' }, true);
+}
+
+export async function fetchPartnerOnboarding(): Promise<any> {
+  return request<any>('/partner/onboarding', {}, true);
+}
+
+export async function requestPartnerChange(item_type: string, message: string): Promise<any> {
+  return request<any>('/partner/change-requests', { method: 'POST', body: JSON.stringify({ item_type, message }) }, true);
+}
+
 export async function fetchPartnerLeads(): Promise<any> {
   return request<any>('/partner/leads', {}, true);
 }
@@ -833,6 +845,26 @@ export async function approveAdminPartnerApplication(id: number | string): Promi
 
 export async function fetchAdminPartners(): Promise<any> {
   return request<any>('/admin/partners', {}, true);
+}
+
+export async function updateAdminPartnerOnboarding(partnerId: number|string, item: string, payload: {status:string; admin_notes?:string}): Promise<any> {
+  return request<any>(`/admin/partners/${partnerId}/onboarding/${item}`, { method:'PUT', body:JSON.stringify(payload) }, true);
+}
+
+export async function provisionAdminPartnerBusinessEmail(partnerId: number|string, payload: {email_address:string; mailbox_provider?:string; status:string; quota?:number}): Promise<any> {
+  return request<any>(`/admin/partners/${partnerId}/business-email`, { method:'POST', body:JSON.stringify(payload) }, true);
+}
+
+export async function deleteAdminPartner(partnerId: number|string): Promise<void> {
+  await request(`/admin/partners/${partnerId}`, { method:'DELETE' }, true);
+}
+
+export async function fetchAdminPartnerChangeRequests(): Promise<any> {
+  return request<any>('/admin/partner-change-requests', {}, true);
+}
+
+export async function reviewAdminPartnerChangeRequest(id: number|string, payload: {status:'approved'|'rejected'; admin_response?:string}): Promise<any> {
+  return request<any>(`/admin/partner-change-requests/${id}`, { method:'PUT', body:JSON.stringify(payload) }, true);
 }
 
 export async function fetchAdminCommissions(): Promise<any> {
