@@ -40,6 +40,7 @@ const PartnerPortal: React.FC = () => {
   const [message, setMessage] = useState('');
   const [resourceModal, setResourceModal] = useState<any>(null);
   const [onboarding, setOnboarding] = useState<any>({});
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File|null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -102,8 +103,17 @@ const PartnerPortal: React.FC = () => {
 
   const saveProfile = async () => {
     setSaving(true); setMessage('');
-    try { const x = await updatePartnerProfile(profile); setProfile(x); setData({...data,partner:x}); setMessage('Profile saved successfully.'); }
-    catch (e:any) { setMessage(e?.message || 'Unable to save profile.'); }
+    try {
+      const form = new FormData();
+      Object.entries(profile).forEach(([key,value]) => {
+        if (value !== undefined && value !== null) form.append(key, String(value));
+      });
+      if (profilePhotoFile) form.append('profile_photo', profilePhotoFile);
+      const x = await updatePartnerProfile(form);
+      setProfile(x); setData({...data,partner:x}); setProfilePhotoFile(null);
+      setMessage('Profile updated successfully.');
+      await load();
+    } catch (e:any) { setMessage(e?.message || 'Unable to save profile.'); }
     finally { setSaving(false); }
   };
 
@@ -219,9 +229,32 @@ const PartnerPortal: React.FC = () => {
 
       {view==='profile' && <div className="space-y-6">
         <div className="bg-white rounded-2xl border p-6">
-          <h2 className="font-bold text-lg">Professional profile</h2>
-          <div className="grid md:grid-cols-2 gap-5 mt-5">{[['display_name','Display name'],['professional_title','Professional title'],['country','Country'],['city','City'],['timezone','Timezone']].map(x=><label key={x[0]} className="text-sm font-semibold">{x[1]}<input value={profile[x[0]]||''} onChange={e=>setProfile({...profile,[x[0]]:e.target.value})} className={inputClass}/></label>)}<label className="md:col-span-2 text-sm font-semibold">Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3 h-32"/></label></div>
-          <button onClick={saveProfile} disabled={saving} className="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2"><Save className="w-4 h-4"/>{saving?'Saving...':'Save profile'}</button>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div><h2 className="font-bold text-lg">Update your profile</h2><p className="text-sm text-slate-500 mt-1">Keep your professional information updated. Identity details are required for DSH verification.</p></div>
+            <div className="text-right"><div className="text-3xl font-black text-amber-600">{[profile.legal_name,profile.cnic,profile.date_of_birth,profile.father_name,profile.real_phone,profile.whatsapp_number,profile.profile_photo].filter(Boolean).length===7?'100':'0'}%</div><div className="text-xs text-slate-500">Profile completeness</div></div>
+          </div>
+          <div className="mt-5 h-3 rounded-full bg-slate-200 overflow-hidden"><div className="h-full bg-amber-400 transition-all" style={{width:((([profile.legal_name,profile.cnic,profile.date_of_birth,profile.father_name,profile.real_phone,profile.whatsapp_number,profile.profile_photo].filter(Boolean).length)/7)*100)+'%'}}/></div>
+          <div className="mt-6 grid md:grid-cols-2 gap-4">
+            <label className="text-sm font-semibold">Real name (as on CNIC)<input required value={profile.legal_name||''} onChange={e=>setProfile({...profile,legal_name:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Pak ID Card / CNIC<input required placeholder="35202-1234567-1" value={profile.cnic||''} onChange={e=>setProfile({...profile,cnic:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Date of birth<input required type="date" value={profile.date_of_birth||''} onChange={e=>setProfile({...profile,date_of_birth:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Father name<input required value={profile.father_name||''} onChange={e=>setProfile({...profile,father_name:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Real phone number<input required type="tel" value={profile.real_phone||''} onChange={e=>setProfile({...profile,real_phone:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">WhatsApp number<input required type="tel" value={profile.whatsapp_number||''} onChange={e=>setProfile({...profile,whatsapp_number:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Display name<input value={profile.display_name||''} onChange={e=>setProfile({...profile,display_name:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Professional title<input value={profile.professional_title||''} onChange={e=>setProfile({...profile,professional_title:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold md:col-span-2">Profile picture
+              <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
+                {profile.profile_photo ? <img src={String(profile.profile_photo).startsWith('http')?profile.profile_photo:((import.meta as any).env?.VITE_API_BASE_URL||'https://api.digitalsolhub.com/api').replace('/api','')+'/storage/'+profile.profile_photo)} className="w-20 h-20 rounded-full object-cover border-2 border-amber-300" /> : <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs">No photo</div>}
+                <input required={!profile.profile_photo} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setProfilePhotoFile(e.target.files?.[0]||null)} className="flex-1 text-sm"/>
+              </div>
+            </label>
+            <label className="text-sm font-semibold">Country<input value={profile.country||''} onChange={e=>setProfile({...profile,country:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">City<input value={profile.city||''} onChange={e=>setProfile({...profile,city:e.target.value})} className={inputClass}/></label>
+            <label className="text-sm font-semibold">Timezone<input value={profile.timezone||''} onChange={e=>setProfile({...profile,timezone:e.target.value})} className={inputClass}/></label>
+            <label className="md:col-span-2 text-sm font-semibold">Bio<textarea value={profile.bio||''} onChange={e=>setProfile({...profile,bio:e.target.value})} className="mt-2 w-full rounded-xl border px-4 py-3 h-32"/></label>
+          </div>
+          <button type="button" onClick={saveProfile} disabled={saving} className="mt-5 px-5 py-3 rounded-xl bg-slate-950 text-white font-bold flex items-center gap-2"><Save className="w-4 h-4"/>{saving?'Saving...':'Save profile'}</button>
         </div>
         <div className="bg-white rounded-2xl border p-6"><div className="flex justify-between items-center"><div><h2 className="font-bold text-lg">Portfolio</h2><p className="text-sm text-slate-500">Show clients what you can deliver.</p></div></div>
           <form onSubmit={addPortfolio} className="grid md:grid-cols-2 gap-3 mt-5"><input required placeholder="Project title" value={portfolioForm.title} onChange={e=>setPortfolioForm({...portfolioForm,title:e.target.value})} className={inputClass}/><input placeholder="Category" value={portfolioForm.category} onChange={e=>setPortfolioForm({...portfolioForm,category:e.target.value})} className={inputClass}/><input placeholder="Project URL" value={portfolioForm.project_url} onChange={e=>setPortfolioForm({...portfolioForm,project_url:e.target.value})} className={inputClass}/><textarea required placeholder="Short project description" value={portfolioForm.description} onChange={e=>setPortfolioForm({...portfolioForm,description:e.target.value})} className={inputClass}/><button className="md:col-span-2 px-5 py-3 rounded-xl bg-amber-400 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4"/>Add project</button></form>
