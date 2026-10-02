@@ -810,3 +810,30 @@ export async function fetchAvailableServices(): Promise<any[]> {
   return request<any[]>('/services');
 }
 \n
+/* ---------------- ADMIN PARTNER MANAGEMENT ---------------- */
+
+export async function fetchAdminPartnerApplications(): Promise<any> {
+  return request<any>('/admin/partner-applications', {}, true);
+}
+
+export async function updateAdminPartnerApplication(id: number | string, payload: { status: string; admin_notes?: string }): Promise<any> {
+  return request<any>('/admin/partner-applications/' + id, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, true);
+}
+
+export async function approveAdminPartnerApplication(id: number | string): Promise<any> {
+  return request<any>('/admin/partner-applications/' + id + '/approve', {
+    method: 'POST',
+  }, true);
+}
+
+export async function fetchAdminPartners(): Promise<any> {
+  return request<any>('/admin/partners', {}, true);
+}
+
+export async function fetchAdminCommissions(): Promise<any> {
+  return request<any>('/admin/commissions', {}, true);
+}
+\n
