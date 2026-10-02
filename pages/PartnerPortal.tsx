@@ -12,7 +12,7 @@ import {
   fetchPartnerResources, fetchPartnerSocialAccounts, savePartnerSocialAccount,
   deletePartnerSocialAccount, fetchPartnerBusinessEmail, fetchPartnerLeads,
   fetchPartnerPayoutAccounts, createPartnerPayoutAccount, requestPartnerPayout,
-  fetchAvailableServices, createPartnerService
+  fetchAvailableServices, createPartnerService, fetchPartnerOnboarding, requestPartnerBusinessEmail, requestPartnerChange
 } from '../utils/api';
 
 const PartnerPortal: React.FC = () => {
@@ -39,11 +39,12 @@ const PartnerPortal: React.FC = () => {
   const [payoutAmount, setPayoutAmount] = useState('');
   const [message, setMessage] = useState('');
   const [resourceModal, setResourceModal] = useState<any>(null);
+  const [onboarding, setOnboarding] = useState<any>({});
 
   const load = async () => {
     setLoading(true);
     try {
-      const [d,s,c,w,p,r,so,e,l,pa,sc] = await Promise.all([
+      const [d,s,c,w,p,r,so,e,l,pa,sc,o] = await Promise.all([
         fetchPartnerDashboard(),
         fetchPartnerServices().catch(() => []),
         fetchPartnerCommissions().catch(() => ({data:[]})),
@@ -54,10 +55,11 @@ const PartnerPortal: React.FC = () => {
         fetchPartnerBusinessEmail().catch(() => null),
         fetchPartnerLeads().catch(() => ({data:[]})),
         fetchPartnerPayoutAccounts().catch(() => []),
-        fetchAvailableServices().catch(() => [])
+        fetchAvailableServices().catch(() => []),
+        fetchPartnerOnboarding().catch(() => ({}))
       ]);
       setData(d); setServices(s); setCommissions(c); setWallet(w); setPortfolio(p);
-      setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc);
+      setResources(r); setSocials(so); setBusinessEmail(e); setLeads(l); setPayoutAccounts(pa); setServiceCatalog(sc); setOnboarding(o);
       setProfile(d.partner || {});
     } catch (e) {
       console.error(e);
@@ -69,13 +71,13 @@ const PartnerPortal: React.FC = () => {
   useEffect(() => { load(); }, []);
 
   const checklist = useMemo(() => [
-    ['Profile', Boolean(profile.display_name && profile.bio)],
-    ['Portfolio', portfolio.length > 0],
-    ['Services', services.length > 0],
-    ['Social profile', socials.length > 0],
-    ['DSH business email', businessEmail?.status === 'active'],
-    ['Payout account', payoutAccounts.length > 0],
-  ], [profile, portfolio, services, socials, businessEmail, payoutAccounts]);
+    ['Profile', onboarding.profile?.status || 'pending'],
+    ['Portfolio', onboarding.portfolio?.status || 'pending'],
+    ['Services', onboarding.services?.status || 'pending'],
+    ['Social profile', onboarding.social?.status || 'pending'],
+    ['DSH business email', onboarding.business_email?.status || 'pending'],
+    ['Payout account', onboarding.payout_account?.status || 'pending'],
+  ], [onboarding]);
 
   if (loading) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center"><Loader2 className="animate-spin mr-2"/>Loading your DSH partner workspace...</div>;
   if (!data?.partner) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Partner profile not found.</div>;
@@ -127,6 +129,22 @@ const PartnerPortal: React.FC = () => {
     e.preventDefault(); setSaving(true); setMessage('');
     try { await savePartnerSocialAccount(socialForm); setSocials(await fetchPartnerSocialAccounts()); setSocialForm({platform:'LinkedIn',username:'',display_name:'',profile_url:''}); setMessage('Social profile connected.'); }
     catch (e:any) { setMessage(e?.message || 'Unable to connect social profile.'); }
+    finally { setSaving(false); }
+  };
+
+  const requestEmail = async () => {
+    setSaving(true); setMessage('');
+    try { const e = await requestPartnerBusinessEmail(); setBusinessEmail(e); setMessage('Business email request submitted to DSH admin.'); }
+    catch (e:any) { setMessage(e?.message || 'Unable to request business email.'); }
+    finally { setSaving(false); }
+  };
+
+  const requestChangeFor = async (item: string) => {
+    const text = window.prompt('Describe the change or support you need from DSH:');
+    if (!text) return;
+    setSaving(true); setMessage('');
+    try { await requestPartnerChange(item, text); setMessage('Your request has been sent to DSH admin.'); await load(); }
+    catch (e:any) { setMessage(e?.message || 'Unable to submit request.'); }
     finally { setSaving(false); }
   };
 
