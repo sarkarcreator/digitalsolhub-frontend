@@ -245,7 +245,7 @@ const PartnerPortal: React.FC = () => {
             <label className="text-sm font-semibold">Professional title<input value={profile.professional_title||''} onChange={e=>setProfile({...profile,professional_title:e.target.value})} className={inputClass}/></label>
             <label className="text-sm font-semibold md:col-span-2">Profile picture
               <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
-                {profile.profile_photo ? <img src={String(profile.profile_photo).startsWith('http')?profile.profile_photo:((import.meta as any).env?.VITE_API_BASE_URL||'https://api.digitalsolhub.com/api').replace('/api','')+'/storage/'+profile.profile_photo)} className="w-20 h-20 rounded-full object-cover border-2 border-amber-300" /> : <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs">No photo</div>}
+                {profile.profile_photo ? <img src={String(profile.profile_photo).startsWith('http') ? profile.profile_photo : (((import.meta as any).env?.VITE_API_BASE_URL || 'https://api.digitalsolhub.com/api').replace('/api','') + '/storage/' + profile.profile_photo)} className="w-20 h-20 rounded-full object-cover border-2 border-amber-300" /> : <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 text-xs">No photo</div>}
                 <input required={!profile.profile_photo} type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setProfilePhotoFile(e.target.files?.[0]||null)} className="flex-1 text-sm"/>
               </div>
             </label>
