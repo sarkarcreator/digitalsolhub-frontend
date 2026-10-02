@@ -732,7 +732,8 @@ export async function fetchPartnerDashboard(): Promise<PartnerDashboardData> {
 }
 export async function fetchPartnerProfile(): Promise<any> { return request('/partner/profile', {}, true); }
 export async function updatePartnerProfile(payload:any): Promise<any> {
-  return request('/partner/profile',{method:'PUT',body:JSON.stringify(payload)},true);
+  const body = payload instanceof FormData ? payload : JSON.stringify(payload);
+  return request('/partner/profile',{method:'PUT',body},true);
 }
 export async function fetchPartnerServices(): Promise<any[]> { return request('/partner/services',{},true); }
 export async function createPartnerService(payload:any): Promise<any> { return request('/partner/services',{method:'POST',body:JSON.stringify(payload)},true); }
