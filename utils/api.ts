@@ -737,8 +737,12 @@ export async function updatePartnerProfile(payload:any): Promise<any> {
 }
 export async function fetchPartnerServices(): Promise<any[]> { return request('/partner/services',{},true); }
 export async function createPartnerService(payload:any): Promise<any> { return request('/partner/services',{method:'POST',body:JSON.stringify(payload)},true); }
+export async function updatePartnerService(id:number|string,payload:any): Promise<any> { return request(`/partner/services/${id}`,{method:'PUT',body:JSON.stringify(payload)},true); }
+export async function deletePartnerService(id:number|string): Promise<void> { await request(`/partner/services/${id}`,{method:'DELETE'},true); }
 export async function fetchPartnerPortfolio(): Promise<any[]> { return request('/partner/portfolio',{},true); }
 export async function createPartnerPortfolio(payload:any): Promise<any> { return request('/partner/portfolio',{method:'POST',body:JSON.stringify(payload)},true); }
+export async function updatePartnerPortfolio(id:number|string,payload:any): Promise<any> { return request(`/partner/portfolio/${id}`,{method:'PUT',body:JSON.stringify(payload)},true); }
+export async function deletePartnerPortfolio(id:number|string): Promise<void> { await request(`/partner/portfolio/${id}`,{method:'DELETE'},true); }
 export async function fetchPartnerOrders(): Promise<any> { return request('/partner/orders',{},true); }
 export async function fetchPartnerCommissions(): Promise<any> { return request('/partner/commissions',{},true); }
 export async function fetchPartnerWallet(): Promise<any> { return request('/partner/wallet',{},true); }
