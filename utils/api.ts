@@ -806,3 +806,7 @@ export async function requestPartnerPayout(payload: {
   }, true);
 }
 \n
+export async function fetchAvailableServices(): Promise<any[]> {
+  return request<any[]>('/services');
+}
+\n
