@@ -89,7 +89,7 @@ const ClientDashboard: React.FC = () => {
 
   const client = {
     name: authUser?.name ?? "Client",
-    logo: "https://picsum.photos/200/200?random=client",
+    logo: '',
     plan: clientData?.profile?.status || "Active"
   };
 
