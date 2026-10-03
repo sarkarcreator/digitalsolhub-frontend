@@ -1,7 +1,6 @@
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { TRANSLATIONS } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { Clock, Users, Star, BookOpen, Check, ShieldCheck, Award, Linkedin, Twitter, Quote, Download, User, Facebook, Copy, Monitor, Loader2 } from 'lucide-react';
