@@ -4,7 +4,7 @@ import { SkillBadge } from '../types';
 const STORAGE_KEY = 'dsh_skill_badges';
 
 // Initial Mock Badges to populate for demo
-const MOCK_BADGES: SkillBadge[] = [[]
+const MOCK_BADGES: SkillBadge[] = []
 
 const initStorage = () => {
   if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
