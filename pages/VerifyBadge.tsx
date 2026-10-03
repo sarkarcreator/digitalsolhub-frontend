@@ -6,7 +6,6 @@ import SEO from '../components/SEO';
 import SkillBadgeCard from '../components/SkillBadgeCard';
 import { SkillBadge, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
-import { getBadgeById } from '../utils/badgeManager';
 import { verifyPublicBadge } from '../utils/api';
 import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, Calendar, User, BookOpen, Layers } from 'lucide-react';
@@ -40,8 +39,7 @@ const VerifyBadge: React.FC = () => {
                 status: liveBadge.status?.toLowerCase() === 'revoked' ? 'Revoked' : 'Verified',
             });
         } catch {
-            const found = getBadgeById(id);
-            if (active) setBadge(found || null);
+            if (active) setBadge(null);
         } finally {
             if (active) setLoading(false);
         }
