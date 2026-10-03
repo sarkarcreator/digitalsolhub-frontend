@@ -164,7 +164,7 @@ const AdminDashboard = () => {
         details: moduleForm.details,
         image: moduleForm.image,
         location: moduleForm.location,
-        category: moduleForm.category,
+        category: category === 'marketplace' && moduleForm.category === 'Other' ? moduleForm.location.trim() : moduleForm.category,
       });
       setModuleItems((prev) => ({ ...prev, [category]: [created, ...(prev[category] || [])] }));
       setModuleForm({ title: '', amount: '', status: 'active', group: '', type: '', details: '', image: '', location: '', category: '' });
@@ -717,7 +717,7 @@ const AdminDashboard = () => {
             <>
               <input value={moduleForm.group} onChange={(event) => setModuleForm((prev) => ({ ...prev, group: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'jobs' ? 'Company / agency name' : category === 'marketplace' ? 'Seller name' : category === 'academy-content' ? 'Instructor / owner optional' : 'Owner / group'} />
               <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
-              <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
+              {category === 'marketplace' ? <><select value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value, location: event.target.value === 'Other' ? prev.location : '' }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white"><option value="">Select gig category</option><option value="Development">Development</option><option value="Design">Design</option><option value="Marketing">Marketing</option><option value="SEO">SEO</option><option value="Writing">Writing</option><option value="Other">Other</option></select>{moduleForm.category === 'Other' && <input required value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Enter custom category" />}</> : <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />}
               <input value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
             </>
           )}
