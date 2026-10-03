@@ -23,29 +23,21 @@ const Marketplace: React.FC = () => {
     { name: 'Writing', icon: Briefcase, count: 42 },
   ];
 
-  const fallbackGigs = [
-    { id: 1, title: 'I will build a React Website', author: 'Ali Ahmed', rating: 4.9, price: '$50', image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&q=80&w=400', desc: 'Professional React JS website with responsive design, API integration, and modern UI/UX.' },
-    { id: 2, title: 'Logo Design & Branding', author: 'Sarah K.', rating: 5.0, price: '$30', image: 'https://images.unsplash.com/photo-1626785774573-4b7993143a26?auto=format&fit=crop&q=80&w=400', desc: 'Unique logo concepts with complete branding kit including business card and letterhead.' },
-    { id: 3, title: 'SEO Audit & Ranking', author: 'Sarkar Azeem', rating: 5.0, price: '$100', image: 'https://images.unsplash.com/photo-1571786256017-aee7a0c009b6?auto=format&fit=crop&q=80&w=400', desc: 'Comprehensive SEO audit and optimization to rank your website on the first page of Google.' },
-    { id: 4, title: 'Social Media Management', author: 'Zainab B.', rating: 4.8, price: '$200', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400', desc: 'Monthly management of Facebook, Instagram, and LinkedIn with content creation and posting.' },
-  ];
-
   useEffect(() => {
     fetchPublicModuleItems('marketplace')
       .then((items) => setAdminGigs(items.map((item) => ({
         id: item.id,
         title: item.payload.title,
         author: item.payload.owner || item.payload.group || 'DSH Seller',
-        rating: item.payload.rating || 5,
-        price: item.payload.amount || 'Custom',
-        image: item.payload.image || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&q=80&w=400',
-        desc: item.payload.details || 'Professional service available through Digital Solutions Hub.',
+        price: item.payload.amount ? String(item.payload.amount) : '',
+        image: item.payload.image || '',
+        desc: item.payload.details || 'Contact Digital Solutions Hub to discuss the service scope.',
       }))))
       .catch(() => setAdminGigs([]));
   }, []);
 
   const gigs = useMemo(() => {
-    const source = adminGigs.length ? adminGigs : fallbackGigs;
+    const source = adminGigs;
     const needle = query.trim().toLowerCase();
     if (!needle) return source;
     return source.filter((gig) => `${gig.title} ${gig.author} ${gig.desc}`.toLowerCase().includes(needle));
@@ -130,11 +122,8 @@ const Marketplace: React.FC = () => {
                        <span className="text-sm text-gray-400">{gig.author}</span>
                     </div>
                     <div className="flex justify-between items-center border-t border-white/5 pt-3">
-                       <div className="flex items-center gap-1 text-yellow-400 text-sm font-bold">
-                          <Star className="w-4 h-4 fill-current" /> {gig.rating}
-                       </div>
-                       <div className="text-green-400 font-bold">
-                          {TRANSLATIONS.starting_at[lang]} <span className="text-lg">{gig.price}</span>
+                       <div className="text-green-400 font-bold ml-auto">
+                          {gig.price ? <>{TRANSLATIONS.starting_at[lang]} <span className="text-lg">{gig.price}</span></> : <span className="text-sm">Custom quote</span>}
                        </div>
                     </div>
                  </div>
@@ -147,8 +136,8 @@ const Marketplace: React.FC = () => {
       {selectedGig && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
            <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
-              <div className="relative h-64">
-                 <img src={selectedGig.image} alt={selectedGig.title} width="800" height="320" loading="eager" decoding="async" className="w-full h-full object-cover" />
+              <div className="relative h-64 bg-slate-800 flex items-center justify-center">
+                 {selectedGig.image ? <img src={selectedGig.image} alt={selectedGig.title} width="800" height="320" loading="eager" decoding="async" className="w-full h-full object-cover" /> : <Briefcase className="w-16 h-16 text-slate-600" aria-hidden="true" />}
                  <button onClick={() => setSelectedGig(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full hover:bg-black/80 text-white z-10 rtl:right-auto rtl:left-4">
                     <X className="w-5 h-5" />
                  </button>
@@ -159,7 +148,7 @@ const Marketplace: React.FC = () => {
                         <h2 className="text-2xl font-bold text-white mb-1">{selectedGig.title}</h2>
                         <p className="text-green-400 font-medium">{selectedGig.author}</p>
                     </div>
-                    <div className="text-2xl font-bold text-white">{selectedGig.price}</div>
+                    <div className="text-2xl font-bold text-white">{selectedGig.price || 'Custom quote'}</div>
                  </div>
                  
                  <p className="text-gray-300 mb-8 leading-relaxed">
