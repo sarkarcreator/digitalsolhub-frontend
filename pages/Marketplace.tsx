@@ -12,6 +12,7 @@ const Marketplace: React.FC = () => {
   const lang = (Object.values(Language).includes(paramLang as Language)) ? (paramLang as Language) : Language.ENGLISH;
   const [selectedGig, setSelectedGig] = useState<any>(null);
   const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [adminGigs, setAdminGigs] = useState<any[]>([]);
   const [gigsLoading, setGigsLoading] = useState(true);
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', phone: '', details: '' });
@@ -22,6 +23,7 @@ const Marketplace: React.FC = () => {
     { name: 'Design', icon: PenTool },
     { name: 'Marketing', icon: Globe },
     { name: 'Writing', icon: Briefcase },
+    { name: 'SEO', icon: Globe },
   ];
 
   useEffect(() => {
@@ -42,9 +44,12 @@ const Marketplace: React.FC = () => {
   const gigs = useMemo(() => {
     const source = adminGigs;
     const needle = query.trim().toLowerCase();
-    if (!needle) return source;
-    return source.filter((gig) => `${gig.title} ${gig.author} ${gig.desc}`.toLowerCase().includes(needle));
-  }, [adminGigs, query]);
+    return source.filter((gig) => {
+      const matchesSearch = !needle || `${gig.title} ${gig.author} ${gig.desc} ${gig.category}`.toLowerCase().includes(needle);
+      const matchesCategory = !selectedCategory || String(gig.category).trim().toLowerCase() === selectedCategory.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [adminGigs, query, selectedCategory]);
 
   const submitInquiry = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -96,11 +101,11 @@ const Marketplace: React.FC = () => {
         {/* Categories */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
            {categories.map((cat, i) => (
-              <div key={i} className="bg-slate-900/50 p-6 rounded-xl border border-white/5 hover:border-green-500/50 transition-all cursor-pointer text-center group">
+              <button type="button" key={i} onClick={() => setSelectedCategory((current) => current === cat.name ? '' : cat.name)} className={`bg-slate-900/50 p-6 rounded-xl border transition-all cursor-pointer text-center group ${selectedCategory === cat.name ? 'border-green-400 bg-green-500/10' : 'border-white/5 hover:border-green-500/50'}`}>
                  <cat.icon className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:text-green-400" />
                  <h3 className="font-bold text-white">{cat.name}</h3>
-                 <p className="text-xs text-gray-500">{adminGigs.filter((gig) => String(gig.category).toLowerCase().includes(cat.name.toLowerCase())).length} Gigs</p>
-              </div>
+                 <p className="text-xs text-gray-500">{adminGigs.filter((gig) => String(gig.category).trim().toLowerCase() === cat.name.toLowerCase()).length} Gigs</p>
+              </button>
            ))}
         </div>
 
