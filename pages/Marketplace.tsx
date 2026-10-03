@@ -18,10 +18,10 @@ const Marketplace: React.FC = () => {
   const [inquiryState, setInquiryState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const categories = [
-    { name: 'Development', icon: Code, count: 120 },
-    { name: 'Design', icon: PenTool, count: 85 },
-    { name: 'Marketing', icon: Globe, count: 64 },
-    { name: 'Writing', icon: Briefcase, count: 42 },
+    { name: 'Development', icon: Code },
+    { name: 'Design', icon: PenTool },
+    { name: 'Marketing', icon: Globe },
+    { name: 'Writing', icon: Briefcase },
   ];
 
   useEffect(() => {
@@ -29,6 +29,7 @@ const Marketplace: React.FC = () => {
       .then((items) => setAdminGigs(items.map((item) => ({
         id: item.id,
         title: item.payload.title,
+        category: item.payload.category || item.payload.type || '',
         author: item.payload.owner || item.payload.group || 'Digital Solutions Hub',
         price: item.payload.amount ? String(item.payload.amount) : '',
         image: item.payload.image || '',
@@ -98,7 +99,7 @@ const Marketplace: React.FC = () => {
               <div key={i} className="bg-slate-900/50 p-6 rounded-xl border border-white/5 hover:border-green-500/50 transition-all cursor-pointer text-center group">
                  <cat.icon className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:text-green-400" />
                  <h3 className="font-bold text-white">{cat.name}</h3>
-                 <p className="text-xs text-gray-500">{cat.count} Gigs</p>
+                 <p className="text-xs text-gray-500">{adminGigs.filter((gig) => String(gig.category).toLowerCase().includes(cat.name.toLowerCase())).length} Gigs</p>
               </div>
            ))}
         </div>
