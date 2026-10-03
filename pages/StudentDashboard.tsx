@@ -237,7 +237,6 @@ const StudentDashboard: React.FC = () => {
                       <Zap className="w-12 h-12 text-gray-700 mx-auto mb-4" />
                       <p className="text-gray-500">No verified skill badges have been issued yet.</p>
                    </div>
-                      )}
                    </div>
                </div>
             </div>
