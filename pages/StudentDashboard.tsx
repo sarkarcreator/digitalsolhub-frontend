@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Language, CertificateData } from '../types';
+import { Language } from '../types';
 import { TRANSLATIONS, SOFT_SKILLS_MODULE } from '../constants';
 import SEO from '../components/SEO';
 import DashboardSidebar from '../components/DashboardSidebar';
@@ -9,10 +9,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import StudentAssistant from '../components/StudentAssistant';
 import Certificate from '../components/Certificate';
 import LinkedInShareModal from '../components/LinkedInShareModal';
-import SkillBadgeCard from '../components/SkillBadgeCard';
 import { QRCodeSVG } from 'qrcode.react';
-import { getStudentBadges } from '../utils/badgeManager';
-import { requestAttestation, getAttestationByCertId } from '../utils/attestationManager';
 import { useRequireAuth } from '../utils/auth';
 import { exportElementAsPdf } from '../utils/certificateExport';
 import {
@@ -42,7 +39,6 @@ const StudentDashboard: React.FC = () => {
   const [shareCertificate, setShareCertificate] = useState<any | null>(null); 
   const certificateRef = useRef<HTMLDivElement>(null);
   const [myCertificates, setMyCertificates] = useState<any[]>([]);
-  const [myBadges, setMyBadges] = useState<any[]>([]);
 
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [portalData, setPortalData] = useState<StudentPortalDashboard | null>(null);
@@ -68,7 +64,6 @@ const StudentDashboard: React.FC = () => {
     }
 
     loadDashboard();
-    loadBadges(authUser.name);
 
   }, [lang, authUser]);
 
@@ -90,7 +85,6 @@ const StudentDashboard: React.FC = () => {
       setMyCertificates(data.certificates.map((cert) => ({
         ...cert,
         studentName: authUser?.name || 'Student',
-        attestation: getAttestationByCertId(cert.id),
       })));
       setEnrolledCourses(data.courses.map((course) => {
         const catalogItem = catalog.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' && (String(item.payload?.category || '') === String(course.courseId) || String(item.payload?.title || '') === String(course.courseName)));
@@ -118,11 +112,6 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
-  const loadBadges = (studentName: string) => {
-    const badges = getStudentBadges(studentName);
-    setMyBadges(badges);
-  };
-
   const student = {
     name: authUser?.name ?? 'Learner',
     email: authUser?.email ?? '',
@@ -137,14 +126,6 @@ const StudentDashboard: React.FC = () => {
       </div>
     );
   }
-
-  const handleRequestAttestation = (cert: CertificateData) => {
-      if (!cert.attestation) {
-          requestAttestation(cert.id, cert.studentName, cert.courseName, 'Academy');
-          alert("Attestation Request Submitted! Admin will review shortly.");
-          loadDashboard();
-      }
-  };
 
   const handleShareProgress = (courseName: string, progress: number) => {
    const text = `I'm making great progress in the ${courseName} at Digital Solutions Hub! 🏆\n\n${progress}% Completed.`;
@@ -222,14 +203,7 @@ const StudentDashboard: React.FC = () => {
                                            <Database className="w-3 h-3 text-green-400" />
                                            <span className="text-[10px] font-bold text-green-100 uppercase tracking-wide">On-Chain</span>
                                        </div>
-                                   )}
-                                   {cert.attestation && cert.attestation.status === 'Issued' && (
-                                       <div className="bg-blue-900/80 backdrop-blur border-b border-l border-blue-500/30 px-3 py-1 rounded-bl-xl flex items-center gap-1.5 ml-[-1px]">
-                                           <FileBadge className="w-3 h-3 text-blue-400" />
-                                           <span className="text-[10px] font-bold text-blue-100 uppercase tracking-wide">Attested</span>
-                                       </div>
-                                   )}
-                               </div>
+                                   )}                               </div>
                                
                                <div className="flex justify-between items-start mb-6">
                                   <div className="flex items-center gap-4">
@@ -246,47 +220,7 @@ const StudentDashboard: React.FC = () => {
                                         <QRCodeSVG value={`https://digitalsolhub.com/verify/${cert.id}`} size={40} />
                                      </div>
                                   )}
-                               </div>
-
-                               <div className="mb-4">
-                                   {!cert.attestation ? (
-                                       <button 
-                                          onClick={() => handleRequestAttestation(cert)}
-                                          className="w-full py-2 bg-slate-900 border border-white/10 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:border-gold-500/50 transition-all flex items-center justify-center gap-2"
-                                       >
-                                           <ShieldCheck className="w-3 h-3" /> Request Official Attestation
-                                       </button>
-                                   ) : (
-                                       <div className={`p-2 rounded-lg border text-xs flex items-center justify-between ${
-                                           cert.attestation.status === 'Issued' ? 'bg-blue-500/10 border-blue-500/30 text-blue-300' : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300'
-                                       }`}>
-                                           <span className="font-bold flex items-center gap-2">
-                                               {cert.attestation.status === 'Issued' ? <CheckCircle className="w-3 h-3"/> : <Clock className="w-3 h-3"/>}
-                                               Attestation: {cert.attestation.status}
-                                           </span>
-                                           {cert.attestation.status === 'Issued' && (
-                                               <a href={`/#/verify/attestation/${cert.attestation.id}`} target="_blank" className="underline hover:text-white">View Record</a>
-                                           )}
-                                       </div>
-                                   )}
-                               </div>
-
-                               <div className="grid grid-cols-2 gap-3 mt-auto">
-                                     <button 
-                                        onClick={() => setViewCertificate(cert)}
-                                        className="col-span-1 py-2.5 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700 transition-all flex items-center justify-center gap-2 border border-white/10"
-                                     >
-                                        <Award className="w-4 h-4" /> View
-                                     </button>
-                                     <button 
-                                        onClick={() => openLinkedInShare(cert)}
-                                        className="col-span-1 py-2.5 bg-[#0077b5] text-white font-bold rounded-lg hover:bg-[#006396] transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/20"
-                                     >
-                                        <Linkedin className="w-4 h-4" /> Share
-                                     </button>
-                               </div>
-                            </div>
-                         </div>
+                               </div>                         </div>
                       )) : (
                          <div className="col-span-2 text-center text-gray-500 py-10 border border-dashed border-white/10 rounded-xl">No Certificates Yet</div>
                       )}
@@ -297,17 +231,10 @@ const StudentDashboard: React.FC = () => {
                    <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
                       <Zap className="w-6 h-6 text-brand-neon" />
                       {TRANSLATIONS.skill_badges[lang]}
-                   </h2>
-                   
-                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                      {myBadges.map((badge) => (
-                         <SkillBadgeCard key={badge.id} badge={badge} lang={lang} />
-                      ))}
-                      {myBadges.length === 0 && (
-                         <div className="col-span-4 text-center py-10 bg-slate-900/50 rounded-xl border border-white/5">
-                            <Zap className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-                            <p className="text-gray-500">Complete modules to earn verified skill badges.</p>
-                         </div>
+                   </h2><div className="col-span-full text-center py-10 bg-slate-900/50 rounded-xl border border-white/5">
+                      <Zap className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                      <p className="text-gray-500">No verified skill badges have been issued yet.</p>
+                   </div>
                       )}
                    </div>
                </div>
