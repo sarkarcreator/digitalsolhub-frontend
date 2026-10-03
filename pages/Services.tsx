@@ -69,6 +69,19 @@ const Services: React.FC = () => {
     'Bitcoin': Bitcoin
   };
 
+  const serviceProfiles: Record<string, { tagline: string; points: string[] }> = {
+    'web-development': { tagline: 'Build a digital foundation your business can grow on.', points: ['Business websites & portals', 'Responsive, fast experiences', 'Custom functionality'] },
+    'app-development': { tagline: 'Turn your idea into an app people can actually use.', points: ['Web & mobile applications', 'Dashboards & customer portals', 'Scalable architecture'] },
+    'digital-marketing': { tagline: 'Turn digital attention into meaningful business opportunities.', points: ['Campaign strategy', 'Lead generation', 'Conversion-focused growth'] },
+    'seo-services': { tagline: 'Help the right customers discover your business.', points: ['Technical & on-page SEO', 'Keyword & content strategy', 'Search visibility improvement'] },
+    'social-media-marketing': { tagline: 'Build a social presence that earns attention and trust.', points: ['Social media strategy', 'Content planning', 'Audience-focused campaigns'] },
+    'graphic-design-branding': { tagline: 'Make your business recognizable before you say a word.', points: ['Logo & brand identity', 'Marketing creatives', 'Consistent visual direction'] },
+    'content-creation': { tagline: 'Turn ideas into content people want to watch, read and share.', points: ['Creative content planning', 'Copy & visual content', 'Brand storytelling'] },
+    'ai-automation': { tagline: 'Automate repetitive work so your business can focus on growth.', points: ['AI agents & assistants', 'Workflow automation', 'Lead & support automation'] },
+    'ecommerce-solutions': { tagline: 'Build an online store designed to sell, manage and grow.', points: ['Shopify & WooCommerce', 'Products, orders & payments', 'Conversion-focused shopping'] },
+    'ui-ux-design': { tagline: 'Design digital experiences that feel simple, modern and effortless.', points: ['Website & app UI/UX', 'User journeys', 'Modern design systems'] },
+  };
+
   const handleRequest = (catId: string = '') => {
     if (catId) setSelectedCategory(catId);
     setFormVisible(true);
@@ -114,68 +127,23 @@ const Services: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Hero Section */}
-        <div className="text-center mb-16 md:mb-24 relative">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-neon/5 rounded-full blur-[120px] pointer-events-none"></div>
-          
-          <div className="inline-block px-4 py-1.5 rounded-full border border-brand-neon/30 bg-brand-neon/5 backdrop-blur-sm mb-6 animate-float">
-             <span className="text-brand-neon text-sm font-bold uppercase tracking-wider">{TRANSLATIONS.services[lang]}</span>
+        <section className="relative text-center py-14 md:py-20 mb-16 md:mb-20 overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900">
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-neon/10 rounded-full blur-[110px] pointer-events-none" />
+          <div className="relative z-10 max-w-4xl mx-auto px-4">
+            <span className="inline-flex px-4 py-2 rounded-full border border-brand-neon/30 bg-brand-neon/10 text-brand-neon text-xs font-bold uppercase tracking-[0.2em] mb-6">Digital Solutions Hub</span>
+            <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-6">Your Vision. Our Technology.<br /><span className="text-brand-neon">Built to Grow.</span></h1>
+            <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-3xl mx-auto">We help businesses build digital products, reach the right audience, automate repetitive work and create a stronger online presence.</p>
+            <div className="flex flex-wrap justify-center gap-4 mt-8"><button onClick={() => handleRequest()} className="px-7 py-3.5 bg-brand-neon text-black font-bold rounded-xl hover:bg-cyan-400 transition-all">Start Your Project <ArrowRight className="inline w-4 h-4 ml-2" /></button><Link to={'/' + lang + '/contact'} className="px-7 py-3.5 border border-white/15 text-white font-bold rounded-xl hover:bg-white/5 transition-all">Talk to Our Team</Link></div>
           </div>
-          
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight relative z-10">
-            {TRANSLATIONS.our_services[lang]}
-          </h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed relative z-10">
-            {TRANSLATIONS.svc_hero_sub[lang]}
-          </p>
-        </div>
+        </section>
+        <section className="mb-10"><p className="text-brand-neon font-bold uppercase tracking-widest text-sm mb-3">What We Do</p><h2 className="text-3xl md:text-5xl font-black text-white mb-4">Everything you need to move your business forward.</h2><p className="text-gray-400 text-lg max-w-3xl">From your first website to advanced automation, DSH brings technology, creativity and growth together in one place.</p></section>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24 relative z-10">
-           {(adminServices.length ? adminServices.map((item) => ({
-             id: String(item.id),
-             title: { [lang]: item.payload.title },
-             items: String(item.payload.details || '').split(/\n+/).filter(Boolean),
-             iconKey: item.payload.type || item.payload.category || 'other',
-           })) : SERVICE_CATEGORIES).map((service: any) => {
-             const Icon = icons[service.iconKey] || icons[service.id] || Sparkles;
-            const serviceImage = service.payload?.image;
-             return (
-               <div key={service.id} className="group bg-slate-900/50 border border-white/5 rounded-2xl overflow-hidden hover:bg-slate-800/60 hover:border-brand-neon/30 transition-all duration-300 flex flex-col">
-                  {serviceImage && <img src={serviceImage} alt={service.title[lang] || service.title[Language.ENGLISH]} className="h-44 w-full object-cover" loading="lazy" decoding="async" />}
-                  <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-neon group-hover:text-black transition-colors text-brand-neon">
-                     <Icon className="w-8 h-8" />
-                  </div>
-                  <Link to={`/${lang}/services/${service.id}`} className="block">
-                    <h3 className="text-2xl font-bold text-white mb-4 hover:text-brand-neon transition-colors cursor-pointer">{service.title[lang] || service.title[Language.ENGLISH]}</h3>
-                  </Link>
-                  <ul className="space-y-3 mb-8 flex-grow">
-                    {(service.items || []).map((item: string, i: number) => (
-                      <li key={i} className="flex items-start gap-3 text-gray-400 text-sm">
-                        <div className="mt-1 w-1.5 h-1.5 rounded-full bg-brand-neon shrink-0"></div>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="flex gap-4 mt-auto">
-                    <button 
-                      onClick={() => handleRequest(service.id)}
-                      className="flex-1 py-3 border border-white/10 rounded-xl text-white font-bold hover:bg-brand-neon hover:text-black hover:border-brand-neon transition-all flex items-center justify-center gap-2"
-                    >
-                      {TRANSLATIONS.svc_req_btn[lang]}
-                    </button>
-                    <Link 
-                      to={`/${lang}/services/${service.id}`}
-                      className="px-4 py-3 bg-slate-800 rounded-xl text-gray-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center justify-center"
-                      title={TRANSLATIONS.view_details[lang]}
-                    >
-                      <ArrowRight className="w-5 h-5 rtl:rotate-180" />
-                    </Link>
-                  </div>
-               </div>
-             );
-           })}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-24 relative z-10">
+          {adminServices.map((item: any, index: number) => { const id=String(item.id); const slug=String(item.payload?.slug || item.payload?.category || id); const p=serviceProfiles[slug] || {tagline:String(item.payload?.details || 'Professional digital solutions built around your goals.'),points:String(item.payload?.details || '').split(/\n+/).filter(Boolean).slice(0,3)}; const Icon=icons[item.payload?.icon || item.payload?.type || slug] || Sparkles; const title=String(item.payload?.title || 'DSH Service'); const image=item.payload?.image || ''; return <article key={id} className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 hover:border-brand-neon/40 transition-all"><div>{image ? <img src={image} alt={title} className="h-48 w-full object-cover" loading={index<3?'eager':'lazy'} decoding="async" /> : <div className="h-48 bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center"><Icon className="w-16 h-16 text-brand-neon/60" /></div>}</div><div className="p-7"><div className="w-11 h-11 rounded-xl bg-brand-neon/10 border border-brand-neon/20 flex items-center justify-center mb-5"><Icon className="w-5 h-5 text-brand-neon" /></div><Link to={'/' + lang + '/services/' + id}><h3 className="text-2xl font-bold text-white mb-3 hover:text-brand-neon transition-colors">{title}</h3></Link><p className="text-brand-neon/90 font-medium text-sm leading-relaxed mb-5">{p.tagline}</p><ul className="space-y-2.5 mb-7">{p.points.map((point:string,i:number)=><li key={i} className="flex gap-2.5 text-sm text-gray-400"><Check className="w-4 h-4 text-brand-neon shrink-0 mt-0.5" />{point}</li>)}</ul><div className="flex gap-3"><button onClick={()=>handleRequest(id)} className="flex-1 py-3 rounded-xl bg-slate-800 text-white font-bold hover:bg-brand-neon hover:text-black transition-all">{TRANSLATIONS.svc_req_btn[lang]}</button><Link to={'/' + lang + '/services/' + id} className="px-4 py-3 bg-slate-800 rounded-xl text-gray-300 hover:text-white transition-colors"><ArrowRight className="w-5 h-5 rtl:rotate-180" /></Link></div></div></article>; })}
         </div>
+        {adminServices.length===0 && <div className="mb-24 rounded-2xl border border-white/10 bg-slate-900/60 p-10 text-center"><Sparkles className="w-10 h-10 text-brand-neon mx-auto mb-4" /><h3 className="text-2xl font-bold text-white mb-2">Our services are being updated.</h3><p className="text-gray-400">Please check back shortly or contact our team to discuss your requirements.</p></div>}
+        <section className="mb-24 grid grid-cols-1 lg:grid-cols-2 gap-8"><div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 to-slate-950 p-8 md:p-10"><p className="text-brand-neon font-bold uppercase tracking-widest text-sm mb-3">Our Approach</p><h2 className="text-3xl font-black text-white mb-4">Don't just keep up. Build what comes next.</h2><p className="text-gray-400 leading-relaxed mb-6">Your business needs the right digital tools, clear direction and a team that can turn ideas into execution.</p>{['Understand your goals','Build the right solution','Launch with purpose','Improve and scale'].map((x,i)=><div key={x} className="flex items-center gap-4 mb-4"><span className="w-9 h-9 rounded-full bg-brand-neon text-black font-black flex items-center justify-center">{i+1}</span><span className="text-white font-semibold">{x}</span></div>)}</div><div className="rounded-3xl border border-brand-neon/20 bg-brand-neon/5 p-8 md:p-10 flex flex-col justify-center"><Sparkles className="w-10 h-10 text-brand-neon mb-5" /><h2 className="text-3xl font-black text-white mb-4">Your next level can start with one project.</h2><p className="text-gray-300 leading-relaxed mb-7">Start with the challenge in front of you. DSH can help turn it into a practical digital plan and move it toward execution.</p><button onClick={()=>handleRequest()} className="self-start px-7 py-3.5 bg-brand-neon text-black font-bold rounded-xl hover:bg-cyan-400 transition-all">Discuss Your Project <ArrowRight className="inline w-4 h-4 ml-2" /></button></div></section>
 
         {/* How It Works */}
         <section className="mb-24">
