@@ -820,7 +820,7 @@ const AdminDashboard = () => {
                   <div className="flex flex-wrap items-center gap-3">
                     <label className={`cursor-pointer rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 ${uploadingFile ? 'pointer-events-none opacity-50' : ''}`}>
                       {uploadingFile ? 'Uploading...' : 'Upload Image'}
-                      <input disabled={uploadingFile} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => handleAdminFileUpload(event, 'marketplace-image')} />
+                      <input disabled={uploadingFile} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => handleAdminFileUpload(event, category === 'service-catalog' ? 'service-image' : category === 'marketplace' ? 'marketplace-image' : 'content-image')} />
                     </label>
                     {moduleForm.image && <span className="text-xs text-emerald-300">Image uploaded ✓</span>}
                   </div>
