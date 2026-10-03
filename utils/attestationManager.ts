@@ -5,7 +5,7 @@ import { getAllCertificates } from './certificateManager';
 const STORAGE_KEY = 'dsh_attestations';
 
 // Mock Data
-const MOCK_ATTESTATIONS: AttestationRecord[] = [[]
+const MOCK_ATTESTATIONS: AttestationRecord[] = []
 
 const initStorage = () => {
   if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
