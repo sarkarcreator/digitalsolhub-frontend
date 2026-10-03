@@ -24,13 +24,6 @@ const JobPortal: React.FC = () => {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [submitState, setSubmitState] = useState<'idle' | 'loading' | 'error'>('idle');
 
-  const fallbackJobs = [
-    { id: 1, title: 'Senior React Developer', company: 'TechFlow', location: 'Remote', type: 'Full-time', salary: '$3000 - $5000', desc: 'We are looking for an experienced React developer to lead our frontend team.' },
-    { id: 2, title: 'Digital Marketing Specialist', company: 'GrowFast Agency', location: 'Dubai', type: 'Contract', salary: 'AED 5000', desc: 'Manage PPC campaigns and social media strategy for international clients.' },
-    { id: 3, title: 'SEO Executive', company: 'DSH HQ', location: 'Islamabad', type: 'Full-time', salary: 'PKR 80,000', desc: 'Optimize website content and build backlinks to improve organic ranking.' },
-    { id: 4, title: 'Graphic Design Intern', company: 'Creative Studio', location: 'Lahore', type: 'Internship', salary: 'PKR 25,000', desc: 'Assist senior designers in creating social media posts and branding materials.' },
-  ];
-
   useEffect(() => {
     fetchPublicModuleItems('jobs')
       .then((items) => setAdminJobs(items.map((item) => ({
@@ -46,7 +39,7 @@ const JobPortal: React.FC = () => {
   }, []);
 
   const jobs = useMemo(() => {
-    const source = adminJobs.length ? adminJobs : fallbackJobs;
+    const source = adminJobs;
     const needle = query.trim().toLowerCase();
     if (!needle) return source;
     return source.filter((job) => `${job.title} ${job.company} ${job.location} ${job.type} ${job.salary} ${job.desc}`.toLowerCase().includes(needle));
