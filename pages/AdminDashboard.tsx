@@ -4,6 +4,7 @@ import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import AdminSidebar from '../components/AdminSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { Language } from '../types';
 import { useRequireAuth } from '../utils/auth';
 import {
   createAdminModuleItem,
