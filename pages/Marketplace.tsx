@@ -18,13 +18,23 @@ const Marketplace: React.FC = () => {
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', phone: '', details: '' });
   const [inquiryState, setInquiryState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const categories = [
-    { name: 'Development', icon: Code },
-    { name: 'Design', icon: PenTool },
-    { name: 'Marketing', icon: Globe },
-    { name: 'Writing', icon: Briefcase },
-    { name: 'SEO', icon: Globe },
+  const baseCategories = [
+    { name: 'Web Development', icon: Code },
+    { name: 'App Development', icon: Code },
+    { name: 'Digital Marketing', icon: Globe },
+    { name: 'SEO Services', icon: Globe },
+    { name: 'Social Media Marketing', icon: Globe },
+    { name: 'Graphic Design & Branding', icon: PenTool },
+    { name: 'Content Creation', icon: Briefcase },
+    { name: 'AI Automation', icon: Code },
+    { name: 'E-Commerce Solutions', icon: Briefcase },
+    { name: 'UI/UX Design', icon: PenTool },
+    { name: 'Data Entry', icon: Briefcase },
   ];
+  const standardCategoryNames = baseCategories.map((category) => category.name.toLowerCase());
+  const customCategories = Array.from(new Set(adminGigs.map((gig) => String(gig.category || '').trim()).filter((name) => name && !standardCategoryNames.includes(name.toLowerCase()) && name.toLowerCase() !== 'other')))
+    .map((name) => ({ name, icon: Briefcase }));
+  const categories = [...baseCategories, ...customCategories];
 
   useEffect(() => {
     fetchPublicModuleItems('marketplace')
@@ -99,7 +109,7 @@ const Marketplace: React.FC = () => {
         </div>
 
         {/* Categories */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-16">
            {categories.map((cat, i) => (
               <button type="button" key={i} onClick={() => setSelectedCategory((current) => current === cat.name ? '' : cat.name)} className={`bg-slate-900/50 p-6 rounded-xl border transition-all cursor-pointer text-center group ${selectedCategory === cat.name ? 'border-green-400 bg-green-500/10' : 'border-white/5 hover:border-green-500/50'}`}>
                  <cat.icon className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:text-green-400" />
