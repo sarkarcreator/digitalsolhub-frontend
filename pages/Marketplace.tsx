@@ -46,7 +46,7 @@ const Marketplace: React.FC = () => {
     const needle = query.trim().toLowerCase();
     return source.filter((gig) => {
       const matchesSearch = !needle || `${gig.title} ${gig.author} ${gig.desc} ${gig.category}`.toLowerCase().includes(needle);
-      const matchesCategory = !selectedCategory || String(gig.category).trim().toLowerCase() === selectedCategory.toLowerCase();
+      const matchesCategory = !selectedCategory || String(gig.category).trim().toLowerCase().includes(selectedCategory.toLowerCase());
       return matchesSearch && matchesCategory;
     });
   }, [adminGigs, query, selectedCategory]);
@@ -104,7 +104,7 @@ const Marketplace: React.FC = () => {
               <button type="button" key={i} onClick={() => setSelectedCategory((current) => current === cat.name ? '' : cat.name)} className={`bg-slate-900/50 p-6 rounded-xl border transition-all cursor-pointer text-center group ${selectedCategory === cat.name ? 'border-green-400 bg-green-500/10' : 'border-white/5 hover:border-green-500/50'}`}>
                  <cat.icon className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:text-green-400" />
                  <h3 className="font-bold text-white">{cat.name}</h3>
-                 <p className="text-xs text-gray-500">{adminGigs.filter((gig) => String(gig.category).trim().toLowerCase() === cat.name.toLowerCase()).length} Gigs</p>
+                 <p className="text-xs text-gray-500">{adminGigs.filter((gig) => String(gig.category).trim().toLowerCase().includes(cat.name.toLowerCase())).length} Gigs</p>
               </button>
            ))}
         </div>
@@ -122,6 +122,7 @@ const Marketplace: React.FC = () => {
                     {gig.image ? <img src={gig.image} alt={gig.title} width="400" height="256" loading="eager" decoding="async" fetchPriority="high" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <Briefcase className="w-12 h-12 text-slate-600" aria-hidden="true" />}
                  </div>
                  <div className="p-4">
+                    {gig.category && <span className="inline-block mb-2 rounded-full border border-green-500/20 bg-green-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-green-300">{gig.category}</span>}
                     <div className="flex justify-between items-start mb-2">
                        <h3 className="font-bold text-white line-clamp-2 hover:underline">{gig.title}</h3>
                     </div>
