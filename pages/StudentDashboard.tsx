@@ -388,9 +388,9 @@ const StudentDashboard: React.FC = () => {
             <div className="mt-10">
               <h3 className="mb-4 text-xl font-bold text-white">Available Courses</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {academyItems.filter((item) => String(item.payload?.type || '').toLowerCase() === 'course').map((item) => ({ id: String(item.payload?.category || `academy-${item.id}`), title: item.payload?.title || 'Course', description: item.payload?.details || '', image: item.payload?.image || '', learningOutcomes: Array.isArray(item.payload?.outcomes) ? item.payload.outcomes : [], category: item.payload?.location || 'Digital Skills' })).filter((course) => !enrolledCourses.some((enrolled) => enrolled.courseId === course.id)).map((course) => (
+                {academyItems.filter((item) => String(item.payload?.type || '').toLowerCase() === 'course').map((item) => ({ id: String(item.payload?.category || `academy-${item.id}`), title: item.payload?.title || 'Course', description: item.payload?.details || '', image: item.payload?.image || '', learningOutcomes: Array.isArray(item.payload?.outcomes) ? item.payload.outcomes : [], category: item.payload?.location || 'Digital Skills', instructor: item.payload?.instructor ? { name: item.payload.instructor } : undefined })).filter((course) => !enrolledCourses.some((enrolled) => enrolled.courseId === course.id)).map((course) => (
                   <div key={course.id} className="glass rounded-2xl border border-white/5 p-4">
-                    <img src={course.image} alt={course.title} className="mb-4 h-36 w-full rounded-xl object-cover" />
+                    {course.image ? <img src={course.image} alt={course.title} className="mb-4 h-36 w-full rounded-xl object-cover" /> : <div className="mb-4 flex h-36 w-full items-center justify-center rounded-xl bg-slate-800 text-gray-600"><BookOpen className="h-10 w-10" /></div>}
                     <h4 className="font-bold text-white">{course.title}</h4>
                     <p className="mt-1 text-xs text-gray-400">Instructor: {course.instructor?.name}</p>
                     <button onClick={() => handleEnrollCourse(course)} className="mt-4 w-full rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black">
