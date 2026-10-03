@@ -122,6 +122,7 @@ const ServiceDetail: React.FC = () => {
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-8 md:p-12 border border-white/10 mb-12 relative overflow-hidden">
            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-neon/5 rounded-full blur-[100px] pointer-events-none"></div>
            <div className="relative z-10">
+              {(service as any).image && <img src={(service as any).image} alt={serviceTitle} className="mb-8 h-56 w-full max-w-3xl rounded-2xl object-cover border border-white/10" />}
               <span className="inline-block px-3 py-1 rounded-full bg-brand-neon/10 text-brand-neon text-sm font-bold mb-4 border border-brand-neon/20">
                  {tagline}
               </span>
