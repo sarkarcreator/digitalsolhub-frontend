@@ -41,8 +41,7 @@ const VerifyAttestation: React.FC = () => {
                 feePaid: Boolean(liveRecord.payload?.feePaid),
             });
         } catch {
-            const found = getAttestationById(id);
-            if (active) setRecord(found || null);
+            if (active) setRecord(null);
         } finally {
             if (active) setLoading(false);
         }
