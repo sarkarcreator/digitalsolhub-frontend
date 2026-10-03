@@ -86,6 +86,11 @@ const FranchiseApply: React.FC = () => {
         targetCountry: formData.country,
         category: formData.type,
         budget: formData.investment,
+        businessName: formData.businessName,
+        franchiseType: formData.type,
+        experience: formData.experience,
+        termsAccepted,
+        reviewAccepted,
         details: [
           `Business: ${formData.businessName}`,
           `City: ${formData.city}`,
