@@ -5,24 +5,11 @@ import { getAllCertificates } from './certificateManager';
 const STORAGE_KEY = 'dsh_attestations';
 
 // Mock Data
-const MOCK_ATTESTATIONS: AttestationRecord[] = [
-  {
-    id: 'DSH-ATT-2024-001',
-    certificateId: 'DSH-FREELANCE-2024-001',
-    studentName: 'Ali Ahmed',
-    courseName: 'Freelancing & Online Earning',
-    type: 'Academy',
-    requestDate: '2024-10-26',
-    attestationDate: '2024-10-27',
-    status: 'Issued',
-    officerName: 'Sarkar Azeem',
-    feePaid: true
-  }
-];
+const MOCK_ATTESTATIONS: AttestationRecord[] = [[]
 
 const initStorage = () => {
   if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_ATTESTATIONS));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   }
 };
 
