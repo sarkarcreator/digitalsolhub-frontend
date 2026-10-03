@@ -4,7 +4,7 @@ import { TRANSLATIONS, SERVICE_CATEGORIES, PRICING_PACKAGES, PAYMENT_METHODS, PA
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { fetchPublicModuleItems, submitApplication } from '../utils/api';
-import { ArrowRight, Check, Send, Sparkles, Monitor, Globe, Megaphone, Video, Cpu, Layers, DollarSign, Coins, Loader2, Landmark, Smartphone, CreditCard, Bitcoin, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Check, Send, Sparkles, Monitor, Globe, Megaphone, Video, Cpu, Layers, DollarSign, Coins, Loader2, Landmark, Smartphone, CreditCard, Bitcoin, AlertTriangle, FileText, ShoppingCart, Palette } from 'lucide-react';
 
 const Services: React.FC = () => {
   const { lang: paramLang } = useParams<{ lang: string }>();
@@ -55,6 +55,9 @@ const Services: React.FC = () => {
     'monetization': Coins,
     'graphic-design': Layers,
     'ai-solutions': Cpu,
+    'content-creation': FileText,
+    'ecommerce-solutions': ShoppingCart,
+    'ui-ux-design': Palette,
     'other': Sparkles
   };
 
