@@ -333,7 +333,7 @@ const AdminDashboard = () => {
 
   const handleAdminFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
-    purpose: 'project-file' | 'worksheet' | 'marketplace-image',
+    purpose: 'project-file' | 'worksheet' | 'marketplace-image' | 'service-image' | 'content-image',
     targetId?: number | string
   ) => {
     const file = event.target.files?.[0];
@@ -346,10 +346,11 @@ const AdminDashboard = () => {
       formData.append('purpose', purpose);
       if (purpose === 'project-file' && targetId) formData.append('projectId', String(targetId));
       if (purpose === 'worksheet' && targetId) formData.append('studentUserId', String(targetId));
-      if (purpose === 'marketplace-image') formData.append('isPublic', 'true');
+      if (purpose === 'marketplace-image' || purpose === 'service-image' || purpose === 'content-image') formData.append('isPublic', 'true');
+      if (purpose === 'service-image' && targetId) formData.append('serviceId', String(targetId));
       if (purpose === 'worksheet') formData.append('isPublic', 'false');
       const uploaded = await uploadAdminFile(formData);
-      if (purpose === 'marketplace-image') {
+      if (purpose === 'marketplace-image' || purpose === 'service-image' || purpose === 'content-image') {
         setModuleForm((prev) => ({ ...prev, image: String(uploaded.url || '') }));
       } else {
         await loadModuleItems(currentView);
@@ -814,7 +815,7 @@ const AdminDashboard = () => {
               <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
               <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
               <input value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
-              {category === 'marketplace' ? (
+              {isPublicContentModule ? (
                 <div className="lg:col-span-2 rounded-xl border border-white/10 bg-slate-950 p-3">
                   <div className="flex flex-wrap items-center gap-3">
                     <label className={`cursor-pointer rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 ${uploadingFile ? 'pointer-events-none opacity-50' : ''}`}>
@@ -826,7 +827,7 @@ const AdminDashboard = () => {
                   {moduleForm.image && <img src={moduleForm.image} alt="Marketplace preview" className="mt-3 h-24 w-40 rounded-lg border border-white/10 object-cover" />}
                 </div>
               ) : (
-                <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image URL optional" />
+                <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image upload optional" />
               )}
               <textarea value={moduleForm.details} onChange={(event) => setModuleForm((prev) => ({ ...prev, details: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Description / details shown on website" rows={3} />
             </>
@@ -884,7 +885,7 @@ const AdminDashboard = () => {
                             const uploaded = await uploadAdminFile(formData);
                             setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: String(uploaded.url || '') } } : prev);
                           } catch (error) {
-                            setModuleError(error instanceof Error ? error.message : 'Unable to upload marketplace image.');
+                            setModuleError(error instanceof Error ? error.message : 'Unable to upload image.');
                           } finally {
                             setUploadingFile(false);
                             event.target.value = '';
