@@ -719,6 +719,15 @@ const AdminDashboard = () => {
               <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
               {category === 'marketplace' ? <><select value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value, location: event.target.value === 'Other' ? prev.location : '' }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white"><option value="">Select gig category</option>{['Web Development', 'App Development', 'Digital Marketing', 'SEO Services', 'Social Media Marketing', 'Graphic Design & Branding', 'Content Creation', 'AI Automation', 'E-Commerce Solutions', 'UI/UX Design', 'Data Entry', ...Array.from(new Set((moduleItems.marketplace || []).map((gig) => String(gig.payload.category || '').trim()).filter((name) => name && !['Other'].includes(name))))].map((name) => <option key={name} value={name}>{name}</option>)}<option value="Other">Other (add custom)</option></select>{moduleForm.category === 'Other' && <input required value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Enter custom category" />}</> : <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />}
               <input value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
+              {category === 'marketplace' && (
+                <textarea
+                  value={moduleForm.details}
+                  onChange={(event) => setModuleForm((prev) => ({ ...prev, details: event.target.value }))}
+                  className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4"
+                  placeholder="Gig description / service details"
+                  rows={4}
+                />
+              )}
             </>
           )}
         </form>
