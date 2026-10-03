@@ -6,7 +6,6 @@ import SEO from '../components/SEO';
 import AttestationSeal from '../components/AttestationSeal';
 import { AttestationRecord, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
-import { getAttestationById } from '../utils/attestationManager';
 import { verifyPublicAttestation } from '../utils/api';
 import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { CheckCircle, AlertCircle, ShieldCheck, Loader2, ArrowLeft, Calendar, FileText, User } from 'lucide-react';
