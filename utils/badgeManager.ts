@@ -4,45 +4,11 @@ import { SkillBadge } from '../types';
 const STORAGE_KEY = 'dsh_skill_badges';
 
 // Initial Mock Badges to populate for demo
-const MOCK_BADGES: SkillBadge[] = [
-  {
-    id: 'SB-SEO-001',
-    skillName: 'SEO Keyword Research',
-    skillNameUr: 'SEO کی ورڈ ریسرچ',
-    studentName: 'Ali Ahmed',
-    category: 'Marketing',
-    level: 'Intermediate',
-    issueDate: '2024-10-15',
-    courseId: 'seo-specialist',
-    status: 'Verified'
-  },
-  {
-    id: 'SB-AI-002',
-    skillName: 'Prompt Engineering',
-    skillNameUr: 'پرامپٹ انجینئرنگ',
-    studentName: 'Ali Ahmed',
-    category: 'AI',
-    level: 'Beginner',
-    issueDate: '2024-10-20',
-    courseId: 'ai-automation',
-    status: 'Verified'
-  },
-  {
-    id: 'SB-DEV-003',
-    skillName: 'React Components',
-    skillNameUr: 'ری ایکٹ اجزاء',
-    studentName: 'Ali Ahmed',
-    category: 'Development',
-    level: 'Advanced',
-    issueDate: '2024-10-25',
-    courseId: 'web-dev',
-    status: 'Verified'
-  }
-];
+const MOCK_BADGES: SkillBadge[] = [[]
 
 const initStorage = () => {
   if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(MOCK_BADGES));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   }
 };
 
