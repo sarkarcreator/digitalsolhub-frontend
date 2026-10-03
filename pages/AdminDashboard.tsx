@@ -749,7 +749,6 @@ const AdminDashboard = () => {
             {(category === 'requests' || category === 'messages' || category === 'payments' || isPublicContentModule) && (
               <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder={category === 'messages' ? 'Type admin reply here...' : category === 'payments' ? 'Invoice details / scope of work' : isPublicContentModule ? 'Website description / details' : 'Project details / admin notes'} rows={3} />
             )}
-            {isPublicContentModule && (
             <select value={editingModuleItem.status || 'active'} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, status: event.target.value } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white">
               <option value="active">Active</option>
               <option value="pending">Pending</option>
