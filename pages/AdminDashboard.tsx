@@ -333,7 +333,7 @@ const AdminDashboard = () => {
 
   const handleAdminFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
-    purpose: 'project-file' | 'worksheet',
+    purpose: 'project-file' | 'worksheet' | 'marketplace-image',
     targetId?: number | string
   ) => {
     const file = event.target.files?.[0];
@@ -346,10 +346,15 @@ const AdminDashboard = () => {
       formData.append('purpose', purpose);
       if (purpose === 'project-file' && targetId) formData.append('projectId', String(targetId));
       if (purpose === 'worksheet' && targetId) formData.append('studentUserId', String(targetId));
+      if (purpose === 'marketplace-image') formData.append('isPublic', 'true');
       if (purpose === 'worksheet') formData.append('isPublic', 'false');
-      await uploadAdminFile(formData);
-      await loadModuleItems(currentView);
-      alert('File uploaded successfully.');
+      const uploaded = await uploadAdminFile(formData);
+      if (purpose === 'marketplace-image') {
+        setModuleForm((prev) => ({ ...prev, image: String(uploaded.url || '') }));
+      } else {
+        await loadModuleItems(currentView);
+        alert('File uploaded successfully.');
+      }
     } catch (error) {
       setModuleError(error instanceof Error ? error.message : 'Unable to upload file.');
     } finally {
@@ -809,7 +814,20 @@ const AdminDashboard = () => {
               <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
               <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
               <input value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
-              <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image URL optional" />
+              {category === 'marketplace' ? (
+                <div className="lg:col-span-2 rounded-xl border border-white/10 bg-slate-950 p-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className={`cursor-pointer rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 ${uploadingFile ? 'pointer-events-none opacity-50' : ''}`}>
+                      {uploadingFile ? 'Uploading...' : 'Upload Image'}
+                      <input disabled={uploadingFile} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={(event) => handleAdminFileUpload(event, 'marketplace-image')} />
+                    </label>
+                    {moduleForm.image && <span className="text-xs text-emerald-300">Image uploaded ✓</span>}
+                  </div>
+                  {moduleForm.image && <img src={moduleForm.image} alt="Marketplace preview" className="mt-3 h-24 w-40 rounded-lg border border-white/10 object-cover" />}
+                </div>
+              ) : (
+                <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image URL optional" />
+              )}
               <textarea value={moduleForm.details} onChange={(event) => setModuleForm((prev) => ({ ...prev, details: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Description / details shown on website" rows={3} />
             </>
           )}
@@ -848,7 +866,38 @@ const AdminDashboard = () => {
                 <input value={editingModuleItem.payload.type || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, type: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
                 <input value={editingModuleItem.payload.location || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, location: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
                 <input value={editingModuleItem.payload.category || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, category: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
-                <input value={editingModuleItem.payload.image || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Image URL optional" />
+                {category === 'marketplace' ? (
+                  <div className="lg:col-span-4 rounded-xl border border-white/10 bg-slate-950 p-3">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <label className={`cursor-pointer rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 ${uploadingFile ? 'pointer-events-none opacity-50' : ''}`}>
+                        {uploadingFile ? 'Uploading...' : 'Replace Image'}
+                        <input disabled={uploadingFile} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={async (event) => {
+                          const file = event.target.files?.[0];
+                          if (!file) return;
+                          setUploadingFile(true);
+                          setModuleError('');
+                          try {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('purpose', 'marketplace-image');
+                            formData.append('isPublic', 'true');
+                            const uploaded = await uploadAdminFile(formData);
+                            setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: String(uploaded.url || '') } } : prev);
+                          } catch (error) {
+                            setModuleError(error instanceof Error ? error.message : 'Unable to upload marketplace image.');
+                          } finally {
+                            setUploadingFile(false);
+                            event.target.value = '';
+                          }
+                        }} />
+                      </label>
+                      {editingModuleItem.payload.image && <span className="text-xs text-emerald-300">Image uploaded ✓</span>}
+                    </div>
+                    {editingModuleItem.payload.image && <img src={editingModuleItem.payload.image} alt="Marketplace preview" className="mt-3 h-24 w-40 rounded-lg border border-white/10 object-cover" />}
+                  </div>
+                ) : (
+                  <input value={editingModuleItem.payload.image || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Image URL optional" />
+                )}
               </>
             )}
             {category === 'requests' && (
