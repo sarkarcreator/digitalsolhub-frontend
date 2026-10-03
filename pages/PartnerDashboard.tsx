@@ -18,11 +18,8 @@ const PartnerDashboard: React.FC = () => {
   const [view, setView] = useState('overview');
   const [loading, setLoading] = useState(true);
 
-  // Mock Certificates
-  const [certs, setCerts] = useState([
-      { id: 'CERT-001', student: 'Sarah Khan', course: 'Web Development', date: '2024-10-20', status: 'Active' },
-      { id: 'CERT-002', student: 'Ahmed Ali', course: 'SEO Mastery', date: '2024-10-22', status: 'Active' }
-  ]);
+  // Certificates are loaded from the backend when the partner certificate API is available.
+  const [certs, setCerts] = useState<any[]>([]);
 
   useEffect(() => {
     if (slug) {
