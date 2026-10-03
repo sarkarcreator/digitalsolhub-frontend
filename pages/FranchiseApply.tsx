@@ -238,6 +238,7 @@ const FranchiseApply: React.FC = () => {
                     </button>
                  </div>
               </div>
+           </div>
            )}
 
            {step === 3 && (
