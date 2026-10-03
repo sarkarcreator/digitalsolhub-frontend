@@ -815,7 +815,7 @@ const AdminDashboard = () => {
               <input value={moduleForm.type} onChange={(event) => setModuleForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Full-time / Remote / Contract' : category === 'academy-content' ? 'hero / topic / course' : 'Type'} />
               <input value={moduleForm.location} onChange={(event) => setModuleForm((prev) => ({ ...prev, location: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder={category === 'jobs' ? 'Country / city / remote' : category === 'academy-content' ? 'Category, e.g. Digital Marketing' : 'Category'} />
               <input value={moduleForm.category} onChange={(event) => setModuleForm((prev) => ({ ...prev, category: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder={category === 'academy-content' ? 'Existing course ID optional, e.g. seo-mastery' : 'Internal category / slug optional'} />
-              {isPublicContentModule ? (
+              {isPublicContentModule && (
                 <div className="lg:col-span-2 rounded-xl border border-white/10 bg-slate-950 p-3">
                   <div className="flex flex-wrap items-center gap-3">
                     <label className={`cursor-pointer rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 ${uploadingFile ? 'pointer-events-none opacity-50' : ''}`}>
@@ -893,8 +893,6 @@ const AdminDashboard = () => {
                     </div>
                     {editingModuleItem.payload.image && <img src={editingModuleItem.payload.image} alt="Marketplace preview" className="mt-3 h-24 w-40 rounded-lg border border-white/10 object-cover" />}
                   </div>
-                ) : (
-            )}
             {category === 'requests' && (
               <>
                 <input type="date" value={editingModuleItem.payload.deadline || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, deadline: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" />
