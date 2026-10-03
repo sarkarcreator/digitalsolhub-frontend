@@ -2,6 +2,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SERVICE_CATEGORIES, TRANSLATIONS } from '../constants';
+import { fetchPublicModuleItems } from '../utils/api';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { ArrowLeft, CheckCircle, ChevronDown, ChevronUp, Clock, HelpCircle, Send, Star, Zap } from 'lucide-react';
@@ -11,8 +12,63 @@ const ServiceDetail: React.FC = () => {
   const lang = (Object.values(Language).includes(paramLang as Language)) ? (paramLang as Language) : Language.ENGLISH;
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = React.useState<number | null>(0);
+  const [dbService, setDbService] = React.useState<any | null>(null);
+  const [loadingService, setLoadingService] = React.useState(true);
 
-  const service = SERVICE_CATEGORIES.find(s => s.id === id);
+  React.useEffect(() => {
+    let active = true;
+    setLoadingService(true);
+    fetchPublicModuleItems('service-catalog')
+      .then((items) => {
+        if (!active) return;
+        const match = items.find((item) => String(item.id) === String(id) || String(item.payload?.slug || item.payload?.category) === String(id));
+        setDbService(match || null);
+      })
+      .catch(() => {
+        if (active) setDbService(null);
+      })
+      .finally(() => {
+        if (active) setLoadingService(false);
+      });
+    return () => { active = false; };
+  }, [id]);
+
+  const staticService = SERVICE_CATEGORIES.find(s => s.id === id);
+  const service = staticService || (dbService ? {
+    id: String(dbService.id),
+    title: {
+      [Language.ENGLISH]: dbService.payload?.title || 'Service',
+      [Language.URDU]: dbService.payload?.title || 'سروس',
+      [Language.ARABIC]: dbService.payload?.title || 'خدمة',
+      [Language.RUSSIAN]: dbService.payload?.title || 'Услуга',
+    },
+    details: {
+      tagline: {
+        [Language.ENGLISH]: 'Digital Solutions Hub Service',
+        [Language.URDU]: 'ڈیجیٹل سلوشنز ہب سروس',
+        [Language.ARABIC]: 'خدمة ديجيتال سوليوشنز هب',
+        [Language.RUSSIAN]: 'Сервис Digital Solutions Hub',
+      },
+      metaDesc: {
+        [Language.ENGLISH]: dbService.payload?.details || '',
+        [Language.URDU]: dbService.payload?.details || '',
+        [Language.ARABIC]: dbService.payload?.details || '',
+        [Language.RUSSIAN]: dbService.payload?.details || '',
+      },
+      benefits: [],
+      process: [],
+      faqs: [],
+    },
+    image: dbService.payload?.image || null,
+  } : null);
+
+  if (loadingService && !staticService) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <div className="flex items-center gap-3 text-gray-400"><Clock className="w-5 h-5 animate-spin" /> Loading service...</div>
+      </div>
+    );
+  }
 
   if (!service || !service.details) {
     return (
@@ -44,11 +100,6 @@ const ServiceDetail: React.FC = () => {
       "name": "Global"
     },
     "description": details.metaDesc[lang],
-    "offers": {
-      "@type": "Offer",
-      "price": "500",
-      "priceCurrency": "USD"
-    }
   };
 
   return (
