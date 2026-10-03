@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
-import { COURSES, TRANSLATIONS, STUDENT_PLANS, SYLLABUS_CURRICULUM, SOFT_SKILLS_MODULE } from '../constants';
+import { TRANSLATIONS, STUDENT_PLANS, SYLLABUS_CURRICULUM, SOFT_SKILLS_MODULE } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { Play, Clock, CheckCircle, Star, Sparkles, BookOpen, Brain, Rocket, ChevronDown, ChevronUp } from 'lucide-react';
@@ -46,37 +46,27 @@ const Academy: React.FC = () => {
 
   const heroItem = academyItems.find((item) => String(item.payload.type || '').toLowerCase() === 'hero');
   const topicItems = academyItems.filter((item) => String(item.payload.type || '').toLowerCase() === 'topic');
-  const fallbackTopics = [
-    "Shopify, eBay, Dropshipping", "Affiliate Marketing", "SEO & Website Traffic",
-    "Digital Marketing (Ads)", "Web Design & WordPress", "Graphic Design",
-    "AI Tools & Automation", "Freelancing & Online Earning"
-  ];
-  const learningTopics = topicItems.length
-    ? topicItems.map((item) => item.payload.title).filter(Boolean)
-    : fallbackTopics;
+  const learningTopics = topicItems.map((item) => item.payload.title).filter(Boolean);
 
   const dynamicCourses = useMemo(() => academyItems
     .filter((item) => String(item.payload.type || '').toLowerCase() === 'course')
     .map((item) => {
       const linkedCourseId = String(item.payload.category || '').trim();
-      const linkedCourse = COURSES.find((course) => course.id === linkedCourseId);
+      const linkedCourse = null;
       return {
-        id: linkedCourse?.id || `academy-${item.id}`,
+        id: `academy-${item.id}`,
         title: item.payload.title || 'Academy Course',
         description: item.payload.details || 'Admin managed academy course.',
-        category: item.payload.location || linkedCourse?.category || 'Digital Marketing',
-        duration: item.payload.amount || linkedCourse?.duration || 'Self-paced',
-        image: item.payload.image || linkedCourse?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
-        rating: item.payload.rating || linkedCourse?.rating || '4.8',
-        students: item.payload.students || linkedCourse?.students || 'New',
-        detailPath: linkedCourse ? `/${lang}/course/${linkedCourse.id}` : `/${lang}/apply`,
+        category: item.payload.location || 'Digital Marketing',
+        duration: item.payload.amount || 'Self-paced',
+        image: item.payload.image || '',
+        rating: item.payload.rating || '',
+        students: item.payload.students || '',
+        detailPath: `/${lang}/apply`,
       };
     }), [academyItems, lang]);
 
-  const displayedCourses = dynamicCourses.length ? dynamicCourses : COURSES.map((course) => ({
-    ...course,
-    detailPath: `/${lang}/course/${course.id}`,
-  }));
+  const displayedCourses = dynamicCourses;
 
   const filteredCourses = filter === 'All' 
     ? displayedCourses 
@@ -146,7 +136,7 @@ const Academy: React.FC = () => {
                 }`}
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img src={course.image} alt={title} width="800" height="450" loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" />
+                  {course.image ? <img src={course.image} alt={title} width="800" height="450" loading="lazy" decoding="async" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" /> : <div className="w-full h-full bg-slate-800 flex items-center justify-center"><BookOpen className="w-12 h-12 text-slate-600" /></div>}
                   <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center ${isSoftSkill ? 'bg-blue-600/80 backdrop-blur-[2px]' : 'bg-black/60 backdrop-blur-[2px]'}`}>
                      <Link to={(course as any).detailPath || `/${lang}/course/${course.id}`} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all transform hover:scale-110 shadow-xl ${isSoftSkill ? 'bg-white text-blue-600' : 'bg-white/20 text-white backdrop-blur-md hover:bg-gold-500 hover:text-black'}`}>
                        {isSoftSkill ? <Sparkles className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
