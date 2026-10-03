@@ -20,6 +20,7 @@ const Tools = lazy(() => import('./pages/Tools'));
 const Apply = lazy(() => import('./pages/Apply'));
 const Contact = lazy(() => import('./pages/Contact'));
 const CourseDetail = lazy(() => import('./pages/CourseDetail'));
+const CourseLearning = lazy(() => import('./pages/CourseLearning'));
 const StudentDashboard = lazy(() => import('./pages/StudentDashboard'));
 const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -143,6 +144,7 @@ const App: React.FC = () => {
              <Route path="apply" element={<Apply />} />
              <Route path="contact" element={<Contact />} />
              <Route path="course/:id" element={<CourseDetail />} />
+             <Route path="course/:id/learn" element={<CourseLearning />} />
              <Route path="privacy" element={<PrivacyPolicy />} />
              <Route path="terms" element={<Terms />} />
              <Route path="franchise-apply" element={<FranchiseApply />} />

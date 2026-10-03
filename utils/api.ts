@@ -628,6 +628,45 @@ export async function deleteClientProject(id: number | string): Promise<void> {
   }, true);
 }
 
+
+export interface LearningQuestion {
+  q: string;
+  options: string[];
+}
+
+export interface OfficeLearningState {
+  course: { id: string; name: string; type: string };
+  requirements: { typingMinWpm: number; typingMinAccuracy: number; dailyLessonLimit: number; chapterCount: number; lessonsPerChapter: number };
+  typing: { passed: boolean; wpm: number | null; accuracy: number | null; passage: string };
+  word: { chapters: Array<{ number: number; title: string; lessons: Array<{ id: number; number: number; title: string }>; unlocked: boolean; passed: boolean }>; finalPassed: boolean };
+  excelUnlocked: boolean;
+  dailyLessonsCompleted: number;
+  state: { typingPassed: boolean; completedLessons: number[]; passedChapters: number[]; wordFinalPassed: boolean; excelUnlocked: boolean; dailyLessonsCompleted: number };
+  progress: { lessonsCompleted: number; totalLessons: number; chaptersPassed: number; totalChapters: number; percentage: number };
+}
+
+export async function fetchOfficeManagementLearning(courseId: string, courseName = 'Office Management'): Promise<OfficeLearningState> {
+  return request<OfficeLearningState>(`/student/learning/office-management?courseId=${encodeURIComponent(courseId)}&courseName=${encodeURIComponent(courseName)}`, {}, true);
+}
+export async function submitOfficeManagementTyping(payload: { courseId: string; courseName: string; typedText: string; elapsedSeconds: number }): Promise<any> {
+  return request('/student/learning/office-management/typing', { method: 'POST', body: JSON.stringify(payload) }, true);
+}
+export async function completeOfficeManagementLesson(courseId: string, courseName: string, lesson: number): Promise<any> {
+  return request(`/student/learning/office-management/lessons/${lesson}/complete`, { method: 'POST', body: JSON.stringify({ courseId, courseName }) }, true);
+}
+export async function fetchOfficeManagementChapterTest(courseId: string, courseName: string, chapter: number): Promise<{ chapter: number; title: string; questions: LearningQuestion[]; passingScore: number }> {
+  return request(`/student/learning/office-management/chapter-tests/${chapter}?courseId=${encodeURIComponent(courseId)}&courseName=${encodeURIComponent(courseName)}`, {}, true);
+}
+export async function submitOfficeManagementChapterTest(courseId: string, courseName: string, chapter: number, answers: string[]): Promise<any> {
+  return request(`/student/learning/office-management/chapter-tests/${chapter}`, { method: 'POST', body: JSON.stringify({ courseId, courseName, answers }) }, true);
+}
+export async function fetchOfficeManagementFinalTest(courseId: string, courseName: string): Promise<{ questions: LearningQuestion[]; passingScore: number }> {
+  return request(`/student/learning/office-management/final-test?courseId=${encodeURIComponent(courseId)}&courseName=${encodeURIComponent(courseName)}`, {}, true);
+}
+export async function submitOfficeManagementFinalTest(courseId: string, courseName: string, answers: string[]): Promise<any> {
+  return request('/student/learning/office-management/final-test', { method: 'POST', body: JSON.stringify({ courseId, courseName, answers }) }, true);
+}
+
 /* ---------------- PUBLIC APPLICATIONS ---------------- */
 
 export async function submitApplication(payload: ApplicationPayload): Promise<{ id: number | string; message: string }> {
