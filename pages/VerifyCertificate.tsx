@@ -6,7 +6,6 @@ import SEO from '../components/SEO';
 import { ADMIN_WHATSAPP } from '../utils/notifications';
 import { TRANSLATIONS } from '../constants';
 import { CertificateData, Language } from '../types';
-import { getCertificateById } from '../utils/certificateManager';
 import { getExplorerLink } from '../utils/blockchainManager';
 import { verifyPublicCertificate } from '../utils/api';
 import { ACADEMY_BRAND_LOGO, ACADEMY_BRAND_NAME } from '../utils/academyBranding';
@@ -61,31 +60,8 @@ const VerifyCertificate: React.FC = () => {
       setStatus(normalizedStatus === 'revoked' ? 'revoked' : 'valid');
       return;
     } catch {
-      const foundCert = getCertificateById(certId.trim());
-      if (foundCert) {
-        if (foundCert.status === 'Revoked') {
-           setStatus('revoked');
-           setData(foundCert);
-        } else if (foundCert.status === 'Approved') {
-           setStatus('valid');
-           setData(foundCert);
-           
-           // Simulate blockchain integrity check if record exists
-           if (foundCert.blockchain) {
-               setCheckingBlockchain(true);
-               setTimeout(() => {
-                   setCheckingBlockchain(false);
-                   setBlockchainVerified(true);
-               }, 1500);
-           }
-        } else {
-           setStatus('invalid');
-           setData(null);
-        }
-      } else {
-        setStatus('invalid');
-        setData(null);
-      }
+      setStatus('invalid');
+      setData(null);
     }
   };
 
@@ -113,7 +89,6 @@ const VerifyCertificate: React.FC = () => {
       "name": data.studentName
     },
     "credentialId": data.id,
-    "image": `https://digitalsolhub.com/certs/${data.id}.png` // Hypothetical image URL
   } : null;
 
   return (
