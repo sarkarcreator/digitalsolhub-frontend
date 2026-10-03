@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Language, Lead, LeadStatus, Franchise, BlockchainNetwork, CertificateData, AttestationRecord } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import AdminSidebar from '../components/AdminSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { useRequireAuth } from '../utils/auth';
-import { getAllCertificates, updateCertificateStatus, attachBlockchainRecord } from '../utils/certificateManager';
-import { getAllLeads, updateLeadStatus } from '../utils/crmManager';
-import { getAllFranchises, updateFranchiseStatus } from '../utils/franchiseManager';
-import { getAllAttestations, updateAttestationStatus } from '../utils/attestationManager';
-import { mintCertificateOnChain } from '../utils/blockchainManager';
 import {
   createAdminModuleItem,
   createAdminStudent,
@@ -45,10 +39,6 @@ const AdminDashboard = () => {
   const [currentView, setCurrentView] = useState('overview');
   
   // Data States
-  const [certificates, setCertificates] = useState<CertificateData[]>([]);
-  const [attestations, setAttestations] = useState<AttestationRecord[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [students, setStudents] = useState<AdminStudentLead[]>([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsError, setStudentsError] = useState('');
@@ -70,9 +60,6 @@ const AdminDashboard = () => {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   
-  // Blockchain State
-  const [mintingId, setMintingId] = useState<string | null>(null);
-  const [selectedNetwork, setSelectedNetwork] = useState<BlockchainNetwork>('Polygon');
 
   const loadStudents = async () => {
   setStudentsLoading(true);
@@ -92,35 +79,6 @@ const AdminDashboard = () => {
   }
 };
   // --- Actions ---
-
-  const handleCertAction = (id: string, action: 'approve' | 'reject' | 'revoke') => {
-    let newStatus: 'Pending' | 'Approved' | 'Revoked' = 'Pending';
-    if (action === 'approve') newStatus = 'Approved';
-    if (action === 'revoke') newStatus = 'Revoked';
-    
-    const updated = updateCertificateStatus(id, newStatus);
-    setCertificates(updated);
-  };
-
-  const handleAttestationAction = (id: string, action: 'approve' | 'reject') => {
-      const updated = updateAttestationStatus(id, action === 'approve' ? 'Issued' : 'Rejected', 'Sarkar Azeem');
-      setAttestations(updated);
-  };
-
-  const handleMintCertificate = async (cert: CertificateData) => {
-    if (cert.status !== 'Approved') return;
-    setMintingId(cert.id);
-    
-    try {
-      const record = await mintCertificateOnChain(cert, selectedNetwork);
-      const updatedList = attachBlockchainRecord(cert.id, record);
-      setCertificates(updatedList);
-    } catch (error) {
-      alert('Minting failed. Please try again.');
-    } finally {
-      setMintingId(null);
-    }
-  };
 
   const handleStudentFieldChange = (field: keyof typeof studentForm, value: string) => {
     setStudentForm((prev) => ({ ...prev, [field]: value }));
@@ -388,10 +346,6 @@ const AdminDashboard = () => {
     document.documentElement.lang = lang;
     document.body.className = 'bg-slate-950 font-sans text-white';
     
-    setCertificates(getAllCertificates());
-    setAttestations([]);
-    setLeads(getAllLeads());
-    setFranchises(getAllFranchises());
     loadStudents();
     loadOverview();
   }, [lang]);
@@ -576,62 +530,11 @@ const AdminDashboard = () => {
     </div>
   );
 
-  const renderAttestationsView = () => (
-      <div className="space-y-6 animate-in fade-in">
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><FileBadge className="w-6 h-6 text-brand-neon"/> Official Attestation Requests</h2>
-          <div className="glass rounded-xl overflow-hidden border border-white/5">
-              <table className="w-full text-left text-gray-400">
-                  <thead className="bg-slate-900 text-xs uppercase font-bold text-gray-300">
-                      <tr>
-                          <th className="p-4">Request ID</th>
-                          <th className="p-4">Student</th>
-                          <th className="p-4">Type</th>
-                          <th className="p-4">Date</th>
-                          <th className="p-4">Status</th>
-                          <th className="p-4 text-right">Actions</th>
-                      </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                      {attestations.length === 0 ? (
-                          <tr>
-                              <td className="p-6 text-gray-500" colSpan={6}>No official attestation requests yet.</td>
-                          </tr>
-                      ) : attestations.map(att => (
-                          <tr key={att.id} className="hover:bg-white/5 transition-colors">
-                              <td className="p-4 font-mono text-xs">{att.id}</td>
-                              <td className="p-4 text-white font-bold">{att.studentName}</td>
-                              <td className="p-4">{att.type}</td>
-                              <td className="p-4">{att.requestDate}</td>
-                              <td className="p-4">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                      att.status === 'Issued' ? 'bg-blue-500/20 text-blue-400' :
-                                      att.status === 'Pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                                      'bg-red-500/20 text-red-400'
-                                  }`}>
-                                      {att.status}
-                                  </span>
-                              </td>
-                              <td className="p-4 text-right flex items-center justify-end gap-2">
-                                  <button onClick={() => handleAttestationAction(att.id, 'approve')} className="p-2 bg-green-500/10 text-green-400 rounded-lg hover:bg-green-500/20" title="Issue / Re-issue Seal">
-                                      <Award className="w-4 h-4" />
-                                  </button>
-                                  <button onClick={() => handleAttestationAction(att.id, 'reject')} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20" title="Reject / Revoke">
-                                      <XCircle className="w-4 h-4" />
-                                  </button>
-                              </td>
-                          </tr>
-                      ))}
-                  </tbody>
-              </table>
-          </div>
-      </div>
-  );
-
   const renderOverview = () => {
     const stats = [
       { label: 'Students', value: overview?.students ?? students.length, icon: Users },
       { label: 'Clients', value: overview?.clients ?? 0, icon: Briefcase },
-      { label: 'Certificates', value: overview?.certificates ?? certificates.length, icon: Award },
+      { label: 'Certificates', value: overview?.certificates ?? 0, icon: Award },
       { label: 'Open Projects', value: overview?.openProjects ?? 0, icon: Target },
     ];
 
@@ -1000,12 +903,7 @@ const AdminDashboard = () => {
     switch(currentView) {
       case 'messages': return renderMessagesView();
       case 'reports': return renderReportsView();
-      case 'certifications': return (
-        <div className="space-y-8">
-            {renderGenericModule('certifications')}
-            {renderAttestationsView()}
-        </div>
-      );
+      case 'certifications': return renderGenericModule('certifications');
       case 'overview': return renderOverview();
       case 'students': return renderStudentsView();
       default: return renderGenericModule(currentView);
