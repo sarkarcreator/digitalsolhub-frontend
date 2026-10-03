@@ -114,7 +114,7 @@ const Marketplace: React.FC = () => {
                 className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all group cursor-pointer"
               >
                  <div className="h-48 overflow-hidden relative bg-slate-800 flex items-center justify-center">
-                    {gig.image ? <img src={gig.image} alt={gig.title} width="400" height="256" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <Briefcase className="w-12 h-12 text-slate-600" aria-hidden="true" />}
+                    {gig.image ? <img src={gig.image} alt={gig.title} width="400" height="256" loading="eager" decoding="async" fetchPriority="high" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <Briefcase className="w-12 h-12 text-slate-600" aria-hidden="true" />}
                  </div>
                  <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
