@@ -259,7 +259,7 @@ const AdminDashboard = () => {
       type: editingModuleItem.payload.type || '',
       image: editingModuleItem.payload.image || '',
       location: editingModuleItem.payload.location || '',
-      category: editingModuleItem.payload.category || '',
+      category: category === 'marketplace' && editingModuleItem.payload.category === 'Other' ? (editingModuleItem.payload.location || '').trim() : editingModuleItem.payload.category || '',
     });
     setModuleItems((prev) => ({
       ...prev,
@@ -746,6 +746,23 @@ const AdminDashboard = () => {
             )}
             {category === 'certifications' && (
               <input value={editingModuleItem.payload.studentName || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, studentName: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Student name" />
+            )}
+            {isPublicContentModule && (
+              <>
+                <input value={editingModuleItem.payload.title || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, title: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Title" />
+                <input value={editingModuleItem.payload.amount || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, amount: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Price / value" />
+                <input value={editingModuleItem.payload.group || editingModuleItem.payload.owner || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, group: event.target.value, owner: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Seller / owner" />
+                {category === 'marketplace' && (
+                  <>
+                    <select value={editingModuleItem.payload.category || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, category: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2">
+                      <option value="">Select gig category</option>
+                      {['Web Development', 'App Development', 'Digital Marketing', 'SEO Services', 'Social Media Marketing', 'Graphic Design & Branding', 'Content Creation', 'AI Automation', 'E-Commerce Solutions', 'UI/UX Design', 'Data Entry', 'Other'].map((name) => <option key={name} value={name}>{name}</option>)}
+                      {editingModuleItem.payload.category && !['Web Development', 'App Development', 'Digital Marketing', 'SEO Services', 'Social Media Marketing', 'Graphic Design & Branding', 'Content Creation', 'AI Automation', 'E-Commerce Solutions', 'UI/UX Design', 'Data Entry', 'Other'].includes(editingModuleItem.payload.category) && <option value={editingModuleItem.payload.category}>{editingModuleItem.payload.category}</option>}
+                    </select>
+                    {editingModuleItem.payload.category === 'Other' && <input value={editingModuleItem.payload.location || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, location: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white" placeholder="Enter custom category" />}
+                  </>
+                )}
+              </>
             )}
             {(category === 'requests' || category === 'messages' || category === 'payments' || isPublicContentModule) && (
               <textarea value={editingModuleItem.payload.details || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, details: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder={category === 'messages' ? 'Type admin reply here...' : category === 'payments' ? 'Invoice details / scope of work' : isPublicContentModule ? 'Website description / details' : 'Project details / admin notes'} rows={3} />
