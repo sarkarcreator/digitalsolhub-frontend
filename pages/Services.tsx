@@ -135,6 +135,7 @@ const Services: React.FC = () => {
              iconKey: item.payload.type || item.payload.category || 'other',
            })) : SERVICE_CATEGORIES).map((service: any) => {
              const Icon = icons[service.id || service.iconKey] || Sparkles;
+            const serviceImage = service.payload?.image;
              return (
                <div key={service.id} className="group bg-slate-900/50 border border-white/5 rounded-2xl p-8 hover:bg-slate-800/60 hover:border-brand-neon/30 transition-all duration-300 flex flex-col">
                   <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center mb-6 group-hover:bg-brand-neon group-hover:text-black transition-colors text-brand-neon">
