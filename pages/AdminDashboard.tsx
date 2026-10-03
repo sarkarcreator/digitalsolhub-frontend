@@ -826,9 +826,6 @@ const AdminDashboard = () => {
                   </div>
                   {moduleForm.image && <img src={moduleForm.image} alt="Marketplace preview" className="mt-3 h-24 w-40 rounded-lg border border-white/10 object-cover" />}
                 </div>
-              ) : (
-                <input value={moduleForm.image} onChange={(event) => setModuleForm((prev) => ({ ...prev, image: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Image upload optional" />
-              )}
               <textarea value={moduleForm.details} onChange={(event) => setModuleForm((prev) => ({ ...prev, details: event.target.value }))} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-2" placeholder="Description / details shown on website" rows={3} />
             </>
           )}
@@ -897,9 +894,6 @@ const AdminDashboard = () => {
                     {editingModuleItem.payload.image && <img src={editingModuleItem.payload.image} alt="Marketplace preview" className="mt-3 h-24 w-40 rounded-lg border border-white/10 object-cover" />}
                   </div>
                 ) : (
-                  <input value={editingModuleItem.payload.image || ''} onChange={(event) => setEditingModuleItem((prev) => prev ? { ...prev, payload: { ...prev.payload, image: event.target.value } } : prev)} className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-white lg:col-span-4" placeholder="Image URL optional" />
-                )}
-              </>
             )}
             {category === 'requests' && (
               <>
