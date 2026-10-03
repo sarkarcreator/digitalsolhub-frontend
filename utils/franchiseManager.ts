@@ -3,7 +3,7 @@ import { Franchise } from '../types';
 
 const STORAGE_KEY = 'dsh_franchises';
 
-const MOCK_FRANCHISES: Franchise[] = [[]
+const MOCK_FRANCHISES: Franchise[] = [];
 
 const initStorage = () => {
   if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
