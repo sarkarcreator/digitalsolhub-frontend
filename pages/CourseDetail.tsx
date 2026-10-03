@@ -212,6 +212,11 @@ const CourseDetail: React.FC = () => {
         courseName: course.title,
         totalLessons: (course.learningOutcomes?.length || 0) * 3,
       });
+      const isOfficeManagement = /office management/i.test(course.title) || /office-management/i.test(course.id);
+      if (isOfficeManagement && auth.user.role === 'student') {
+        navigate(`/${lang}/course/${course.id}/learn`);
+        return;
+      }
       setEnrollMessage('Enrollment request sent. Admin will review it, and the course will stay in your dashboard.');
     } catch (error) {
       setEnrollMessage(error instanceof Error ? error.message : 'Unable to send enrollment request.');
