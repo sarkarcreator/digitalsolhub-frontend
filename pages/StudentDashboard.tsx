@@ -68,7 +68,6 @@ const StudentDashboard: React.FC = () => {
     }
 
     loadDashboard();
-    fetchPublicModuleItems('academy-content').then(setAcademyItems).catch(() => setAcademyItems([]));
     loadBadges(authUser.name);
 
   }, [lang, authUser]);
@@ -78,6 +77,8 @@ const StudentDashboard: React.FC = () => {
     setPortalError('');
     try {
       const data = await fetchStudentDashboard();
+      const catalog = await fetchPublicModuleItems('academy-content').catch(() => []);
+      setAcademyItems(catalog);
       setPortalData(data);
       setProfileForm({
         name: authUser?.name || '',
@@ -92,7 +93,7 @@ const StudentDashboard: React.FC = () => {
         attestation: getAttestationByCertId(cert.id),
       })));
       setEnrolledCourses(data.courses.map((course) => {
-        const catalogItem = academyItems.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' && (String(item.payload?.category || '') === String(course.courseId) || String(item.payload?.title || '') === String(course.courseName)));
+        const catalogItem = catalog.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' && (String(item.payload?.category || '') === String(course.courseId) || String(item.payload?.title || '') === String(course.courseName)));
         return {
           titleUr: catalogItem?.payload?.titleUr,
           description: catalogItem?.payload?.details || '',
