@@ -4,7 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
-import { sendNotifications } from '../utils/notifications';
+import { submitApplication } from '../utils/api';
 import { GitBranch, MapPin, DollarSign, Building, Loader2, CheckCircle, ArrowRight, Upload } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -14,6 +14,9 @@ const FranchiseApply: React.FC = () => {
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [reviewAccepted, setReviewAccepted] = useState(false);
   const [formData, setFormData] = useState({
     businessName: '',
     ownerName: '',
@@ -30,22 +33,76 @@ const FranchiseApply: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateStepOne = () => {
+    const required = [
+      ['Owner name', formData.ownerName],
+      ['Business name', formData.businessName],
+      ['Email', formData.email],
+      ['Phone', formData.phone],
+    ] as const;
+    const missing = required.find(([, value]) => !String(value).trim());
+    if (missing) {
+      setValidationError(`${missing[0]} is required.`);
+      return false;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setValidationError('Please enter a valid email address.');
+      return false;
+    }
+    setValidationError('');
+    setStep(2);
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
+    const required = [
+      ['City', formData.city],
+      ['Country', formData.country],
+      ['Franchise type', formData.type],
+      ['Investment range', formData.investment],
+    ] as const;
+    const missing = required.find(([, value]) => !String(value).trim());
+
+    if (missing) {
+      setValidationError(`${missing[0]} is required.`);
+      return;
+    }
+    if (!termsAccepted || !reviewAccepted) {
+      setValidationError('Please accept both application conditions before submitting.');
+      return;
+    }
+
+    setValidationError('');
     setLoading(true);
-    
-    // Simulate API Call using notification util
-    await sendNotifications('SERVICE_REQUEST', {
+    try {
+      await submitApplication({
+        applicationType: 'franchise',
         name: formData.ownerName,
         email: formData.email,
         phone: formData.phone,
-        details: `FRANCHISE APPLICATION: ${formData.type} in ${formData.city}, ${formData.country}. Investment: ${formData.investment}`
-    });
-
-    setTimeout(() => {
-        setLoading(false);
-        setStep(3);
-    }, 1500);
+        targetCountry: formData.country,
+        category: formData.type,
+        budget: formData.investment,
+        details: [
+          `Business: ${formData.businessName}`,
+          `City: ${formData.city}`,
+          `Country: ${formData.country}`,
+          `Franchise type: ${formData.type}`,
+          `Investment range: ${formData.investment}`,
+          formData.experience.trim() ? `Experience: ${formData.experience.trim()}` : '',
+          'Applicant confirmed the submitted information is accurate.',
+          'Applicant acknowledged that submission is subject to DSH review and approval.',
+        ].filter(Boolean).join('\\n'),
+      });
+      setStep(3);
+    } catch (error) {
+      setValidationError(error instanceof Error ? error.message : 'Unable to submit the application. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -115,7 +172,7 @@ const FranchiseApply: React.FC = () => {
                     </div>
                  </div>
                  <div className="flex justify-end">
-                    <button onClick={() => setStep(2)} className="px-8 py-3 bg-brand-neon text-black font-bold rounded-xl hover:shadow-[0_0_15px_rgba(0,243,255,0.4)] flex items-center gap-2 transition-all">
+                    <button onClick={validateStepOne} type="button" className="px-8 py-3 bg-brand-neon text-black font-bold rounded-xl hover:shadow-[0_0_15px_rgba(0,243,255,0.4)] flex items-center gap-2 transition-all">
                        {TRANSLATIONS.btn_next[lang]} <ArrowRight className="w-5 h-5 rtl:rotate-180" />
                     </button>
                  </div>
@@ -155,8 +212,20 @@ const FranchiseApply: React.FC = () => {
                        <textarea name="experience" value={formData.experience} onChange={handleChange} rows={3} className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:border-brand-neon transition-colors" placeholder="Describe your experience in education or digital business..." />
                     </div>
                  </div>
+                 <div className="space-y-5">
+                 <div className="space-y-3 rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                    <label className="flex items-start gap-3 text-sm text-gray-300 cursor-pointer">
+                       <input type="checkbox" checked={termsAccepted} onChange={(e) => { setTermsAccepted(e.target.checked); setValidationError(''); }} className="mt-1 h-4 w-4 accent-cyan-400" />
+                       <span>I confirm that the information provided in this application is accurate and complete.</span>
+                    </label>
+                    <label className="flex items-start gap-3 text-sm text-gray-300 cursor-pointer">
+                       <input type="checkbox" checked={reviewAccepted} onChange={(e) => { setReviewAccepted(e.target.checked); setValidationError(''); }} className="mt-1 h-4 w-4 accent-cyan-400" />
+                       <span>I understand that this application is subject to DSH review, verification, and approval. Submission does not guarantee a franchise.</span>
+                    </label>
+                 </div>
+                 {validationError && <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{validationError}</p>}
                  <div className="flex justify-between">
-                    <button onClick={() => setStep(1)} className="px-8 py-3 text-gray-400 font-bold hover:text-white transition-colors">
+                    <button onClick={() => { setValidationError(''); setStep(1); }} type="button" className="px-8 py-3 text-gray-400 font-bold hover:text-white transition-colors">
                        {TRANSLATIONS.btn_back[lang]}
                     </button>
                     <button onClick={handleSubmit} disabled={loading} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-purple-500/20 flex items-center gap-2 transition-all">
