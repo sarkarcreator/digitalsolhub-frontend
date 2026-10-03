@@ -220,7 +220,9 @@ const StudentDashboard: React.FC = () => {
                                         <QRCodeSVG value={`https://digitalsolhub.com/verify/${cert.id}`} size={40} />
                                      </div>
                                   )}
-                               </div>                         </div>
+                               </div>
+                            </div>
+                         </div>
                       )) : (
                          <div className="col-span-2 text-center text-gray-500 py-10 border border-dashed border-white/10 rounded-xl">No Certificates Yet</div>
                       )}
