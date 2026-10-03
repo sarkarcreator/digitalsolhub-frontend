@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Language, CertificateData } from '../types';
-import { TRANSLATIONS, COURSES, SOFT_SKILLS_MODULE } from '../constants';
+import { TRANSLATIONS, SOFT_SKILLS_MODULE } from '../constants';
 import SEO from '../components/SEO';
 import DashboardSidebar from '../components/DashboardSidebar';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -21,6 +21,7 @@ import {
   sendStudentSupportMessage,
   updateStudentCourseProgress,
   updateStudentProfile,
+  fetchPublicModuleItems,
   type StudentPortalDashboard,
 } from '../utils/api';
 import { ACADEMY_BRAND_LOGO, ACADEMY_BRAND_NAME } from '../utils/academyBranding';
@@ -45,6 +46,7 @@ const StudentDashboard: React.FC = () => {
 
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [portalData, setPortalData] = useState<StudentPortalDashboard | null>(null);
+  const [academyItems, setAcademyItems] = useState<any[]>([]);
   const [portalLoading, setPortalLoading] = useState(false);
   const [portalError, setPortalError] = useState('');
   const [supportText, setSupportText] = useState('');
@@ -66,6 +68,7 @@ const StudentDashboard: React.FC = () => {
     }
 
     loadDashboard();
+    fetchPublicModuleItems('academy-content').then(setAcademyItems).catch(() => setAcademyItems([]));
     loadBadges(authUser.name);
 
   }, [lang, authUser]);
@@ -89,17 +92,22 @@ const StudentDashboard: React.FC = () => {
         attestation: getAttestationByCertId(cert.id),
       })));
       setEnrolledCourses(data.courses.map((course) => {
-        const catalogCourse = COURSES.find((item) => item.id === course.courseId || item.title === course.courseName);
+        const catalogItem = academyItems.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' && (String(item.payload?.category || '') === String(course.courseId) || String(item.payload?.title || '') === String(course.courseName)));
         return {
-          ...(catalogCourse || {}),
+          titleUr: catalogItem?.payload?.titleUr,
+          description: catalogItem?.payload?.details || '',
+          descriptionUr: catalogItem?.payload?.detailsUr,
+          category: catalogItem?.payload?.location || 'Digital Skills',
+          duration: catalogItem?.payload?.amount || 'Self-paced',
+          ...(catalogItem?.payload || {}),
           id: course.id,
           courseId: course.courseId,
           title: course.courseName,
           progress: course.progress,
           status: course.status === 'completed' ? 'Completed' : 'Active',
-          image: catalogCourse?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop',
-          instructor: catalogCourse?.instructor || { name: ACADEMY_BRAND_NAME },
-          learningOutcomes: catalogCourse?.learningOutcomes || [],
+          image: catalogItem?.payload?.image || '',
+          instructor: catalogItem?.payload?.instructor ? { name: catalogItem.payload.instructor } : { name: ACADEMY_BRAND_NAME },
+          learningOutcomes: Array.isArray(catalogItem?.payload?.outcomes) ? catalogItem.payload.outcomes : [],
         };
       }));
     } catch (error) {
@@ -116,8 +124,8 @@ const StudentDashboard: React.FC = () => {
 
   const student = {
     name: authUser?.name ?? 'Learner',
-    email: authUser?.email ?? 'hello@example.com',
-    image: "https://picsum.photos/200/200?random=student",
+    email: authUser?.email ?? '',
+    image: '',
     id: authUser?.studentId ?? `ST-${authUser?.id ?? '000'}`
   };
 
@@ -187,7 +195,7 @@ const StudentDashboard: React.FC = () => {
   };
   
   const openLinkedInShare = (cert: any) => {
-    const courseDetails = COURSES.find(c => c.title === cert.courseName);
+    const courseDetails = academyItems.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' && String(item.payload?.title || '') === String(cert.courseName));
     const skills = courseDetails?.learningOutcomes || ['Digital Skills', 'Professional Development'];
     setShareCertificate({ ...cert, skills });
   };
@@ -379,7 +387,7 @@ const StudentDashboard: React.FC = () => {
             <div className="mt-10">
               <h3 className="mb-4 text-xl font-bold text-white">Available Courses</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {COURSES.filter((course) => !enrolledCourses.some((enrolled) => enrolled.courseId === course.id)).map((course) => (
+                {academyItems.filter((item) => String(item.payload?.type || '').toLowerCase() === 'course').map((item) => ({ id: String(item.payload?.category || `academy-${item.id}`), title: item.payload?.title || 'Course', description: item.payload?.details || '', image: item.payload?.image || '', learningOutcomes: Array.isArray(item.payload?.outcomes) ? item.payload.outcomes : [], category: item.payload?.location || 'Digital Skills' })).filter((course) => !enrolledCourses.some((enrolled) => enrolled.courseId === course.id)).map((course) => (
                   <div key={course.id} className="glass rounded-2xl border border-white/5 p-4">
                     <img src={course.image} alt={course.title} className="mb-4 h-36 w-full rounded-xl object-cover" />
                     <h4 className="font-bold text-white">{course.title}</h4>
