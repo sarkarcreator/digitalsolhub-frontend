@@ -732,8 +732,13 @@ export async function fetchPartnerDashboard(): Promise<PartnerDashboardData> {
 }
 export async function fetchPartnerProfile(): Promise<any> { return request('/partner/profile', {}, true); }
 export async function updatePartnerProfile(payload:any): Promise<any> {
-  const body = payload instanceof FormData ? payload : JSON.stringify(payload);
-  return request('/partner/profile',{method:'PUT',body},true);
+  if (payload instanceof FormData) {
+    // PHP/Laravel does not reliably parse multipart/form-data bodies sent with PUT.
+    // Send multipart as POST and let Laravel's method spoofing route it to PUT.
+    if (!payload.has('_method')) payload.append('_method', 'PUT');
+    return request('/partner/profile',{method:'POST',body:payload},true);
+  }
+  return request('/partner/profile',{method:'PUT',body:JSON.stringify(payload)},true);
 }
 export async function fetchPartnerServices(): Promise<any[]> { return request('/partner/services',{},true); }
 export async function createPartnerService(payload:any): Promise<any> { return request('/partner/services',{method:'POST',body:JSON.stringify(payload)},true); }
