@@ -39,8 +39,8 @@ const Certificate = forwardRef<HTMLDivElement, CertificateProps>(({
   isAccredited = false,
   attestation,
   partnerMode = false,
-  signatureImage = '/brand/sig.webp',
-  stampImage = '/brand/stemp.webp'
+  signatureImage = undefined,
+  stampImage = undefined
 }, ref) => {
   
   // Use partner verification URL if in partner mode (mocked)
