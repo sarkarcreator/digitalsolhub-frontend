@@ -186,7 +186,7 @@ const Home: React.FC = () => {
       <section className="bg-slate-950 border-t border-white/10 py-20 min-h-[420px] cls-stable">
          <div className="max-w-5xl mx-auto px-4 text-center">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden border-4 border-gold-500/30 shadow-2xl">
-               <img src="https://picsum.photos/400/400?grayscale" alt="Sarkar Azeem CEO" width="400" height="400" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+               <div className="w-full h-full flex items-center justify-center bg-slate-950"><img src="/brand/Final Logo (1).webp" alt="Digital Solutions Hub" width="400" height="400" loading="lazy" decoding="async" className="w-3/4 max-w-xs object-contain" /></div>
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Sarkar Azeem</h2>
             <p className="text-gold-400 text-sm font-bold uppercase tracking-widest mb-6">CEO & Founder</p>
