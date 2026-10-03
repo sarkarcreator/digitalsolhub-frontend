@@ -1,10 +1,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { TRANSLATIONS } from '../constants';
-import { Search, Star, Filter, Briefcase, Code, PenTool, Globe, DollarSign, X, CheckCircle, ArrowRight } from 'lucide-react';
+import { Search, Briefcase, Code, PenTool, Globe, X, CheckCircle, ArrowRight } from 'lucide-react';
 import { fetchPublicModuleItems, submitApplication } from '../utils/api';
 
 const Marketplace: React.FC = () => {
@@ -13,6 +13,7 @@ const Marketplace: React.FC = () => {
   const [selectedGig, setSelectedGig] = useState<any>(null);
   const [query, setQuery] = useState('');
   const [adminGigs, setAdminGigs] = useState<any[]>([]);
+  const [gigsLoading, setGigsLoading] = useState(true);
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', phone: '', details: '' });
   const [inquiryState, setInquiryState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -28,12 +29,13 @@ const Marketplace: React.FC = () => {
       .then((items) => setAdminGigs(items.map((item) => ({
         id: item.id,
         title: item.payload.title,
-        author: item.payload.owner || item.payload.group || 'DSH Seller',
+        author: item.payload.owner || item.payload.group || 'Digital Solutions Hub',
         price: item.payload.amount ? String(item.payload.amount) : '',
         image: item.payload.image || '',
         desc: item.payload.details || 'Contact Digital Solutions Hub to discuss the service scope.',
       }))))
-      .catch(() => setAdminGigs([]));
+      .catch(() => setAdminGigs([]))
+      .finally(() => setGigsLoading(false));
   }, []);
 
   const gigs = useMemo(() => {
@@ -110,8 +112,8 @@ const Marketplace: React.FC = () => {
                 onClick={() => setSelectedGig(gig)}
                 className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all group cursor-pointer"
               >
-                 <div className="h-48 overflow-hidden relative">
-                    <img src={gig.image} alt={gig.title} width="400" height="256" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                 <div className="h-48 overflow-hidden relative bg-slate-800 flex items-center justify-center">
+                    {gig.image ? <img src={gig.image} alt={gig.title} width="400" height="256" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <Briefcase className="w-12 h-12 text-slate-600" aria-hidden="true" />}
                  </div>
                  <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -129,6 +131,8 @@ const Marketplace: React.FC = () => {
                  </div>
               </div>
            ))}
+           {!gigsLoading && gigs.length === 0 && <p className="col-span-full py-12 text-center text-gray-400">{query.trim() ? 'No services match your search.' : 'No services are currently listed. Please check back soon.'}</p>}
+           {gigsLoading && <p className="col-span-full py-12 text-center text-gray-400">Loading available services...</p>}
         </div>
       </div>
 
