@@ -173,13 +173,13 @@ export const TRANSLATIONS: any = {
 
   // Academy
   metaTitleAcademy: {
-    [Language.ENGLISH]: 'DSH The Royal School & College - Online Courses for SEO, Web Dev & Freelancing',
+    [Language.ENGLISH]: 'Digital Solutions Hub Academy - Online Courses for SEO, Web Dev & Freelancing',
     [Language.URDU]: 'DSH اکیڈمی - SEO، ویب ڈیولپمنٹ اور فری لانسنگ کے آن لائن کورسز',
     [Language.ARABIC]: 'أكاديمية DSH - دورات عبر الإنترنت في SEO وتطوير الويب والعمل الحر',
     [Language.RUSSIAN]: 'Академия DSH - Онлайн курсы по SEO, веб-разработке и фрилансу'
   },
   metaDescAcademy: {
-    [Language.ENGLISH]: 'Enroll in top-rated online courses at DSH The Royal School & College. Master Shopify, Digital Marketing, Graphic Design, and AI tools with verified certificates.',
+    [Language.ENGLISH]: 'Enroll in top-rated online courses at Digital Solutions Hub Academy. Master Shopify, Digital Marketing, Graphic Design, and AI tools with verified certificates.',
     [Language.URDU]: 'DSH اکیڈمی میں بہترین آن لائن کورسز میں داخلہ لیں۔ تصدیق شدہ سرٹیفکیٹس کے ساتھ شاپائف، ڈیجیٹل مارکیٹنگ، گرافک ڈیزائن، اور AI ٹولز میں مہارت حاصل کریں۔',
     [Language.ARABIC]: 'سجل في أفضل الدورات عبر الإنترنت في أكاديمية DSH. أتقن شوبيفاي، التسويق الرقمي، التصميم الجرافيكي، وأدوات الذكاء الاصطناعي مع شهادات معتمدة.',
     [Language.RUSSIAN]: 'Запишитесь на лучшие онлайн-курсы в Академии DSH. Освойте Shopify, цифровой маркетинг, графический дизайн и инструменты ИИ с подтвержденными сертификатами.'
@@ -611,11 +611,8 @@ export const SOFT_SKILLS_MODULE = {
   ]
 };
 
-export const STUDENT_ANNOUNCEMENTS = [
-  { id: 1, type: 'Release', title: 'Certificates Released for Batch 24', date: 'Oct 25, 2024', message: 'Certificates for Freelancing & Online Earning batch 24 have been issued. Check your Certificates tab.' },
-  { id: 2, type: 'Alert', title: 'New Course Added: AI Automation', date: 'Oct 22, 2024', message: 'Enroll now in our advanced AI Automation course to learn Zapier and ChatGPT workflows.' },
-  { id: 3, type: 'Update', title: 'Shopify Module Updated', date: 'Oct 20, 2024', message: 'New lessons on TikTok Ads integration have been added to the Shopify Mastery course.' }
-];
+export const STUDENT_ANNOUNCEMENTS = [];
+
 
 export const ADD_ON_COURSES = [];
 export const STUDENT_BONUSES = [];
