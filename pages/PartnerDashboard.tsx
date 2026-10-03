@@ -22,14 +22,13 @@ const PartnerDashboard: React.FC = () => {
   const [certs, setCerts] = useState<any[]>([]);
 
   useEffect(() => {
-    if (slug) {
-        // Simulate fetch
-        setTimeout(() => {
-            const data = getPartnerBySlug(slug);
-            setPartner(data || null);
-            setLoading(false);
-        }, 500);
+    if (!slug) {
+      setLoading(false);
+      return;
     }
+    const data = getPartnerBySlug(slug);
+    setPartner(data || null);
+    setLoading(false);
   }, [slug]);
 
   if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">Loading Portal...</div>;
@@ -99,7 +98,7 @@ const PartnerDashboard: React.FC = () => {
                     <ExternalLink className="w-4 h-4" /> View Public Page
                 </Link>
                 <div className="w-10 h-10 rounded-full bg-slate-200 border border-slate-300 overflow-hidden">
-                    <img src={`https://ui-avatars.com/api/?name=${partner.name}&background=random`} alt="Avatar" loading="eager" />
+                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden"><Logo className="w-7 h-7" withText={false} /></div>
                 </div>
             </div>
          </header>
