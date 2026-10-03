@@ -146,6 +146,11 @@ export interface ApplicationPayload {
   category?: string;
   budget?: string;
   details?: string;
+  businessName?: string;
+  franchiseType?: string;
+  experience?: string;
+  termsAccepted?: boolean;
+  reviewAccepted?: boolean;
   document?: File | null;
 }
 
@@ -635,6 +640,11 @@ export async function submitApplication(payload: ApplicationPayload): Promise<{ 
   if (payload.category) formData.append('category', payload.category);
   if (payload.budget) formData.append('budget', payload.budget);
   if (payload.details) formData.append('details', payload.details);
+  if (payload.businessName) formData.append('businessName', payload.businessName);
+  if (payload.franchiseType) formData.append('franchiseType', payload.franchiseType);
+  if (payload.experience) formData.append('experience', payload.experience);
+  if (typeof payload.termsAccepted === 'boolean') formData.append('termsAccepted', payload.termsAccepted ? '1' : '0');
+  if (typeof payload.reviewAccepted === 'boolean') formData.append('reviewAccepted', payload.reviewAccepted ? '1' : '0');
   if (payload.document) formData.append('document', payload.document);
 
   return request<{ id: number | string; message: string }>('/applications', {
