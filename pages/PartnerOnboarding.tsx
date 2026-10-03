@@ -5,7 +5,7 @@ import SEO from '../components/SEO';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../constants';
 import Logo from '../components/Logo';
-import { registerPartner } from '../utils/partnerManager';
+import { submitPartnerApplication } from '../utils/api';
 import { 
   Building, User, Mail, Phone, Globe, Palette, CheckCircle, 
   ArrowRight, Loader2, Upload, Layout, ArrowLeft
@@ -42,13 +42,26 @@ const PartnerOnboarding: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-        const newPartner = registerPartner(formData);
-        setLoading(false);
-        navigate(`/p/${newPartner.slug}/dashboard`);
-    }, 1500);
+
+    try {
+      await submitPartnerApplication({
+        full_name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        country: '',
+        city: '',
+        availability: 'Project based',
+        bio: [formData.tagline, formData.website ? `Website: ${formData.website}` : ''].filter(Boolean).join('\\n'),
+        experience_years: null,
+        skills: [],
+        skills_text: 'Partner / white-label digital services',
+      });
+      navigate(`/${lang}`);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Unable to submit partner application.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
