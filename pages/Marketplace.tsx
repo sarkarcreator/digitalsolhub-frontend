@@ -1,10 +1,10 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { TRANSLATIONS } from '../constants';
-import { Search, Star, Filter, Briefcase, Code, PenTool, Globe, DollarSign, X, CheckCircle, ArrowRight } from 'lucide-react';
+import { Search, Briefcase, Code, PenTool, Globe, X, CheckCircle, ArrowRight } from 'lucide-react';
 import { fetchPublicModuleItems, submitApplication } from '../utils/api';
 
 const Marketplace: React.FC = () => {
@@ -13,21 +13,15 @@ const Marketplace: React.FC = () => {
   const [selectedGig, setSelectedGig] = useState<any>(null);
   const [query, setQuery] = useState('');
   const [adminGigs, setAdminGigs] = useState<any[]>([]);
+  const [gigsLoading, setGigsLoading] = useState(true);
   const [inquiryForm, setInquiryForm] = useState({ name: '', email: '', phone: '', details: '' });
   const [inquiryState, setInquiryState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const categories = [
-    { name: 'Development', icon: Code, count: 120 },
-    { name: 'Design', icon: PenTool, count: 85 },
-    { name: 'Marketing', icon: Globe, count: 64 },
-    { name: 'Writing', icon: Briefcase, count: 42 },
-  ];
-
-  const fallbackGigs = [
-    { id: 1, title: 'I will build a React Website', author: 'Ali Ahmed', rating: 4.9, price: '$50', image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&q=80&w=400', desc: 'Professional React JS website with responsive design, API integration, and modern UI/UX.' },
-    { id: 2, title: 'Logo Design & Branding', author: 'Sarah K.', rating: 5.0, price: '$30', image: 'https://images.unsplash.com/photo-1626785774573-4b7993143a26?auto=format&fit=crop&q=80&w=400', desc: 'Unique logo concepts with complete branding kit including business card and letterhead.' },
-    { id: 3, title: 'SEO Audit & Ranking', author: 'Sarkar Azeem', rating: 5.0, price: '$100', image: 'https://images.unsplash.com/photo-1571786256017-aee7a0c009b6?auto=format&fit=crop&q=80&w=400', desc: 'Comprehensive SEO audit and optimization to rank your website on the first page of Google.' },
-    { id: 4, title: 'Social Media Management', author: 'Zainab B.', rating: 4.8, price: '$200', image: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400', desc: 'Monthly management of Facebook, Instagram, and LinkedIn with content creation and posting.' },
+    { name: 'Development', icon: Code },
+    { name: 'Design', icon: PenTool },
+    { name: 'Marketing', icon: Globe },
+    { name: 'Writing', icon: Briefcase },
   ];
 
   useEffect(() => {
@@ -35,17 +29,18 @@ const Marketplace: React.FC = () => {
       .then((items) => setAdminGigs(items.map((item) => ({
         id: item.id,
         title: item.payload.title,
-        author: item.payload.owner || item.payload.group || 'DSH Seller',
-        rating: item.payload.rating || 5,
-        price: item.payload.amount || 'Custom',
-        image: item.payload.image || 'https://images.unsplash.com/photo-1547658719-da2b51169166?auto=format&fit=crop&q=80&w=400',
-        desc: item.payload.details || 'Professional service available through Digital Solutions Hub.',
+        category: item.payload.category || item.payload.type || '',
+        author: item.payload.owner || item.payload.group || 'Digital Solutions Hub',
+        price: item.payload.amount ? String(item.payload.amount) : '',
+        image: item.payload.image || '',
+        desc: item.payload.details || 'Contact Digital Solutions Hub to discuss the service scope.',
       }))))
-      .catch(() => setAdminGigs([]));
+      .catch(() => setAdminGigs([]))
+      .finally(() => setGigsLoading(false));
   }, []);
 
   const gigs = useMemo(() => {
-    const source = adminGigs.length ? adminGigs : fallbackGigs;
+    const source = adminGigs;
     const needle = query.trim().toLowerCase();
     if (!needle) return source;
     return source.filter((gig) => `${gig.title} ${gig.author} ${gig.desc}`.toLowerCase().includes(needle));
@@ -104,7 +99,7 @@ const Marketplace: React.FC = () => {
               <div key={i} className="bg-slate-900/50 p-6 rounded-xl border border-white/5 hover:border-green-500/50 transition-all cursor-pointer text-center group">
                  <cat.icon className="w-8 h-8 mx-auto mb-3 text-gray-400 group-hover:text-green-400" />
                  <h3 className="font-bold text-white">{cat.name}</h3>
-                 <p className="text-xs text-gray-500">{cat.count} Gigs</p>
+                 <p className="text-xs text-gray-500">{adminGigs.filter((gig) => String(gig.category).toLowerCase().includes(cat.name.toLowerCase())).length} Gigs</p>
               </div>
            ))}
         </div>
@@ -118,8 +113,8 @@ const Marketplace: React.FC = () => {
                 onClick={() => setSelectedGig(gig)}
                 className="bg-slate-900 rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all group cursor-pointer"
               >
-                 <div className="h-48 overflow-hidden relative">
-                    <img src={gig.image} alt={gig.title} width="400" height="256" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                 <div className="h-48 overflow-hidden relative bg-slate-800 flex items-center justify-center">
+                    {gig.image ? <img src={gig.image} alt={gig.title} width="400" height="256" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <Briefcase className="w-12 h-12 text-slate-600" aria-hidden="true" />}
                  </div>
                  <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -130,16 +125,15 @@ const Marketplace: React.FC = () => {
                        <span className="text-sm text-gray-400">{gig.author}</span>
                     </div>
                     <div className="flex justify-between items-center border-t border-white/5 pt-3">
-                       <div className="flex items-center gap-1 text-yellow-400 text-sm font-bold">
-                          <Star className="w-4 h-4 fill-current" /> {gig.rating}
-                       </div>
-                       <div className="text-green-400 font-bold">
-                          {TRANSLATIONS.starting_at[lang]} <span className="text-lg">{gig.price}</span>
+                       <div className="text-green-400 font-bold ml-auto">
+                          {gig.price ? <>{TRANSLATIONS.starting_at[lang]} <span className="text-lg">{gig.price}</span></> : <span className="text-sm">Custom quote</span>}
                        </div>
                     </div>
                  </div>
               </div>
            ))}
+           {!gigsLoading && gigs.length === 0 && <p className="col-span-full py-12 text-center text-gray-400">{query.trim() ? 'No services match your search.' : 'No services are currently listed. Please check back soon.'}</p>}
+           {gigsLoading && <p className="col-span-full py-12 text-center text-gray-400">Loading available services...</p>}
         </div>
       </div>
 
@@ -147,8 +141,8 @@ const Marketplace: React.FC = () => {
       {selectedGig && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
            <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
-              <div className="relative h-64">
-                 <img src={selectedGig.image} alt={selectedGig.title} width="800" height="320" loading="eager" decoding="async" className="w-full h-full object-cover" />
+              <div className="relative h-64 bg-slate-800 flex items-center justify-center">
+                 {selectedGig.image ? <img src={selectedGig.image} alt={selectedGig.title} width="800" height="320" loading="eager" decoding="async" className="w-full h-full object-cover" /> : <Briefcase className="w-16 h-16 text-slate-600" aria-hidden="true" />}
                  <button onClick={() => setSelectedGig(null)} className="absolute top-4 right-4 bg-black/50 p-2 rounded-full hover:bg-black/80 text-white z-10 rtl:right-auto rtl:left-4">
                     <X className="w-5 h-5" />
                  </button>
@@ -159,7 +153,7 @@ const Marketplace: React.FC = () => {
                         <h2 className="text-2xl font-bold text-white mb-1">{selectedGig.title}</h2>
                         <p className="text-green-400 font-medium">{selectedGig.author}</p>
                     </div>
-                    <div className="text-2xl font-bold text-white">{selectedGig.price}</div>
+                    <div className="text-2xl font-bold text-white">{selectedGig.price || 'Custom quote'}</div>
                  </div>
                  
                  <p className="text-gray-300 mb-8 leading-relaxed">
