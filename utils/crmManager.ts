@@ -3,7 +3,7 @@ import { Lead, LeadStatus, Language } from '../types';
 
 const STORAGE_KEY = 'dsh_crm_leads';
 
-const MOCK_LEADS: Lead[] = [[]
+const MOCK_LEADS: Lead[] = []
 
 const initStorage = () => {
   if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
