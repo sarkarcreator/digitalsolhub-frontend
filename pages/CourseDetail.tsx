@@ -1,11 +1,11 @@
 
 import React, { useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { COURSES } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { Language } from '../types';
 import SEO from '../components/SEO';
 import { Clock, Users, Star, BookOpen, Check, ShieldCheck, Award, Linkedin, Twitter, Quote, Download, User, Facebook, Copy, Monitor, Loader2 } from 'lucide-react';
-import { enrollStudentCourse, getStoredAuth } from '../utils/api';
+import { enrollStudentCourse, getStoredAuth, fetchPublicModuleItems } from '../utils/api';
 import { ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 
 const CourseDetail: React.FC = () => {
@@ -14,10 +14,55 @@ const CourseDetail: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [enrollMessage, setEnrollMessage] = useState('');
+  const [courseItem, setCourseItem] = useState<any | null>(null);
+  const [loadingCourse, setLoadingCourse] = useState(true);
   const navigate = useNavigate();
   const auth = useMemo(() => getStoredAuth(), []);
   
-  const course = COURSES.find(c => c.id === id);
+  useEffect(() => {
+    let alive = true;
+    setLoadingCourse(true);
+    fetchPublicModuleItems('academy-content')
+      .then((items) => {
+        if (!alive) return;
+        const match = items.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' &&
+          (String(item.id) === String(id) || String(item.payload?.category || '') === String(id)));
+        setCourseItem(match || null);
+      })
+      .catch(() => {
+        if (alive) setCourseItem(null);
+      })
+      .finally(() => {
+        if (alive) setLoadingCourse(false);
+      });
+    return () => { alive = false; };
+  }, [id]);
+
+  const course = courseItem ? {
+    id: String(courseItem.payload?.category || courseItem.id),
+    title: courseItem.payload?.title || 'Academy Course',
+    titleUr: courseItem.payload?.titleUr,
+    description: courseItem.payload?.details || '',
+    descriptionUr: courseItem.payload?.detailsUr,
+    fullDescription: courseItem.payload?.details || '',
+    duration: courseItem.payload?.amount || 'Self-paced',
+    category: courseItem.payload?.location || 'Digital Skills',
+    categoryUr: courseItem.payload?.locationUr,
+    image: courseItem.payload?.image || '',
+    price: courseItem.payload?.price || '',
+    rating: courseItem.payload?.rating || '',
+    students: courseItem.payload?.students || '',
+    learningOutcomes: Array.isArray(courseItem.payload?.outcomes) ? courseItem.payload.outcomes : [],
+    instructor: courseItem.payload?.instructor ? { name: courseItem.payload.instructor, role: 'Instructor' } : undefined,
+  } : null;
+
+  if (loadingCourse) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <div className="flex items-center gap-3 text-gray-400"><Loader2 className="w-5 h-5 animate-spin" /> Loading course...</div>
+      </div>
+    );
+  }
 
   if (!course) {
     return (
