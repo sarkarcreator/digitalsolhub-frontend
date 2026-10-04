@@ -61,7 +61,7 @@ const Home: React.FC = () => {
       />
 
       {/* Hero Section - Super Platform */}
-      <section className="relative min-h-[720px] sm:min-h-[760px] lg:min-h-[820px] pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black cls-stable">
+      <section className="relative min-h-[720px] max-sm:min-h-[620px] sm:min-h-[760px] lg:min-h-[820px] pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-black cls-stable">
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
           <div className="hidden md:block absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[150px] animate-pulse-slow"></div>
           <div className="hidden md:block absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-gold-600/10 rounded-full blur-[150px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
@@ -72,11 +72,11 @@ const Home: React.FC = () => {
              <span className="text-gold-400 text-xs md:text-sm font-bold tracking-widest uppercase">The All-in-One Digital Ecosystem</span>
           </div>
           
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight tracking-tight">
+          <h1 className="text-5xl max-sm:text-4xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight tracking-tight">
             {TRANSLATIONS.super_tagline[lang]}
           </h1>
           
-          <p className="max-w-3xl mx-auto text-gray-400 text-lg md:text-2xl mb-12 leading-relaxed font-light">
+          <p className="max-w-3xl mx-auto text-gray-400 text-lg max-sm:text-base md:text-2xl mb-12 leading-relaxed font-light">
             One platform to <span className="text-white font-bold">Learn</span>, <span className="text-white font-bold">Earn</span>, <span className="text-white font-bold">Hire</span>, and <span className="text-white font-bold">Grow</span>. 
             Join the digital revolution with AI-powered tools, global accreditation, and seamless services.
           </p>
@@ -93,7 +93,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Ecosystem Grid */}
-      <section className="py-24 min-h-[1180px] md:min-h-[820px] lg:min-h-[640px] bg-black border-t border-white/10 cls-stable">
+      <section className="py-24 max-sm:py-16 min-h-[1180px] max-sm:min-h-[900px] md:min-h-[820px] lg:min-h-[640px] bg-black border-t border-white/10 cls-stable">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
              <h2 className="text-4xl font-bold text-white mb-6">Explore the Ecosystem</h2>
