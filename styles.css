@@ -190,6 +190,9 @@
     overflow-wrap: anywhere;
   }
 
+  /* Improve small-screen contrast without changing the desktop theme. */
+  .text-gray-500 { color: #9ca3af; }
+
   /* Let the browser skip painting below-the-fold sections until needed. */
   .cls-stable {
     content-visibility: auto;
