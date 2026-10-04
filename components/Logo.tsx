@@ -3,9 +3,10 @@ import React from 'react';
 interface LogoProps {
   className?: string;
   withText?: boolean;
+  priority?: boolean;
 }
 
-const Logo: React.FC<LogoProps> = ({ className = "w-12 h-12", withText = false }) => {
+const Logo: React.FC<LogoProps> = ({ className = "w-12 h-12", withText = false, priority = false }) => {
   return (
     <div className="flex items-center gap-2 select-none">
       <picture className="shrink-0">
@@ -16,7 +17,7 @@ const Logo: React.FC<LogoProps> = ({ className = "w-12 h-12", withText = false }
           width="80"
           height="120"
           className={`${className} object-contain rounded-md`}
-          loading="eager"
+          loading={priority ? "eager" : "lazy"}
           decoding="async"
           fetchPriority="high"
         />
