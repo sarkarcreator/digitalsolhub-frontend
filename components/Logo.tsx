@@ -19,7 +19,7 @@ const Logo: React.FC<LogoProps> = ({ className = "w-12 h-12", withText = false, 
           className={`${className} object-contain rounded-md`}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
-          fetchPriority="high"
+          fetchPriority={eager ? "high" : "low"}
         />
       </picture>
       
