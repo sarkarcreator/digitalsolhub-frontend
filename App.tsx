@@ -57,6 +57,49 @@ const PageLoader = () => (
   </div>
 );
 
+// Keep the chatbot out of the critical mobile rendering path.
+// It appears once the browser is idle, while desktop behavior remains immediate.
+const DeferredChatbot: React.FC<{ lang: Language }> = ({ lang }) => {
+  const [show, setShow] = React.useState(false);
+
+  useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 639px)').matches;
+
+    if (!isMobile) {
+      setShow(true);
+      return;
+    }
+
+    let cancelled = false;
+    let timeoutId: number | undefined;
+    let idleId: number | undefined;
+
+    const loadChatbot = () => {
+      if (!cancelled) setShow(true);
+    };
+
+    if ('requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(loadChatbot, { timeout: 2500 });
+    } else {
+      timeoutId = window.setTimeout(loadChatbot, 1500);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId !== undefined && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, []);
+
+  if (!show) return null;
+
+  return <Chatbot lang={lang} />;
+};
+
 // Layout Wrapper
 const MainLayout = () => {
   const { lang } = useParams<{ lang: string }>();
@@ -86,7 +129,7 @@ const MainLayout = () => {
       </main>
       <Footer lang={currentLang} />
       <Suspense fallback={<div className="fixed bottom-8 right-8 z-50 h-16 w-16 rounded-2xl bg-slate-900 border border-cyan-300/30 shadow-[0_0_34px_rgba(6,182,212,0.25)]" aria-hidden="true" />}>
-        <Chatbot lang={currentLang} />
+        <DeferredChatbot lang={currentLang} />
       </Suspense>
     </div>
   );
