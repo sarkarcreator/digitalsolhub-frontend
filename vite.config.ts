@@ -74,16 +74,10 @@ export default defineConfig(({ mode }) => {
 
       chunkSizeWarningLimit: 700,
 
-      modulePreload: {
-        resolveDependencies: (_filename, deps) =>
-          deps.filter((dep) => !dep.includes('pdf-tools')),
-      },
-
       rollupOptions: {
         output: {
           manualChunks(id) {
             if (!id.includes('node_modules')) return undefined;
-            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) return 'pdf-tools';
             if (id.includes('qrcode.react')) return 'qr-tools';
             if (id.includes('lucide-react')) return 'icons';
             return undefined;

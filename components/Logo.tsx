@@ -13,8 +13,8 @@ const Logo: React.FC<LogoProps> = ({ className = "w-12 h-12", withText = false }
         <img
           src="/brand/Final%20Logo%20(1).png"
           alt="Digital Solutions Hub"
-          width="512"
-          height="768"
+          width="80"
+          height="120"
           className={`${className} object-contain rounded-md`}
           loading="eager"
           decoding="async"

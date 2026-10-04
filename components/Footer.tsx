@@ -56,14 +56,15 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
                 { Icon: Linkedin, label: 'LinkedIn' },
                 { Icon: Instagram, label: 'Instagram' }
               ].map(({ Icon, label }, i) => (
-                <span
-                  key={i} 
+                <div
+                  key={i}
+                  role="img"
                   aria-label={`${label} profile coming soon`}
                   title={`${label} profile coming soon`}
                   className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-gray-500 cursor-not-allowed"
                 >
                   <Icon className="w-5 h-5" />
-                </span>
+                </div>
               ))}
             </div>
             {/* Trusted Partner Badge */}

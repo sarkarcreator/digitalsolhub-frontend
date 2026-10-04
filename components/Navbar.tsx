@@ -187,7 +187,9 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
                   className="bg-slate-900/50 border border-white/10 rounded-full pl-10 pr-10 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/50 w-64 transition-all placeholder:text-gray-600 focus:bg-slate-900"
                 />
                 {searchQuery && (
-                  <button 
+                  <button
+                    type="button"
+                    aria-label="Clear search"
                     onClick={handleClearSearch}
                     className="absolute right-3 top-2.5 text-gray-500 hover:text-white transition-colors rtl:right-auto rtl:left-3"
                   >
@@ -273,6 +275,9 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
              <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-300 hover:text-white p-1"
+              aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isOpen}
+              aria-controls="mobile-navigation-menu"
             >
               {isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
             </button>
@@ -282,7 +287,7 @@ const Navbar: React.FC<NavbarProps> = ({ lang }) => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-slate-950 border-b border-white/10 animate-in slide-in-from-top-5 duration-200 h-screen overflow-y-auto pb-20">
+        <div id="mobile-navigation-menu" className="lg:hidden bg-slate-950 border-b border-white/10 animate-in slide-in-from-top-5 duration-200 h-screen overflow-y-auto pb-20">
           
           {/* Mobile Search */}
           <div className="p-4 border-b border-white/5 bg-slate-900/30">

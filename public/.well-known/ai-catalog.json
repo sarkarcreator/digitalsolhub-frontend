@@ -1,0 +1,38 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Digital Solutions Hub",
+    "identifier": "https://digitalsolhub.com",
+    "documentationUrl": "https://digitalsolhub.com/en"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:digitalsolhub.com:platform:digital-solutions-hub",
+      "displayName": "Digital Solutions Hub",
+      "type": "text/html",
+      "url": "https://digitalsolhub.com/en",
+      "description": "Digital learning, services, AI tools, hiring, and business growth platform.",
+      "tags": [
+        "digital skills",
+        "AI tools",
+        "digital services",
+        "academy",
+        "business"
+      ],
+      "capabilities": [
+        "digital-learning",
+        "digital-services",
+        "ai-tools",
+        "hiring",
+        "business-growth"
+      ],
+      "representativeQueries": [
+        "find digital skills courses",
+        "hire digital marketing or web experts",
+        "find AI tools for business automation"
+      ],
+      "version": "1.0.0",
+      "updatedAt": "2026-10-04T00:00:00Z"
+    }
+  ]
+}
