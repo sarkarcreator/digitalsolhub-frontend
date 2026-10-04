@@ -19,7 +19,7 @@
     if (window.matchMedia && window.matchMedia('(max-width: 639px)').matches) {
       // Keep analytics completely off the critical mobile load path.
       // Load after the first meaningful interaction, or after a long idle delay.
-      var events = ['pointerdown', 'touchstart', 'scroll', 'keydown'];
+      var events = ['pointerdown', 'touchstart', 'keydown'];
       var onInteraction = function () {
         loadAnalytics();
         events.forEach(function (eventName) {
@@ -46,8 +46,6 @@
     <link rel="ai-catalog" href="/ai-catalog.json" />
     <meta property="og:image" content="/brand/Final%20Logo%20(1).png" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" media="(min-width: 640px)" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin media="(min-width: 640px)" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet" media="(min-width: 640px)" />
     <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@400;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=optional" rel="stylesheet" /></noscript>
   </head>

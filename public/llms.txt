@@ -4,13 +4,13 @@ Digital Solutions Hub is a digital platform for learning, digital services, AI t
 
 ## Main resources
 
-- https://digitalsolhub.com/en
-- https://digitalsolhub.com/en/academy
-- https://digitalsolhub.com/en/services
-- https://digitalsolhub.com/en/tools
-- https://digitalsolhub.com/en/jobs
-- https://digitalsolhub.com/en/marketplace
-- https://digitalsolhub.com/en/contact
+- [Home](https://digitalsolhub.com/en)
+- [Academy](https://digitalsolhub.com/en/academy)
+- [Services](https://digitalsolhub.com/en/services)
+- [Tools](https://digitalsolhub.com/en/tools)
+- [Jobs](https://digitalsolhub.com/en/jobs)
+- [Marketplace](https://digitalsolhub.com/en/marketplace)
+- [Contact](https://digitalsolhub.com/en/contact)
 
 ## Topics
 

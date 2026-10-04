@@ -6,10 +6,10 @@ import Footer from './components/Footer';
 import { Language } from './types';
 import { Loader2 } from 'lucide-react';
 import AdminRedirect from './components/AdminRedirect';
+import Home from './pages/Home';
 
 // Lazy Load Pages for Performance
 const Chatbot = lazy(() => import('./components/Chatbot'));
-const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const Academy = lazy(() => import('./pages/Academy'));
 const Services = lazy(() => import('./pages/Services'));
