@@ -44,7 +44,7 @@ const Footer: React.FC<FooterProps> = ({ lang }) => {
           {/* Brand */}
           <div className="space-y-6">
             <Link to={`/${lang}`}>
-               <Logo className="w-16 h-16" withText={true} />
+               <Logo className="w-16 h-16" withText={true} eager={false} />
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed border-l-2 rtl:border-l-0 rtl:border-r-2 border-gold-500/30 pl-4 rtl:pl-0 rtl:pr-4">
               {TRANSLATIONS.footerDesc[lang]}
