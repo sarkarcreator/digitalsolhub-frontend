@@ -170,3 +170,23 @@
     print-color-adjust: exact !important;
   }
 }
+
+
+/* Mobile-only polish: keep desktop rendering and layout unchanged. */
+@media (max-width: 639px) {
+  /* Avoid continuous decorative motion on small, often lower-powered devices. */
+  .animate-float {
+    animation: none !important;
+  }
+
+  /* Keep long content readable without forcing children wider than the viewport. */
+  #root,
+  main {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  :where(h1, h2, h3, p, a, button, label) {
+    overflow-wrap: anywhere;
+  }
+}
