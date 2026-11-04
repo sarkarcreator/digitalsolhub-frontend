@@ -319,6 +319,7 @@ const Signup: React.FC = () => {
                         <BookOpen className="absolute left-4 top-3.5 w-5 h-5 text-gray-500 rtl:right-4 rtl:left-auto" />
                         <select name="course" value={formData.course} onChange={handleInputChange} className="w-full bg-slate-950/60 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-blue/50 focus:bg-slate-900 appearance-none">
                           <option>Web Development</option>
+                          <option>Office Management</option>
                           <option>Digital Marketing</option>
                           <option>SEO</option>
                           <option>Graphic Design</option>
