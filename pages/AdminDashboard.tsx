@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import AdminSidebar from '../components/AdminSidebar';
+import Certificate from '../components/Certificate';
+import { exportElementAsPdf } from '../utils/certificateExport';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { Language } from '../types';
 import { useRequireAuth } from '../utils/auth';
@@ -60,6 +62,21 @@ const AdminDashboard = () => {
   const [editingFile, setEditingFile] = useState<any | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [certificatePreview, setCertificatePreview] = useState<any | null>(null);
+  const [downloadingCertificate, setDownloadingCertificate] = useState(false);
+  const adminCertificateRef = useRef<HTMLDivElement>(null);
+
+  const downloadAdminCertificate = async () => {
+    if (!certificatePreview || !adminCertificateRef.current) return;
+    setDownloadingCertificate(true);
+    try {
+      await exportElementAsPdf(adminCertificateRef.current, `${certificatePreview.amount || certificatePreview.id}-certificate.pdf`);
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to download certificate.');
+    } finally {
+      setDownloadingCertificate(false);
+    }
+  };
   
 
   const loadStudents = async () => {
@@ -874,6 +891,9 @@ const AdminDashboard = () => {
                         {category === 'courses' && Number.parseInt(String(item.payload.amount || '0').replace(/[^0-9]/g, ''), 10) >= 100 && item.status !== 'completed' && (
                           <button onClick={() => handleApproveCourse(item)} className="mr-3 text-emerald-300 hover:text-emerald-200 font-semibold">Approve & Issue Certificate</button>
                         )}
+                        {category === 'certifications' && item.status === 'active' && (
+                          <button onClick={() => setCertificatePreview({ ...item.payload, id: item.payload.amount, studentName: item.payload.studentName || item.payload.owner || 'Student', courseName: item.payload.title, issueDate: item.payload.issuedDate || item.createdAt?.slice(0, 10) || new Date().toISOString().slice(0, 10) })} className="text-emerald-300 hover:text-emerald-200">View / Download</button>
+                        )}
                         {!isOperationalLogModule && <button onClick={() => setEditingModuleItem(item)} className="text-cyan-300 hover:text-cyan-200">Edit</button>}
                         {category === 'requests' && (
                           <label className={`cursor-pointer text-blue-300 hover:text-blue-200 ${uploadingFile ? 'opacity-50' : ''}`}>
@@ -945,6 +965,23 @@ const AdminDashboard = () => {
             {renderContent()}
          </main>
       </div>
+
+      {certificatePreview && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center overflow-auto bg-black/90 p-4">
+          <div className="w-full max-w-[1200px]">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-white">
+              <h2 className="text-xl font-bold">Certificate Preview</h2>
+              <div className="flex gap-2">
+                <button onClick={downloadAdminCertificate} disabled={downloadingCertificate} className="rounded-lg bg-brand-neon px-4 py-2 font-bold text-black disabled:opacity-60">{downloadingCertificate ? 'Preparing...' : 'Download PDF'}</button>
+                <button onClick={() => setCertificatePreview(null)} className="rounded-lg bg-slate-800 px-4 py-2">Close</button>
+              </div>
+            </div>
+            <div className="overflow-auto rounded-lg bg-white">
+              <Certificate ref={adminCertificateRef} studentName={certificatePreview.studentName} courseName={certificatePreview.courseName} completionDate={certificatePreview.issueDate} certificateId={certificatePreview.id} lang={lang} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {editingFile && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
