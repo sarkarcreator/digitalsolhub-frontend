@@ -10,6 +10,7 @@ import {
   fetchOfficeManagementFinalTest,
   submitOfficeManagementTyping,
   completeOfficeManagementLesson,
+  submitOfficeManagementLessonTest,
   submitOfficeManagementChapterTest,
   submitOfficeManagementFinalTest,
   type OfficeLearningState,
@@ -51,6 +52,8 @@ const CourseLearning: React.FC = () => {
   const completeActiveLesson = async () => {
     if (!activeLesson || lessonAnswer !== activeLesson.answer) { setMessage('Knowledge check ka sahi jawab select karein.'); return; }
     try {
+      const check = await submitOfficeManagementLessonTest(courseId,courseName,activeLesson.id,lessonAnswer);
+      if (!check.passed) { setMessage(check.message || 'Knowledge check pass nahi hua.'); return; }
       await completeOfficeManagementLesson(courseId,courseName,activeLesson.id);
       setActiveLessonId(null);
       setLessonAnswer('');
