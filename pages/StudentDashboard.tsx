@@ -265,6 +265,9 @@ const StudentDashboard: React.FC = () => {
                                      </div>
                                   )}
                                </div>
+                               <div className="mt-4 flex gap-2">
+                                  <button onClick={() => setViewCertificate({ ...cert, completionDate: cert.issueDate || new Date().toISOString().slice(0, 10) })} className="flex-1 rounded-lg bg-brand-neon px-4 py-2 text-sm font-bold text-black hover:bg-cyan-300">View & Download Certificate</button>
+                               </div>
                             </div>
                          </div>
                       )) : (
