@@ -432,6 +432,7 @@ const AdminDashboard = () => {
               <option>SEO</option>
               <option>Graphic Design</option>
               <option>AI Tools</option>
+              <option>Office Management</option>
             </select>
           </div>
 
