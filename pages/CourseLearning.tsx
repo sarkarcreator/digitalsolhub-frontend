@@ -142,7 +142,7 @@ const CourseLearning: React.FC = () => {
           </div>)}
         </div>
         {allWordDone&&!data.word.finalPassed&&<div className="mt-6 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4"><div><h3 className="font-bold text-lg flex items-center gap-2"><Trophy className="text-purple-400"/> Word Final Test</h3><p className="text-sm text-gray-400">All 12 chapter tests passed. Final test is now available.</p></div><button onClick={openFinalTest} className="px-5 py-3 rounded-lg bg-purple-500 text-white font-bold">Start Final Test <ArrowRight className="inline w-4 h-4"/></button></div>}
-        {data.excelUnlocked&&<ExcelLearning courseId={courseId} courseName={courseName}/ >}
+        {data.excelUnlocked&&<ExcelLearning courseId={courseId} courseName={courseName} />}
       </section>}
 
       {message&&<div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[calc(100%-2rem)] rounded-xl border border-cyan-400/30 bg-slate-900 px-5 py-3 text-sm text-white shadow-2xl">{message}</div>}
