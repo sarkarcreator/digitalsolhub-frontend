@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, CheckCircle, Clock, Lock, PlayCircle, RotateCcw, Trophy, Keyboard, Loader2, ArrowRight } from 'lucide-react';
 import { Language } from '../types';
 import { OFFICE_MANAGEMENT_LESSONS } from '../data/officeManagementCurriculum';
+import ExcelLearning from '../components/ExcelLearning';
 import { useRequireAuth } from '../utils/auth';
 import {
   fetchOfficeManagementLearning,
@@ -141,7 +142,7 @@ const CourseLearning: React.FC = () => {
           </div>)}
         </div>
         {allWordDone&&!data.word.finalPassed&&<div className="mt-6 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4"><div><h3 className="font-bold text-lg flex items-center gap-2"><Trophy className="text-purple-400"/> Word Final Test</h3><p className="text-sm text-gray-400">All 12 chapter tests passed. Final test is now available.</p></div><button onClick={openFinalTest} className="px-5 py-3 rounded-lg bg-purple-500 text-white font-bold">Start Final Test <ArrowRight className="inline w-4 h-4"/></button></div>}
-        {data.excelUnlocked&&<div className="mt-6 rounded-2xl border border-green-400/20 bg-green-400/5 p-6"><div className="flex items-center gap-3"><CheckCircle className="text-green-400"/><div><h3 className="font-bold text-lg">Microsoft Word Completed</h3><p className="text-sm text-gray-400">Microsoft Excel is now unlocked for your next learning stage.</p></div></div></div>}
+        {data.excelUnlocked&&<ExcelLearning courseId={courseId} courseName={courseName}/ >}
       </section>}
 
       {message&&<div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[calc(100%-2rem)] rounded-xl border border-cyan-400/30 bg-slate-900 px-5 py-3 text-sm text-white shadow-2xl">{message}</div>}
