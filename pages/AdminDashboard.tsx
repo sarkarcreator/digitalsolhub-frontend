@@ -243,29 +243,50 @@ const AdminDashboard = () => {
       return;
     }
 
-    const updated = await updateAdminModuleItem(category, editingModuleItem.id, {
-      title: editingModuleItem.payload.title || '',
-      amount: editingModuleItem.payload.amount || '',
-      status: editingModuleItem.status || 'active',
-      group: editingModuleItem.payload.group || 'general',
-      studentName: editingModuleItem.payload.studentName || editingModuleItem.payload.owner || '',
-      details: editingModuleItem.payload.details || '',
-      deadline: editingModuleItem.payload.deadline || '',
-      invoiceAmount: editingModuleItem.payload.invoiceAmount || '',
-      paymentMethod: editingModuleItem.payload.paymentMethod || '',
-      paymentLink: editingModuleItem.payload.paymentLink || '',
-      bankAccountDetails: editingModuleItem.payload.bankAccountDetails || '',
-      paymentInstructions: editingModuleItem.payload.paymentInstructions || '',
-      type: editingModuleItem.payload.type || '',
-      image: editingModuleItem.payload.image || '',
-      location: editingModuleItem.payload.location || '',
-      category: category === 'marketplace' && editingModuleItem.payload.category === 'Other' ? (editingModuleItem.payload.location || '').trim() : editingModuleItem.payload.category || '',
-    });
-    setModuleItems((prev) => ({
-      ...prev,
-      [category]: (prev[category] || []).map((item) => item.id === updated.id ? updated : item),
-    }));
-    setEditingModuleItem(null);
+    setModuleError('');
+    try {
+      await updateAdminModuleItem(category, editingModuleItem.id, {
+        title: editingModuleItem.payload.title || '',
+        amount: editingModuleItem.payload.amount || '',
+        status: editingModuleItem.status || 'active',
+        group: editingModuleItem.payload.group || 'general',
+        studentName: editingModuleItem.payload.studentName || editingModuleItem.payload.owner || '',
+        details: editingModuleItem.payload.details || '',
+        deadline: editingModuleItem.payload.deadline || '',
+        invoiceAmount: editingModuleItem.payload.invoiceAmount || '',
+        paymentMethod: editingModuleItem.payload.paymentMethod || '',
+        paymentLink: editingModuleItem.payload.paymentLink || '',
+        bankAccountDetails: editingModuleItem.payload.bankAccountDetails || '',
+        paymentInstructions: editingModuleItem.payload.paymentInstructions || '',
+        type: editingModuleItem.payload.type || '',
+        image: editingModuleItem.payload.image || '',
+        location: editingModuleItem.payload.location || '',
+        category: category === 'marketplace' && editingModuleItem.payload.category === 'Other' ? (editingModuleItem.payload.location || '').trim() : editingModuleItem.payload.category || '',
+      });
+      setEditingModuleItem(null);
+      await loadModuleItems(category);
+      if (category === 'courses') {
+        await loadModuleItems('certifications');
+      }
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to update this record.');
+    }
+  };
+
+  const handleApproveCourse = async (item: DashboardItem) => {
+    setModuleError('');
+    try {
+      await updateAdminModuleItem('courses', item.id, {
+        title: item.payload.title || 'Office Management',
+        amount: item.payload.amount || '100%',
+        status: 'completed',
+      });
+      await loadModuleItems('courses');
+      await loadModuleItems('certifications');
+      alert('Course approved and certificate issued successfully.');
+    } catch (error) {
+      setModuleError(error instanceof Error ? error.message : 'Unable to approve this course.');
+    }
   };
 
   const renderRichText = (text: string) => (
@@ -850,6 +871,9 @@ const AdminDashboard = () => {
                       <td className="px-5 py-4">{item.payload.owner || item.payload.group || '-'}</td>
                       <td className="px-5 py-4"><span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase">{item.status}</span></td>
                       <td className="px-5 py-4 text-right space-x-3">
+                        {category === 'courses' && Number.parseInt(String(item.payload.amount || '0').replace(/[^0-9]/g, ''), 10) >= 100 && item.status !== 'completed' && (
+                          <button onClick={() => handleApproveCourse(item)} className="mr-3 text-emerald-300 hover:text-emerald-200 font-semibold">Approve & Issue Certificate</button>
+                        )}
                         {!isOperationalLogModule && <button onClick={() => setEditingModuleItem(item)} className="text-cyan-300 hover:text-cyan-200">Edit</button>}
                         {category === 'requests' && (
                           <label className={`cursor-pointer text-blue-300 hover:text-blue-200 ${uploadingFile ? 'opacity-50' : ''}`}>
