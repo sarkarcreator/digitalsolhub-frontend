@@ -53,7 +53,28 @@ const CourseDetail: React.FC = () => {
     students: courseItem.payload?.students || '',
     learningOutcomes: Array.isArray(courseItem.payload?.outcomes) ? courseItem.payload.outcomes : [],
     instructor: courseItem.payload?.instructor ? { name: courseItem.payload.instructor, role: 'Instructor' } : undefined,
-  } : null;
+  } : (String(id || '').toLowerCase() === 'office-management' ? {
+    id: 'office-management',
+    title: 'Office Management',
+    description: 'Build practical office skills with a structured Microsoft Word learning path, typing qualification, chapter assessments and a final exam.',
+    fullDescription: 'Office Management course students ko professional office work ke liye tayyar karta hai. Is learning path mein pehle typing qualification hoti hai, phir Microsoft Word ke 12 chapters aur 36 lessons, chapter tests aur final assessment. Har din maximum 3 lessons complete kiye ja sakte hain. Word final test pass karne ke baad Excel ka next stage unlock hoga.',
+    duration: '36 Lessons • Self-paced',
+    category: 'Technical Skills',
+    image: '',
+    price: 'Included',
+    rating: 'New',
+    students: 'DSH Academy',
+    learningOutcomes: [
+      'Typing speed aur accuracy improve karna',
+      'Word interface, documents create aur save karna',
+      'Text, paragraph aur professional formatting',
+      'Page layout, tables, images aur references',
+      'Letters, applications aur business reports',
+      'Documents ko PDF mein export aur print karna',
+      'Chapter tests aur final assessment pass karna',
+    ],
+    instructor: { name: 'Digital Solutions Hub Academy', role: 'Practical Office Skills Training' },
+  } : null);
 
   if (loadingCourse) {
     return (

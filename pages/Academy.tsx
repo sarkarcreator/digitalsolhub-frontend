@@ -52,6 +52,7 @@ const Academy: React.FC = () => {
     .filter((item) => String(item.payload.type || '').toLowerCase() === 'course')
     .map((item) => {
       const linkedCourseId = String(item.payload.category || '').trim();
+      const isOfficeManagementCourse = /office[ -]management/i.test(String(item.payload.title || '')) || linkedCourseId.toLowerCase().replace(/[^a-z]/g, '') === 'officemanagement';
       const linkedCourse = null;
       return {
         id: `academy-${item.id}`,
@@ -62,11 +63,26 @@ const Academy: React.FC = () => {
         image: item.payload.image || '',
         rating: item.payload.rating || '',
         students: item.payload.students || '',
-        detailPath: `/${lang}/apply`,
+        detailPath: isOfficeManagementCourse ? `/${lang}/course/office-management` : `/${lang}/apply`,
       };
     }), [academyItems, lang]);
 
-  const displayedCourses = dynamicCourses;
+  const hasOfficeManagement = academyItems.some((item) => {
+    const title = String(item.payload.title || '').toLowerCase();
+    const slug = String(item.payload.category || '').toLowerCase();
+    return title.includes('office management') || slug.replace(/[^a-z]/g, '') === 'officemanagement';
+  });
+  const displayedCourses = hasOfficeManagement ? dynamicCourses : [...dynamicCourses, {
+    id: 'office-management',
+    title: 'Office Management',
+    description: 'Microsoft Word, Excel aur professional office documentation ki practical training. Typing qualification ke baad 36 structured lessons complete karein.',
+    category: 'Technical Skills',
+    duration: '36 Lessons • Self-paced',
+    image: '',
+    rating: 'New',
+    students: 'Academy',
+    detailPath: `/${lang}/course/office-management`,
+  }];
 
   const filteredCourses = filter === 'All' 
     ? displayedCourses 

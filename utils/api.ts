@@ -651,6 +651,9 @@ export async function fetchOfficeManagementLearning(courseId: string, courseName
 export async function submitOfficeManagementTyping(payload: { courseId: string; courseName: string; typedText: string; elapsedSeconds: number }): Promise<any> {
   return request('/student/learning/office-management/typing', { method: 'POST', body: JSON.stringify(payload) }, true);
 }
+export async function submitOfficeManagementLessonTest(courseId: string, courseName: string, lesson: number, answer: string): Promise<any> {
+  return request(`/student/learning/office-management/lessons/${lesson}/test`, { method: 'POST', body: JSON.stringify({ courseId, courseName, answer }) }, true);
+}
 export async function completeOfficeManagementLesson(courseId: string, courseName: string, lesson: number): Promise<any> {
   return request(`/student/learning/office-management/lessons/${lesson}/complete`, { method: 'POST', body: JSON.stringify({ courseId, courseName }) }, true);
 }
