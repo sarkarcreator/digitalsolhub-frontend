@@ -62,7 +62,7 @@ const Academy: React.FC = () => {
         image: item.payload.image || '',
         rating: item.payload.rating || '',
         students: item.payload.students || '',
-        detailPath: `/${lang}/apply`,
+        detailPath: /office[ -]management/i.test(String(item.payload.title || '')) || linkedCourseId.toLowerCase() === 'office-management' ? `/${lang}/course/${linkedCourseId || 'office-management'}` : `/${lang}/apply`,
       };
     }), [academyItems, lang]);
 
