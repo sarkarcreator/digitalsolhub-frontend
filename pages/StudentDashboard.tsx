@@ -179,7 +179,21 @@ const StudentDashboard: React.FC = () => {
 
   const handleCompleteCourse = async (courseId: string, courseName: string) => {
     try {
-      const result = await updateStudentCourseProgress(courseId, 100);
+      let progressRecordId: number | string = courseId;
+
+      // Admin-assigned courses can appear on the dashboard before a legacy
+      // StudentCourseProgress enrollment exists. Create/reuse that record
+      // first, then submit using its real database ID (not the synthetic card ID).
+      if (/office\\s*management/i.test(courseName) || /office-management/i.test(courseId)) {
+        const enrollment = await enrollStudentCourse({
+          courseId: 'office-management',
+          courseName,
+          totalLessons: 36,
+        });
+        progressRecordId = enrollment.id;
+      }
+
+      const result = await updateStudentCourseProgress(progressRecordId, 100);
       alert(result.message || `${courseName} submitted for admin approval.`);
       await loadDashboard();
     } catch (error) {
