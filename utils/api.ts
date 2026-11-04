@@ -670,6 +670,39 @@ export async function submitOfficeManagementFinalTest(courseId: string, courseNa
   return request('/student/learning/office-management/final-test', { method: 'POST', body: JSON.stringify({ courseId, courseName, answers }) }, true);
 }
 
+export interface ExcelLearningState {
+  unlocked: boolean;
+  finalPassed: boolean;
+  chapters: Array<{number:number;title:string;lessons:Array<{id:number;number:number;title:string}>;unlocked:boolean;passed:boolean}>;
+  completedLessons: number[];
+  passedLessons: number[];
+  passedChapters: number[];
+  dailyLessonsCompleted: number;
+  dailyLessonLimit: number;
+  progress: {lessonsCompleted:number;chaptersPassed:number;percentage:number};
+}
+export async function fetchExcelLearning(courseId:string):Promise<ExcelLearningState> {
+  return request<ExcelLearningState>(`/student/learning/excel?courseId=${encodeURIComponent(courseId)}`,{},true);
+}
+export async function fetchExcelChapterTest(courseId:string,chapter:number):Promise<{chapter:number;title:string;questions:LearningQuestion[];passingScore:number}> {
+  return request(`/student/learning/excel/chapter-tests/${chapter}?courseId=${encodeURIComponent(courseId)}`,{},true);
+}
+export async function fetchExcelFinalTest(courseId:string):Promise<{questions:LearningQuestion[];passingScore:number}> {
+  return request(`/student/learning/excel/final-test?courseId=${encodeURIComponent(courseId)}`,{},true);
+}
+export async function submitExcelLessonTest(courseId:string,lesson:number,answer:string):Promise<any> {
+  return request(`/student/learning/excel/lessons/${lesson}/test`,{method:'POST',body:JSON.stringify({courseId,answer})},true);
+}
+export async function completeExcelLesson(courseId:string,lesson:number):Promise<any> {
+  return request(`/student/learning/excel/lessons/${lesson}/complete`,{method:'POST',body:JSON.stringify({courseId})},true);
+}
+export async function submitExcelChapterTest(courseId:string,chapter:number,answers:string[]):Promise<any> {
+  return request(`/student/learning/excel/chapter-tests/${chapter}`,{method:'POST',body:JSON.stringify({courseId,answers})},true);
+}
+export async function submitExcelFinalTest(courseId:string,answers:string[]):Promise<any> {
+  return request('/student/learning/excel/final-test',{method:'POST',body:JSON.stringify({courseId,answers})},true);
+}
+
 /* ---------------- PUBLIC APPLICATIONS ---------------- */
 
 export async function submitApplication(payload: ApplicationPayload): Promise<{ id: number | string; message: string }> {
