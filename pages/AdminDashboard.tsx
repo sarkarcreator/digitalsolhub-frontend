@@ -4,6 +4,7 @@ import { TRANSLATIONS } from '../constants';
 import SEO from '../components/SEO';
 import AdminSidebar from '../components/AdminSidebar';
 import Certificate from '../components/Certificate';
+import { ACADEMY_BRAND_LOGO, ACADEMY_BRAND_NAME } from '../utils/academyBranding';
 import { exportElementAsPdf } from '../utils/certificateExport';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import { Language } from '../types';
@@ -977,7 +978,7 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="overflow-auto rounded-lg bg-white">
-              <Certificate ref={adminCertificateRef} studentName={certificatePreview.studentName} courseName={certificatePreview.courseName} completionDate={certificatePreview.issueDate} certificateId={certificatePreview.id} lang={lang} />
+              <Certificate ref={adminCertificateRef} studentName={certificatePreview.studentName} courseName={certificatePreview.courseName} completionDate={certificatePreview.issueDate} certificateId={certificatePreview.id} lang={lang} issuerName={ACADEMY_BRAND_NAME} issuerLogo={ACADEMY_BRAND_LOGO} issuerTagline="Where Innovation Finds Direction" stampImage="/brand/stemp.webp" signatureImage="/brand/sig.webp" />
             </div>
           </div>
         </div>

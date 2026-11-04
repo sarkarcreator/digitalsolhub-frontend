@@ -589,8 +589,9 @@ const StudentDashboard: React.FC = () => {
                     lang={lang}
                     issuerName={ACADEMY_BRAND_NAME}
                     issuerLogo={ACADEMY_BRAND_LOGO}
-                    stampImage="/brand/stemp.png"
-                    signatureImage="/brand/sig.png"
+                    issuerTagline="Where Innovation Finds Direction"
+                    stampImage="/brand/stemp.webp"
+                    signatureImage="/brand/sig.webp"
                  />
               </div>
            </div>
