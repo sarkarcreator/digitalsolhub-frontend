@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, CheckCircle, Clock, Lock, PlayCircle, RotateCcw, Trophy, Keyboard, Loader2, ArrowRight } from 'lucide-react';
 import { Language } from '../types';
+import { OFFICE_MANAGEMENT_LESSONS } from '../data/officeManagementCurriculum';
 import { useRequireAuth } from '../utils/auth';
 import {
   fetchOfficeManagementLearning,
@@ -31,6 +32,8 @@ const CourseLearning: React.FC = () => {
   const [answers,setAnswers]=useState<Record<number,string>>({});
   const [testSubmitting,setTestSubmitting]=useState(false);
   const [message,setMessage]=useState('');
+  const [activeLessonId,setActiveLessonId]=useState<number|null>(null);
+  const [lessonAnswer,setLessonAnswer]=useState('');
 
   const courseId=String(id||'');
   const courseName=data?.course.name||'Office Management';
@@ -42,6 +45,21 @@ const CourseLearning: React.FC = () => {
     finally{setLoading(false);}
   };
   useEffect(()=>{if(authUser)load();},[authUser,id]);
+
+  const activeLesson = activeLessonId ? OFFICE_MANAGEMENT_LESSONS[activeLessonId] : null;
+  const openLesson = (lessonId:number) => { setActiveLessonId(lessonId); setLessonAnswer(''); setMessage(''); };
+  const completeActiveLesson = async () => {
+    if (!activeLesson || lessonAnswer !== activeLesson.answer) { setMessage('Knowledge check ka sahi jawab select karein.'); return; }
+    try {
+      await completeOfficeManagementLesson(courseId,courseName,activeLesson.id);
+      setActiveLessonId(null);
+      setLessonAnswer('');
+      setMessage('Lesson complete ho gaya. Aapki progress save kar di gayi hai.');
+      await load();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : 'Lesson complete nahi ho saka.');
+    }
+  };
 
   const typingElapsed=useMemo(()=>typingStartedAt?Math.max(1,Math.floor((Date.now()-typingStartedAt)/1000)):0,[typed,typingStartedAt]);
   const startTyping=()=>{setTypingStarted(true);setTypingStartedAt(Date.now());setTyped('');setMessage('');};
@@ -116,7 +134,7 @@ const CourseLearning: React.FC = () => {
               {ch.unlocked && !ch.passed && ch.lessons.every(l=>completed.has(l.id)) && <button onClick={()=>openChapterTest(ch.number)} className="px-4 py-2 rounded-lg bg-purple-500 text-white font-bold text-sm">Take Chapter Test</button>}
               {ch.passed&&<span className="text-xs font-bold text-green-400">Chapter Passed</span>}
             </div>
-            <div className="grid md:grid-cols-3 gap-3 mt-4">{ch.lessons.map(l=>{const done=completed.has(l.id);const lessonUnlocked=ch.unlocked&&(l.number===1||completed.has(l.id-1));return <div key={l.id} className={`rounded-xl border p-4 ${done?'border-green-500/20 bg-green-500/5':lessonUnlocked?'border-cyan-400/20 bg-slate-950':'border-white/5 bg-slate-950/40'}`}><div className="flex justify-between gap-2"><p className="text-sm font-bold">Lesson {l.number}</p>{done?<CheckCircle className="w-4 h-4 text-green-400"/>:lessonUnlocked?<PlayCircle className="w-4 h-4 text-cyan-400"/>:<Lock className="w-4 h-4 text-gray-600"/>}</div><p className="text-xs text-gray-400 mt-2 min-h-10">{l.title}</p>{lessonUnlocked&&!done&&<button onClick={async()=>{try{await completeOfficeManagementLesson(courseId,courseName,l.id);setMessage('Lesson completed successfully.');await load();}catch(e){setMessage(e instanceof Error?e.message:'Unable to complete lesson.')}}} className="mt-3 w-full py-2 rounded-lg bg-cyan-400 text-black text-xs font-bold">Mark Lesson Complete</button>}</div>})}</div>
+            <div className="grid md:grid-cols-3 gap-3 mt-4">{ch.lessons.map(l=>{const done=completed.has(l.id);const lessonUnlocked=ch.unlocked&&(l.number===1||completed.has(l.id-1));return <div key={l.id} className={`rounded-xl border p-4 ${done?'border-green-500/20 bg-green-500/5':lessonUnlocked?'border-cyan-400/20 bg-slate-950':'border-white/5 bg-slate-950/40'}`}><div className="flex justify-between gap-2"><p className="text-sm font-bold">Lesson {l.number}</p>{done?<CheckCircle className="w-4 h-4 text-green-400"/>:lessonUnlocked?<PlayCircle className="w-4 h-4 text-cyan-400"/>:<Lock className="w-4 h-4 text-gray-600"/>}</div><p className="text-xs text-gray-400 mt-2 min-h-10">{l.title}</p>{lessonUnlocked&&!done&&<button onClick={()=>openLesson(l.id)} className="mt-3 w-full py-2 rounded-lg bg-cyan-400 text-black text-xs font-bold">Open Lesson</button>}</div>})}</div>
           </div>)}
         </div>
         {allWordDone&&!data.word.finalPassed&&<div className="mt-6 rounded-2xl border border-purple-400/20 bg-purple-400/5 p-6 flex flex-col md:flex-row items-center justify-between gap-4"><div><h3 className="font-bold text-lg flex items-center gap-2"><Trophy className="text-purple-400"/> Word Final Test</h3><p className="text-sm text-gray-400">All 12 chapter tests passed. Final test is now available.</p></div><button onClick={openFinalTest} className="px-5 py-3 rounded-lg bg-purple-500 text-white font-bold">Start Final Test <ArrowRight className="inline w-4 h-4"/></button></div>}
@@ -124,6 +142,8 @@ const CourseLearning: React.FC = () => {
       </section>}
 
       {message&&<div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[calc(100%-2rem)] rounded-xl border border-cyan-400/30 bg-slate-900 px-5 py-3 text-sm text-white shadow-2xl">{message}</div>}
+
+      {activeLesson&&<div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm p-4 overflow-y-auto"><div className="max-w-3xl mx-auto my-6 rounded-2xl bg-slate-900 border border-cyan-400/20 p-6 md:p-8"><div className="flex justify-between gap-4 mb-6"><div><p className="text-cyan-400 text-xs font-bold uppercase tracking-wider">Microsoft Word • Lesson {activeLesson.id} of 36</p><h2 className="text-2xl font-bold mt-2">{activeLesson.title}</h2><p className="text-sm text-gray-400 mt-2">{activeLesson.goal}</p></div><button onClick={()=>setActiveLessonId(null)} className="text-gray-400 hover:text-white">✕</button></div><div className="space-y-5"><section><h3 className="font-bold text-cyan-300 mb-2">Asaan alfaaz mein samjhein</h3><p className="text-gray-300 leading-7">{activeLesson.explanation}</p></section><section className="rounded-xl bg-slate-950 border border-white/10 p-4"><h3 className="font-bold text-amber-300 mb-2">Example</h3><p className="text-gray-300 leading-7">{activeLesson.example}</p></section><section><h3 className="font-bold text-cyan-300 mb-2">Practical Steps</h3><ol className="list-decimal pl-5 space-y-2 text-gray-300">{activeLesson.steps.map((step,i)=><li key={i}>{step}</li>)}</ol></section><section className="rounded-xl bg-slate-950 border border-white/10 p-4"><h3 className="font-bold text-green-300 mb-2">Student Practice</h3><p className="text-gray-300 leading-7">{activeLesson.practice}</p></section><section><h3 className="font-bold mb-3">Knowledge Check</h3><p className="text-gray-200 mb-3">{activeLesson.question}</p><div className="grid gap-2">{activeLesson.options.map(option=><label key={option} className={`flex gap-3 items-center rounded-lg border p-3 cursor-pointer ${lessonAnswer===option?'border-cyan-400 bg-cyan-400/10':'border-white/10 bg-slate-950'}`}><input type="radio" name="lesson-knowledge-check" checked={lessonAnswer===option} onChange={()=>setLessonAnswer(option)}/><span className="text-sm">{option}</span></label>)}</div></section></div><div className="flex flex-wrap justify-end gap-3 mt-7"><button onClick={()=>setActiveLessonId(null)} className="px-5 py-3 rounded-lg border border-white/10 text-gray-300">Close</button><button disabled={!lessonAnswer} onClick={completeActiveLesson} className="px-5 py-3 rounded-lg bg-cyan-400 text-black font-bold disabled:opacity-50">Check & Complete Lesson</button></div></div></div>}
 
       {test&&<div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"><div className="max-w-2xl mx-auto mt-10 rounded-2xl bg-slate-900 border border-white/10 p-6 md:p-8"><div className="flex justify-between gap-4 mb-6"><div><p className="text-cyan-400 text-xs font-bold uppercase">Assessment</p><h2 className="text-2xl font-bold">{test.title}</h2><p className="text-xs text-gray-400 mt-1">Passing score: {test.passingScore}%</p></div><button onClick={()=>setTest(null)} className="text-gray-400 hover:text-white">✕</button></div><div className="space-y-6">{test.questions.map((q,i)=><div key={i}><p className="font-semibold mb-3">{i+1}. {q.q}</p><div className="grid gap-2">{q.options.map(opt=><label key={opt} className={`flex gap-3 items-center rounded-lg border p-3 cursor-pointer ${answers[i]===opt?'border-cyan-400 bg-cyan-400/10':'border-white/10 bg-slate-950'}`}><input type="radio" name={`q-${i}`} checked={answers[i]===opt} onChange={()=>setAnswers(a=>({...a,[i]:opt}))}/><span className="text-sm">{opt}</span></label>)}</div></div>)}</div><button disabled={testSubmitting} onClick={submitTest} className="mt-7 w-full py-3 rounded-lg bg-cyan-400 text-black font-bold disabled:opacity-60">{testSubmitting?'Submitting...':'Submit Test'}</button></div></div>}
     </div>
