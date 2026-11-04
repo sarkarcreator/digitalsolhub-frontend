@@ -66,7 +66,22 @@ const Academy: React.FC = () => {
       };
     }), [academyItems, lang]);
 
-  const displayedCourses = dynamicCourses;
+  const hasOfficeManagement = academyItems.some((item) => {
+    const title = String(item.payload.title || '').toLowerCase();
+    const slug = String(item.payload.category || '').toLowerCase();
+    return title.includes('office management') || slug === 'office-management';
+  });
+  const displayedCourses = hasOfficeManagement ? dynamicCourses : [...dynamicCourses, {
+    id: 'office-management',
+    title: 'Office Management',
+    description: 'Microsoft Word, Excel aur professional office documentation ki practical training. Typing qualification ke baad 36 structured lessons complete karein.',
+    category: 'Technical Skills',
+    duration: '36 Lessons • Self-paced',
+    image: '',
+    rating: 'New',
+    students: 'Academy',
+    detailPath: `/${lang}/course/office-management`,
+  }];
 
   const filteredCourses = filter === 'All' 
     ? displayedCourses 
