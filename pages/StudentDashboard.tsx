@@ -86,7 +86,7 @@ const StudentDashboard: React.FC = () => {
         ...cert,
         studentName: authUser?.name || 'Student',
       })));
-      setEnrolledCourses(data.courses.map((course) => {
+      const dashboardCourses = data.courses.map((course) => {
         const catalogItem = catalog.find((item) => String(item.payload?.type || '').toLowerCase() === 'course' && (String(item.payload?.category || '') === String(course.courseId) || String(item.payload?.title || '') === String(course.courseName)));
         return {
           titleUr: catalogItem?.payload?.titleUr,
@@ -103,8 +103,38 @@ const StudentDashboard: React.FC = () => {
           image: catalogItem?.payload?.image || '',
           instructor: catalogItem?.payload?.instructor ? { name: catalogItem.payload.instructor } : { name: ACADEMY_BRAND_NAME },
           learningOutcomes: Array.isArray(catalogItem?.payload?.outcomes) ? catalogItem.payload.outcomes : [],
+          isOfficeManagement: /office\\s*management/i.test(course.courseName),
         };
-      }));
+      });
+
+      // Admin invitations assign a course on the student profile. Surface that
+      // assignment even when no legacy StudentCourseProgress enrollment exists.
+      const assignedCourseName = String(data.profile?.course_name || data.profile?.courseName || '').trim();
+      if (assignedCourseName && !dashboardCourses.some((course) => course.title.toLowerCase() === assignedCourseName.toLowerCase())) {
+        const isOfficeManagement = /office\\s*management/i.test(assignedCourseName);
+        const assignedCourseId = isOfficeManagement
+          ? 'office-management'
+          : assignedCourseName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const catalogItem = catalog.find((item) =>
+          String(item.payload?.type || '').toLowerCase() === 'course' &&
+          String(item.payload?.title || '').toLowerCase() === assignedCourseName.toLowerCase()
+        );
+
+        dashboardCourses.push({
+          ...(catalogItem?.payload || {}),
+          id: `assigned-${assignedCourseId}`,
+          courseId: assignedCourseId,
+          title: assignedCourseName,
+          progress: 0,
+          status: 'Active',
+          image: catalogItem?.payload?.image || '',
+          instructor: catalogItem?.payload?.instructor ? { name: catalogItem.payload.instructor } : { name: ACADEMY_BRAND_NAME },
+          learningOutcomes: Array.isArray(catalogItem?.payload?.outcomes) ? catalogItem.payload.outcomes : [],
+          isOfficeManagement,
+        });
+      }
+
+      setEnrolledCourses(dashboardCourses);
     } catch (error) {
       setPortalError(error instanceof Error ? error.message : 'Unable to load your dashboard.');
     } finally {
@@ -262,7 +292,7 @@ const StudentDashboard: React.FC = () => {
 
                  return (
                  <div key={course.id} className="glass p-4 rounded-2xl group hover:border-brand-neon/30 transition-all flex flex-col h-full border border-white/5">
-                    <div className="relative h-40 rounded-xl overflow-hidden mb-4 cursor-pointer" onClick={() => navigate(`/${lang}/course/${course.courseId || course.id}`)}>
+                    <div className="relative h-40 rounded-xl overflow-hidden mb-4 cursor-pointer" onClick={() => navigate(course.isOfficeManagement ? `/${lang}/course/${course.courseId}/learn` : `/${lang}/course/${course.courseId || course.id}`)}>
                        <img src={course.image} alt={course.title} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <PlayCircle className="w-12 h-12 text-white" />
@@ -285,7 +315,7 @@ const StudentDashboard: React.FC = () => {
                     <div className="mt-auto flex flex-col gap-2">
                         {status !== 'Completed' ? (
                            <>
-                              <button onClick={() => navigate(`/${lang}/course/${course.courseId || course.id}`)} className="w-full py-2 rounded-lg text-sm font-bold bg-brand-neon text-black hover:shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
+                              <button onClick={() => navigate(course.isOfficeManagement ? `/${lang}/course/${course.courseId}/learn` : `/${lang}/course/${course.courseId || course.id}`)} className="w-full py-2 rounded-lg text-sm font-bold bg-brand-neon text-black hover:shadow-lg hover:shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
                                  <PlayCircle className="w-4 h-4" /> Continue Learning
                               </button>
                               <div className="flex gap-2">
@@ -299,7 +329,7 @@ const StudentDashboard: React.FC = () => {
                            </>
                         ) : (
                            <div className="flex gap-2">
-                               <button onClick={() => navigate(`/${lang}/course/${course.courseId || course.id}`)} className="flex-1 py-2 rounded-lg text-sm font-bold bg-slate-800 text-green-400 hover:bg-slate-700 flex items-center justify-center gap-2 transition-all">
+                               <button onClick={() => navigate(course.isOfficeManagement ? `/${lang}/course/${course.courseId}/learn` : `/${lang}/course/${course.courseId || course.id}`)} className="flex-1 py-2 rounded-lg text-sm font-bold bg-slate-800 text-green-400 hover:bg-slate-700 flex items-center justify-center gap-2 transition-all">
                                   <CheckCircle className="w-4 h-4" /> Review
                                </button>
                                <button onClick={() => handleShareProgress(course.title, 100)} className="px-3 py-2 rounded-lg bg-blue-600/10 text-blue-400 hover:bg-blue-600/20 transition-all">
