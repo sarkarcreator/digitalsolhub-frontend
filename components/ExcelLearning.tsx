@@ -70,7 +70,7 @@ const ExcelLearning: React.FC<Props> = ({ courseId, courseName }) => {
   return <section className="mt-8">
     <div className="rounded-2xl border border-green-400/20 bg-green-400/5 p-5 mb-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div><p className="text-green-300 text-xs font-bold uppercase tracking-wider">Next Learning Stage Unlocked</p><h2 className="text-2xl font-extrabold mt-1 flex items-center gap-2"><BookOpen className="text-green-300"/> Step 3 — Microsoft Excel</h2><p className="text-sm text-gray-300 mt-2">Word final test pass karne par Excel automatically unlock hua. Excel ki progress Word se alag save hoti hai.</p></div>
+        <div><p className="text-green-300 text-xs font-bold uppercase tracking-wider">Next Learning Stage Unlocked</p><h2 className="text-2xl font-extrabold mt-1 flex items-center gap-2"><BookOpen className="text-green-300"/> Step 3 — Microsoft Excel</h2><p className="text-sm text-gray-300 mt-2">{courseName} ka Word final test pass karne par Excel automatically unlock hua. Excel ki progress Word se alag save hoti hai.</p></div>
         <div className="min-w-[210px] rounded-xl bg-slate-950/70 p-4"><div className="flex justify-between text-xs text-gray-400"><span>Excel progress</span><span>{data.progress.percentage}%</span></div><div className="h-2 bg-slate-800 rounded-full mt-2 overflow-hidden"><div className="h-full bg-green-400" style={{width:`${data.progress.percentage}%`}}/></div><p className="text-xs text-gray-400 mt-2">{data.progress.lessonsCompleted}/36 lessons • {data.progress.chaptersPassed}/12 chapters</p></div>
       </div>
     </div>
