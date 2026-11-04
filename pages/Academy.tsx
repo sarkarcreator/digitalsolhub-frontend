@@ -52,6 +52,7 @@ const Academy: React.FC = () => {
     .filter((item) => String(item.payload.type || '').toLowerCase() === 'course')
     .map((item) => {
       const linkedCourseId = String(item.payload.category || '').trim();
+      const isOfficeManagementCourse = /office[ -]management/i.test(String(item.payload.title || '')) || linkedCourseId.toLowerCase().replace(/[^a-z]/g, '') === 'officemanagement';
       const linkedCourse = null;
       return {
         id: `academy-${item.id}`,
@@ -62,14 +63,14 @@ const Academy: React.FC = () => {
         image: item.payload.image || '',
         rating: item.payload.rating || '',
         students: item.payload.students || '',
-        detailPath: /office[ -]management/i.test(String(item.payload.title || '')) || linkedCourseId.toLowerCase() === 'office-management' ? `/${lang}/course/${linkedCourseId || 'office-management'}` : `/${lang}/apply`,
+        detailPath: isOfficeManagementCourse ? `/${lang}/course/office-management` : `/${lang}/apply`,
       };
     }), [academyItems, lang]);
 
   const hasOfficeManagement = academyItems.some((item) => {
     const title = String(item.payload.title || '').toLowerCase();
     const slug = String(item.payload.category || '').toLowerCase();
-    return title.includes('office management') || slug === 'office-management';
+    return title.includes('office management') || slug.replace(/[^a-z]/g, '') === 'officemanagement';
   });
   const displayedCourses = hasOfficeManagement ? dynamicCourses : [...dynamicCourses, {
     id: 'office-management',
